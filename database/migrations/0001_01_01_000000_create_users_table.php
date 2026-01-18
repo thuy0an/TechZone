@@ -17,6 +17,16 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+
+        // Các cột bổ sung 18/1/26 (Tuấn)
+            $table->string('phone')->nullable()->unique(); // unique để tránh trùng SĐT
+            $table->text('address')->nullable(); // Địa chỉ mặc định
+            $table->enum('gender', ['male', 'female', 'other'])->nullable();
+            $table->date('birthday')->nullable();
+
+            // $table->integer('loyalty_points')->default(0); // Điểm tích lũy
+            $table->boolean('is_locked')->default(false); // Khóa tài khoản
+
             $table->rememberToken();
             $table->timestamps();
         });

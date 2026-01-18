@@ -124,6 +124,17 @@ a {
     background: var(--primary-dark);
 }
 
+/* .btn-register {
+    background: var(--accent-color);
+    color: var(--white) !important;
+    padding: 8px 20px;
+    border-radius: var(--radius);
+}
+
+.btn-register:hover {
+    background: var(--primary-dark);
+} */
+
 /* ============================================
    Hero Section
    ============================================ */
