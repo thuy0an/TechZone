@@ -49,7 +49,7 @@ return [
         // ---- ADMIN ----
         'admin' => [
             'driver' => 'session',
-            'provider' => 'admins   '
+            'provider' => 'admins'
         ],
 
         'admin_api' => [

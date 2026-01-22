@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Sản phẩm - TechZone Admin</title>
+    
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+
+    <div id="sidebar-placeholder"></div>
+
+    <div class="main-content">
+    
+    <div id="section-list">
+        <div class="page-header">
+            <h2 class="page-title">Danh sách sản phẩm</h2>
+            <button onclick="showCreateForm()" class="btn btn-primary">+ Thêm mới</button>
+        </div>
+
+        <div class="toolbar">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên hoặc mã SKU...">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th width="50">ID</th>
+                            <th width="80">Ảnh</th>
+                            <th>Mã SKU</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Giá nhập</th>
+                            <th>Kho</th>
+                            <th width="150">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TRANG CHI TIẾT SẢN PHẨM -->
+    <div id="section-detail" style="display: none;">
+        <div class="page-header">
+            <button onclick="backToList()" class="btn btn-warning">← Quay lại danh sách</button>
+            <h2 class="page-title" id="detail-title">Chi tiết sản phẩm</h2>
+        </div>
+
+        <div class="card" style="padding: 20px;">
+            <div class="detail-grid">
+                <div class="detail-image">
+                    <img id="d-image" src="" alt="Product Image" style="width: 100%; max-width: 400px; border-radius: 8px; border: 1px solid #ddd;">
+                </div>
+
+                <div class="detail-info">
+                    <h1 id="d-name" style="margin-bottom: 10px; color: #007bff;">Ten San Pham</h1>
+                    <p><strong>Mã SKU:</strong> <span id="d-code">...</span></p>
+                    <p><strong>Thương hiệu:</strong> <span id="d-brand">...</span></p>
+                    <p><strong>Danh mục:</strong> <span id="d-category">...</span></p>
+                    <hr>
+                    <p><strong>Giá nhập:</strong> <span id="d-price" style="color: red; font-weight: bold; font-size: 1.2em;">...</span></p>
+                    <p><strong>Tồn kho:</strong> <span id="d-stock">...</span></p>
+                    <p><strong>Trạng thái:</strong> <span id="d-status">...</span></p>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <h3>Thông số kỹ thuật</h3>
+                <table class="table" style="width: 100%; max-width: 600px; margin-top: 10px;">
+                    <tbody id="d-specs">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SỬA SẢN PHẨM -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Chỉnh sửa sản phẩm</h3>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <input type="hidden" id="edit-id"> 
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tên sản phẩm <span class="text-danger">*</span></label>
+                            <input type="text" id="edit-name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Mã SKU <span class="text-danger">*</span></label>
+                            <input type="text" id="edit-code" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Danh mục <span class="text-danger">*</span></label>
+                            <select id="edit-category" class="form-control" required>
+                                <option value="">-- Chọn danh mục --</option>
+                                </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Thương hiệu</label>
+                            <select id="edit-brand" class="form-control">
+                                <option value="">-- Chọn thương hiệu --</option>
+                                </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Giá nhập (VNĐ) <span class="text-danger">*</span></label>
+                            <input type="number" id="edit-price" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Tồn kho <span class="text-danger">*</span></label>
+                            <input type="number" id="edit-stock" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ảnh sản phẩm</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <img id="edit-preview" src="" style="width: 50px; height: 50px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px;">
+                            <input type="file" id="edit-image" accept="image/*">
+                        </div>
+                        <small class="text-muted">Bỏ qua nếu không muốn thay đổi ảnh.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Thông số kỹ thuật (JSON)</label>
+                        <textarea id="edit-specs" class="form-control" rows="3" placeholder='{"CPU": "...", "RAM": "..."}'></textarea>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label style="cursor: pointer;">
+                            <input type="checkbox" id="edit-hidden"> Ẩn sản phẩm khỏi web
+                        </label>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="../js/api.js"></script>
+    
+    <script src="../js/admin/main.js"></script>
+    
+    <script src="../js/admin/products.js"></script>
+</body>
+</html>

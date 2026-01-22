@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - TechZone Admin</title>
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+
+    <div id="sidebar-placeholder"></div>
+
+    <div class="content">
+        <h1>Tổng quan hệ thống</h1>
+        <p>Chào mừng bạn quay trở lại làm việc.</p>
+        </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/admin/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Kiểm tra Token Admin
+            const token = localStorage.getItem('admin_token');
+            const adminInfoStr = localStorage.getItem('admin_info');
+
+            if (!token || !adminInfoStr) {
+                alert('Bạn chưa đăng nhập quyền Admin!');
+                window.location.href = '../admin-login.html'; 
+                return;
+            }
+
+            const adminInfo = JSON.parse(adminInfoStr);
+            document.getElementById('admin-name').innerText = 
+                `Hi, ${adminInfo.name} (${adminInfo.role})`;
+        });
+
+        function logoutAdmin() {
+            if(confirm('Đăng xuất khỏi hệ thống?')) {
+                localStorage.removeItem('admin_token');
+                localStorage.removeItem('admin_info');
+                window.location.href = '../admin-login.html';
+            }
+        }
+    </script>
+</body>
+</html>

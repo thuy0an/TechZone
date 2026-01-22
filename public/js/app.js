@@ -7,7 +7,9 @@
 // DOM Ready
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('TechZone loaded!');
+    console.log('TechZone loaded!!!');
+    // check Login status 
+    checkLoginStatus();
 
     // Update cart count on page load
     updateCartCount();
@@ -172,6 +174,50 @@ function showNotification(message, type = 'success') {
         notification.style.animation = 'slideOut 0.3s ease';
         setTimeout(() => notification.remove(), 300);
     }, 3000);
+}
+
+function checkLoginStatus() {
+    const authAction = document.getElementById("auth-action");
+
+    const userInfo = JSON.parse(localStorage.getItem('user_info'));
+    const token = localStorage.getItem('access_token');
+
+    if (userInfo && token && authAction) {
+        authAction.innerHTML = `
+        <span class="nav-link" style="font-weight: bold; color: #333; border: 1px solid #ddd; border-radius: 10px; padding: 10px">
+                Xin chào, ${userInfo.name}
+            </span>
+            <a href="#" onclick="handleLogout()" class="nav-link btn-login" style="color: #dc3545;">
+                Đăng xuất
+            </a>
+        `;
+    }
+}
+
+async function handleLogout() {
+    if (confirm("Bạn có chắc muốn đăng xuất ?")) {
+        try {
+            const token = localStorage.getItem('access_token');
+
+            await fetch(`${API_BASE_URL}/auth/logout`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+        }
+        catch (error) {
+            console.log('Lỗi logout: ', error);
+        } finally {
+            localStorage.removeItem('user_info');
+            localStorage.removeItem('user_role');
+            localStorage.removeItem('access_token');
+
+            alert('Đăng xuất thành công !');
+            window.location.href = 'login.html';
+        }
+    }
 }
 
 // CSS Animation (thêm vào head)

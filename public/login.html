@@ -33,13 +33,26 @@
         button { 
             width: 100%; 
             padding: 10px; 
+            border-radius: 10px;
             background: #28a745; 
             color: white; 
             border: none; 
             cursor: pointer; 
+            font-size: 16px;
         }
         button:hover { 
             background: #218838; 
+        }
+        .back-btn{
+            text-align: center; 
+            margin-top: 10px; 
+            background-color: #ddd;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .back-btn:hover{
+            background: #b3b3b3;
         }
         .error { 
             color: red; 
@@ -69,6 +82,11 @@
     <p style="text-align: center; margin-top: 10px;">
         Chưa có tài khoản? <a href="register.html">Đăng ký ngay</a>
     </p>
+
+    <p class="back-btn">
+        <a href="index.html">Quay lại trang chủ</a>
+    </p>
+    
 </div>
 
 <script src="js/api.js"></script>
