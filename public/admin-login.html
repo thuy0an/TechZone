@@ -17,11 +17,11 @@
                 <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3rem;"></i>
             </div>
             <h4 class="fw-bold text-dark">TechZone Admin</h4>
-            <p class="text-muted small">Đăng nhập để vào trang quản trị</p>
+            <p class="text-muted medium">Đăng nhập để vào trang quản trị</p>
         </div>
 
         <div class="login-body">
-            <form id="loginForm">
+            <form id="adminLoginForm">
                 <div class="form-floating mb-3">
                     <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
                     <label for="email">Địa chỉ Email</label>
@@ -40,7 +40,9 @@
                         </label>
                     </div>
                 </div>
-
+                
+                <div id="message" class="mb-3 text-center fw-bold"></div>
+                
                 <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-primary btn-lg">
                         Đăng nhập <i class="bi bi-arrow-right-short"></i>

@@ -58,13 +58,17 @@ function renderTable(products) {
         const stockText = p.stock_quantity > 0 ? 'Còn hàng' : 'Hết hàng';
 
         return `
-            <tr>
+            <tr class="text-center">
                 <td>#${p.id}</td>
-                <td><img src="${imgUrl}" class="table-img" alt="${p.code}"></td>
+                <td><img src="${imgUrl}" class="w-100" alt="${p.code}"></td>
                 <td><strong>${p.code}</strong></td>
-                <td>${p.name}</td>
-                <td>${formatCurrency(p.current_import_price)}</td>
-                <td><span class="stock-badge ${stockClass}">${p.stock_quantity}</span></td>
+                <td>
+                    <input type="text" class="bg-secondary text-white fw-medium text-center outline-0 border-0 rounded-pill px-3 py-2"
+                    value=${p.name}>
+                    
+                </td>
+                <td class="text-primary fw-bold">${formatCurrency(p.current_import_price)}</td>
+                <td class="text-danger fw-medium"><span class="stock-badge ${stockClass}">${p.stock_quantity}</span></td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-info text-white" onclick="viewProduct(${p.id})"><i class="bi bi-eye"></i></button>
                     <button class="btn btn-sm btn-warning" onclick="openEditModal(${p.id})"><i class="bi bi-pencil"></i></button>
