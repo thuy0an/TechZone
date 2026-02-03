@@ -65,10 +65,10 @@ function renderTable(products) {
                 <td>${p.name}</td>
                 <td>${formatCurrency(p.current_import_price)}</td>
                 <td><span class="stock-badge ${stockClass}">${p.stock_quantity}</span></td>
-                <td>
-                    <button class="btn btn-sm btn-info" onclick="viewProduct(${p.id})" title="Chi tiết">👁️</button>
-                    <button class="btn btn-sm btn-warning" onclick="openEditModal(${p.id})" title="Sửa">✏️</button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})" title="Xóa">🗑️</button>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-info text-white" onclick="viewProduct(${p.id})"><i class="bi bi-eye"></i></button>
+                    <button class="btn btn-sm btn-warning" onclick="openEditModal(${p.id})"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})"><i class="bi bi-trash"></i></button>
                 </td>
             </tr>
         `;
@@ -163,8 +163,8 @@ async function viewProduct(id) {
         }
 
         // --- Chuyển View ---
-        document.getElementById('section-list').style.display = 'none';   // Ẩn danh sách
-        document.getElementById('section-detail').style.display = 'block'; // Hiện chi tiết
+        document.getElementById('section-list').classList.add('d-none');
+        document.getElementById('section-detail').classList.remove('d-none');
 
     } catch (error) {
         console.error(error);
@@ -174,11 +174,26 @@ async function viewProduct(id) {
 
 // Hàm quay lại
 function backToList() {
-    document.getElementById('section-detail').style.display = 'none'; // Ẩn chi tiết
-    document.getElementById('section-list').style.display = 'block';  // Hiện danh sách
+    document.getElementById('section-detail').classList.add('d-none');
+    document.getElementById('section-list').classList.remove('d-none');
 }
 
+function openCreateModal() {
+    document.getElementById('editForm').reset();
+    document.getElementById('edit-id').value = ''; // Xóa ID để hiểu là tạo mới
+    document.getElementById('modalTitle').innerText = 'Thêm sản phẩm mới';
+    document.getElementById('edit-preview').src = 'https://via.placeholder.com/50';
+
+    const modalEl = document.getElementById('editModal');
+    if (!editModalInstance) {
+        editModalInstance = new bootstrap.Modal(modalEl);
+    }
+    editModalInstance.show();
+}
+
+// Thông tin Modal sửa sản phẩm
 const editModal = document.getElementById('editModal');
+let editModalInstance = null;
 const editForm = document.getElementById('editForm');
 
 async function loadOptions() {
@@ -249,22 +264,28 @@ async function openEditModal(id) {
             imgPreview.src = 'https://via.placeholder.com/50';
         }
 
-        editModal.classList.add('show');
+        const modalEl = document.getElementById('editModal');
+        document.getElementById('modalTitle').innerText = 'Cập nhật sản phẩm';
+
+        if (!editModalInstance) {
+            editModalInstance = new bootstrap.Modal(modalEl);
+        }
+        editModalInstance.show();
 
     } catch (error) {
         alert('Lỗi tải dữ liệu: ' + error.message);
     }
 }
 
-function closeEditModal() {
-    editModal.classList.remove('show');
-    editForm.reset();
-    document.getElementById('edit-preview').src = '';
-}
+// function closeEditModal() {
+//     editModal.classList.remove('show');
+//     editForm.reset();
+//     document.getElementById('edit-preview').src = '';
+// }
 
 window.onclick = function (event) {
-    if (event.target == editModal) {
-        closeEditModal();
+    if (event.target == editModalInstance) {
+        editModalInstance.hide();
     }
 }
 
@@ -316,7 +337,7 @@ editForm.addEventListener('submit', async function (e) {
 
         if (response.ok) {
             alert('Cập nhật thành công!');
-            closeEditModal();
+            editModalInstance.hide();
             loadProducts();
         } else {
             alert('Lỗi: ' + (result.message || 'Không thể cập nhật'));

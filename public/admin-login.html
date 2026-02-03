@@ -3,59 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản trị hệ thống - TechZone</title>
-    <link rel="stylesheet" href="css/style.css">
-    <style>
-        body { 
-            background-color: #f4f6f9; 
-        } 
-        .admin-container { 
-            width: 400px; 
-            margin: 100px auto; 
-            padding: 30px; 
-            background: white; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
-            border-top: 5px solid #dc3545; 
-        }
-        .btn-admin { 
-            background-color: #dc3545; 
-            color: white; 
-        }
-        .btn-admin:hover { 
-            background-color: #c82333; 
-        }
-    </style>
-</head>
-<body>
-
-<div class="admin-container">
-    <h2 style="text-align: center; color: #dc3545;">Hệ Thống Quản Trị</h2>
-    <p style="text-align: center; color: #666; font-size: 0.9em;">Dành cho Nhân viên & Quản lý</p>
+    <title>Đăng nhập Admin - TechZone</title>
     
-    <form id="adminLoginForm">
-        <div class="form-group">
-            <label>Email nội bộ</label>
-            <input type="email" id="email" required placeholder="admin@techzone.com">
-        </div>
-        <div class="form-group">
-            <label for="password">Mật khẩu</label>
-            <input type="password" id="password" required>
-        </div>
-        
-        <div id="message" class="error"></div>
-        
-        <button type="submit" class="btn-admin" style="width: 100%; padding: 10px; border:none; margin-top:10px; cursor:pointer">
-            Đăng nhập vào Admin
-        </button>
-    </form>
-    <p style="text-align: center; margin-top: 20px;">
-        <a href="index.html" style="font-size: 0.9em;">← Quay về trang bán hàng</a>
-    </p>
-</div>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="login-page">
 
-<script src="js/api.js"></script>
-<script src="js/admin/admin-auth.js"></script>
+    <div class="login-card">
+        <div class="login-header">
+            <div class="mb-3">
+                <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3rem;"></i>
+            </div>
+            <h4 class="fw-bold text-dark">TechZone Admin</h4>
+            <p class="text-muted small">Đăng nhập để vào trang quản trị</p>
+        </div>
 
+        <div class="login-body">
+            <form id="loginForm">
+                <div class="form-floating mb-3">
+                    <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+                    <label for="email">Địa chỉ Email</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input type="password" class="form-control" id="password" placeholder="Password" required>
+                    <label for="password">Mật khẩu</label>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="remember">
+                        <label class="form-check-label small" for="remember">
+                            Ghi nhớ tôi
+                        </label>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        Đăng nhập <i class="bi bi-arrow-right-short"></i>
+                    </button>
+                </div>
+            </form>
+            
+            <div class="text-center mt-4">
+                <small class="text-muted">&copy; 2026 TechZone System</small>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="js/api.js"></script>
+    <script src="js/admin/admin-auth.js"></script>
 </body>
 </html>
