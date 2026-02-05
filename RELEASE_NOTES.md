@@ -2,6 +2,8 @@
 
 Bản cập nhật này tập trung hoàn thiện module quản lý sản phẩm phía Admin, chuyển đổi sang mô hình Hybrid (Blade + AJAX) và tích hợp upload ảnh lên Cloudinary.
 
+#### `Lưu ý hãy đọc bước chuẩn bị dữ liệu ở file PRODUCT_API_GUIDE hoặc seeding dữ liệu trước`
+
 ## 1. Tính năng mới
 - **Cloudinary Integration:** - Đã cài đặt package `cloudinary-labs/cloudinary-laravel`.
   - Ảnh sản phẩm giờ sẽ được upload lên Cloud và lưu URL vào DB.
