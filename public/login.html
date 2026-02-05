@@ -4,92 +4,116 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập - TechZone</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
     <style>
-        body { 
-            font-family: sans-serif; 
-            display: flex; 
-            justify-content: center; 
-            padding-top: 50px; 
+        body {
+            background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%); 
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        .form-container { 
-            width: 400px; 
-            padding: 20px; 
-            border: 1px solid #ccc; 
-            border-radius: 8px; 
-        }
-        .form-group { 
-            margin-bottom: 15px; 
-        }
-        .form-group label { 
-            display: block; 
-            margin-bottom: 5px;
-        }
-        .form-group input {
+        .auth-card {
             width: 100%;
-            padding: 8px; 
-            box-sizing: border-box; 
+            max-width: 420px;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            background: white;
         }
-        button { 
-            width: 100%; 
-            padding: 10px; 
-            border-radius: 10px;
-            background: #28a745; 
-            color: white; 
-            border: none; 
-            cursor: pointer; 
-            font-size: 16px;
+        .auth-header {
+            background: #0d6efd; 
+            padding: 30px;
+            text-align: center;
+            color: white;
         }
-        button:hover { 
-            background: #218838; 
+        .auth-body {
+            padding: 40px 30px;
         }
-        .back-btn{
-            text-align: center; 
-            margin-top: 10px; 
-            background-color: #ddd;
-            padding: 10px;
-            border-radius: 10px;
-            cursor: pointer;
+        .form-floating > label {
+            left: 5px; 
         }
-        .back-btn:hover{
-            background: #b3b3b3;
+        .btn-tech {
+            background: #0d6efd;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: 0.3s;
         }
-        .error { 
-            color: red; 
-            font-size: 0.9em; 
-            margin-top: 5px; 
+        .btn-tech:hover {
+            background: #0b5ed7;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+        }
+        .social-login .btn {
+            border: 1px solid #ddd;
+            width: 40px; 
+            height: 40px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        .social-login .btn:hover {
+            background-color: #f8f9fa;
         }
     </style>
 </head>
 <body>
 
-<div class="form-container">
-    <h2 style="text-align: center">Đăng Nhập</h2>
-    <form id="loginForm">
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" required>
-        </div>
-        <div class="form-group">
-            <label for="password">Mật khẩu</label>
-            <input type="password" id="password" required>
+    <div class="auth-card">
+        <div class="auth-header">
+            <a href="index.html" class="text-white text-decoration-none">
+                <i class="bi bi-cpu-fill fs-1 mb-2"></i>
+                <h3 class="fw-bold mb-0">TechZone</h3>
+            </a>
+            <p class="mb-0 opacity-75 small">Đăng nhập để mua sắm</p>
         </div>
         
-        <div id="message" class="error"></div>
-        
-        <button type="submit">Đăng Nhập</button>
-    </form>
-    <p style="text-align: center; margin-top: 10px;">
-        Chưa có tài khoản? <a href="register.html">Đăng ký ngay</a>
-    </p>
+        <div class="auth-body">
+            <form id="loginForm">
+                <div class="form-floating mb-3">
+                    <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+                    <label for="email"><i class="bi bi-envelope me-2"></i>Email</label>
+                </div>
 
-    <p class="back-btn">
-        <a href="index.html">Quay lại trang chủ</a>
-    </p>
-    
-</div>
+                <div class="form-floating mb-4">
+                    <input type="password" class="form-control" id="password" placeholder="Password" required>
+                    <label for="password"><i class="bi bi-key me-2"></i>Mật khẩu</label>
+                </div>
 
-<script src="js/api.js"></script>
-<script src="js/auth.js"></script>
+                <div id="message" class="text-center text-danger fw-bold mb-3 small" style="min-height: 20px;"></div>
+
+                <div class="d-grid gap-2 mb-4">
+                    <button type="submit" class="btn btn-tech border-0">
+                        ĐĂNG NHẬP
+                    </button>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <a href="#" class="text-decoration-none small text-muted">Quên mật khẩu?</a>
+                    <a href="register.html" class="text-decoration-none small fw-bold text-primary">Tạo tài khoản mới</a>
+                </div>
+
+                <div class="text-center">
+                    <p class="text-muted small mb-3">Hoặc đăng nhập với</p>
+                    <div class="social-login d-flex justify-content-center gap-3">
+                        <a href="#" class="btn text-danger"><i class="bi bi-google"></i></a>
+                        <a href="#" class="btn text-primary"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="btn text-dark"><i class="bi bi-github"></i></a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
 </body>
 </html>

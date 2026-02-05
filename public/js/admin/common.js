@@ -65,12 +65,12 @@ function renderSidebar() {
             
             <hr class="border-secondary">
             
-            <div class="dropdown align-middle p-2">
-                <a href="#" class="d-flex align-items-center justify-content-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+            <div class="dropdown p-3">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
                     <img src="https://ui-avatars.com/api/?name=${adminName}&background=0D8ABC&color=fff" alt="" width="32" height="32" class="rounded-circle me-2">
-                    <span id="admin-name" class="fw-bold text-primary">${adminName}</span>
+                    <strong class="text-truncate" style="max-width: 150px;">${adminName}</strong>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-dark text-small shadow text-center" aria-labelledby="dropdownUser1">
+                <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
                     <li><a class="dropdown-item" href="#">Cài đặt</a></li>
                     <li><a class="dropdown-item" href="#">Hồ sơ</a></li>
                     <li><hr class="dropdown-divider"></li>

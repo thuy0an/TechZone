@@ -64,6 +64,7 @@ function renderTable(products) {
                 <td><strong>${p.code}</strong></td>
                 <td>
                     <input type="text" class="bg-secondary text-white fw-medium text-center outline-0 border-0 rounded-pill px-3 py-2"
+                    readonly
                     value=${p.name}>
                     
                 </td>
