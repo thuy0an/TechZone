@@ -8,7 +8,8 @@ class Brand extends BaseModel
 {
     protected $fillable = [
         'name', 
-        'logo'
+        'logo',
+        'status'
     ];
 
     protected function getSearchableFields(): array {

@@ -9,12 +9,14 @@ class Category extends Model
     protected $fillable = [
         'name',
         'default_profit_margin',
-        'spec_template'
+        'spec_template',
+        'status'
     ];
 
     protected $casts = [
         'spec_template' => 'array',
-        'default_profit_margin' => 'double'
+        'default_profit_margin' => 'double',
+        'status' => 'boolean'
     ];
 
     protected function getSearchableFields(): array

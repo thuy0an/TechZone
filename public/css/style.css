@@ -113,27 +113,6 @@ a {
     margin-left: 5px;
 }
 
-.btn-login {
-    background: var(--primary-color);
-    color: var(--white) !important;
-    padding: 8px 20px;
-    border-radius: var(--radius);
-}
-
-.btn-login:hover {
-    background: var(--primary-dark);
-}
-
-/* .btn-register {
-    background: var(--accent-color);
-    color: var(--white) !important;
-    padding: 8px 20px;
-    border-radius: var(--radius);
-}
-
-.btn-register:hover {
-    background: var(--primary-dark);
-} */
 
 /* ============================================
    Hero Section
@@ -172,7 +151,7 @@ a {
     transition: var(--transition);
     border: none;
 }
-
+/* 
 .btn-primary {
     background: var(--white);
     color: var(--primary-color);
@@ -181,12 +160,12 @@ a {
 .btn-primary:hover {
     background: var(--bg-color);
     transform: translateY(-2px);
-}
+} */
 
-.btn-secondary {
+/* .btn-secondary {
     background: var(--secondary-color);
     color: var(--white);
-}
+} */
 
 .btn-secondary:hover {
     opacity: 0.9;
