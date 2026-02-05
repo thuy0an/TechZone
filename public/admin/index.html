@@ -4,43 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - TechZone Admin</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../css/admin.css">
 </head>
 <body>
 
-    <div id="sidebar-placeholder"></div>
+    <div class="d-flex">
+        <div id="sidebar-placeholder"></div>
 
-    <div class="content">
-        <h1>Tổng quan hệ thống</h1>
-        <p>Chào mừng bạn quay trở lại làm việc.</p>
+        <div class="main-content w-100 p-4">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                <div>
+                    <h2 class="h3 mb-0 text-gray-800">📊 Tổng quan hệ thống</h2>
+                    <p class="text-muted mb-0">Chào mừng quay trở lại làm việc!</p>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0 border-start border-4 border-primary h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div class="text-uppercase text-primary fw-bold small mb-1">Doanh thu tháng</div>
+                                    <div class="h4 mb-0 fw-bold text-dark">45,000,000 đ</div>
+                                </div>
+                                <div class="fs-1 text-primary opacity-25">
+                                    <i class="bi bi-currency-dollar"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0 border-start border-4 border-success h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div class="text-uppercase text-success fw-bold small mb-1">Đơn hàng mới</div>
+                                    <div class="h4 mb-0 fw-bold text-dark">12</div>
+                                </div>
+                                <div class="fs-1 text-success opacity-25">
+                                    <i class="bi bi-receipt"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0 border-start border-4 border-info h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div class="text-uppercase text-info fw-bold small mb-1">Sản phẩm</div>
+                                    <div class="h4 mb-0 fw-bold text-dark">156</div>
+                                </div>
+                                <div class="fs-1 text-info opacity-25">
+                                    <i class="bi bi-box-seam"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0 border-start border-4 border-warning h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div class="text-uppercase text-warning fw-bold small mb-1">Khách hàng</div>
+                                    <div class="h4 mb-0 fw-bold text-dark">89</div>
+                                </div>
+                                <div class="fs-1 text-warning opacity-25">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 fw-bold text-primary"><i class="bi bi-clock-history"></i> Hoạt động gần đây</h6>
+                </div>
+                <div class="card-body text-center py-5 text-muted">
+                    <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" width="80" class="mb-3 opacity-50">
+                    <p>Chưa có dữ liệu hoạt động mới.</p>
+                </div>
+            </div>
         </div>
+    </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/api.js"></script>
-    <script src="../js/admin/main.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Kiểm tra Token Admin
-            const token = localStorage.getItem('admin_token');
-            const adminInfoStr = localStorage.getItem('admin_info');
-
-            if (!token || !adminInfoStr) {
-                alert('Bạn chưa đăng nhập quyền Admin!');
-                window.location.href = '../admin-login.html'; 
-                return;
-            }
-
-            const adminInfo = JSON.parse(adminInfoStr);
-            document.getElementById('admin-name').innerText = 
-                `Hi, ${adminInfo.name} (${adminInfo.role})`;
-        });
-
-        function logoutAdmin() {
-            if(confirm('Đăng xuất khỏi hệ thống?')) {
-                localStorage.removeItem('admin_token');
-                localStorage.removeItem('admin_info');
-                window.location.href = '../admin-login.html';
-            }
-        }
-    </script>
+    <script src="../js/admin/common.js"></script>
 </body>
 </html>
