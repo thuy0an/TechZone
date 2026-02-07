@@ -2,8 +2,8 @@
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Admin\ProductController;
-use App\Http\Controllers\Api\OptionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,7 +16,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// ----- PUBLIC ROUTES -----
+
+/*
+|--------------------------------------------------------------------------
+| PUBLIC ROUTES
+|--------------------------------------------------------------------------
+*/
 // Route test API
 Route::get('/test', function () {
     return response()->json([
@@ -31,12 +36,13 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('options/brands', [OptionController::class, 'getBrands']);
-Route::get('options/categories', [OptionController::class, 'getCategories']);
 
 
-// ----- AUTH ROUTES -----
-
+/*
+|--------------------------------------------------------------------------
+| AUTH ROUTES
+|--------------------------------------------------------------------------
+*/
 // Nhóm Public (Không cần đăng nhập)
 Route::prefix('auth')->group(function () {
     // Khách hàng
@@ -55,7 +61,11 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 
-// ----- PRODUCT ROUTES ------
+/*
+|--------------------------------------------------------------------------
+| PRODUCT ROUTES
+|--------------------------------------------------------------------------
+*/
 // Public routes (Ai cũng xem được)
 Route::get('products', [ProductController::class, 'index']);
 Route::get('products/{id}', [ProductController::class, 'show']);
@@ -66,6 +76,21 @@ Route::middleware(['auth:sanctum', 'ability:admin'])->prefix('admin')->group(fun
     Route::post('products/{id}', [ProductController::class, 'update']); 
     Route::delete('products/{id}', [ProductController::class, 'destroy']);
 });
+
+
+/*
+|--------------------------------------------------------------------------
+| CART ROUTES
+|--------------------------------------------------------------------------
+*/
+Route::prefix('cart')->group(function () {
+    Route::get('/', [CartController::class, 'index']);           
+    Route::post('/add', [CartController::class, 'addToCart']);   
+    Route::put('/update/{itemId}', [CartController::class, 'updateQuantity']); 
+    Route::delete('/remove/{itemId}', [CartController::class, 'removeItem']);  
+    Route::delete('/clear', [CartController::class, 'clearCart']); 
+});
+
 
 /*
 |--------------------------------------------------------------------------

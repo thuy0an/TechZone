@@ -15,6 +15,9 @@ Route::get('/register', function () {
     return view('client.auth.register');
 })->name('register');
 
+// Route xem chi tiết sản phẩm
+Route::get('/product/{id}', [App\Http\Controllers\Client\ProductController::class, 'show'])->name('client.product.detail');
+
 
 // --- ROUTES ADMIN ---
 Route::prefix('admin')->group(function () {

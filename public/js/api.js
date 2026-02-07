@@ -5,6 +5,7 @@
 
 // Base URL của API
 const API_BASE_URL = '/api';
+const CART_KEY = 'techzone_cart'
 
 /**
  * Hàm fetch wrapper với xử lý lỗi
@@ -15,6 +16,12 @@ const API_BASE_URL = '/api';
 async function apiRequest(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
 
+    const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Session-ID': getSessionId() // <---Luôn gửi Session ID
+    };
+
     const defaultOptions = {
         headers: {
             'Content-Type': 'application/json',
@@ -22,32 +29,57 @@ async function apiRequest(endpoint, options = {}) {
         },
     };
 
-    const config = { ...defaultOptions, ...options };
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    // Merge options
+    const config = {
+        ...options,
+        headers: {
+            ...headers,
+            ...(options.headers || {}) // Cho phép ghi đè header
+        },
+        cache: 'no-store'
+    };
 
     try {
         const response = await fetch(url, config);
+        const result = await response.json();
 
+        // Xử lý lỗi từ Server trả về (4xx, 5xx)
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(result.message || `Lỗi ${response.status}: ${response.statusText}`);
         }
 
-        return await response.json();
+        return result;
     } catch (error) {
         console.error('API Error:', error);
         throw error;
     }
 }
 
+
 // ============================================
-// Test API
+// HELPERS
 // ============================================
 
 /**
- * Kiểm tra kết nối API
- * @returns {Promise<object>}
+ * Lấy hoặc tạo Session ID cho khách vãng lai
+ * (Dùng để định danh giỏ hàng khi chưa đăng nhập)
  */
-async function testAPI() {
-    return await apiRequest('/test');
+function getSessionId() {
+    let sessionId = localStorage.getItem('techzone_session_id');
+    if (!sessionId) {
+        // Tự sinh UUID v4 đơn giản
+        sessionId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+        localStorage.setItem('techzone_session_id', sessionId);
+    }
+    return sessionId;
 }
 
 // ============================================
@@ -116,55 +148,126 @@ async function getCategories() {
 }
 
 // ============================================
-// Cart API (Local Storage based)
+// Cart API (Database Server-side)
+// ============================================
+
+
+/**
+ * Lấy giỏ hàng hiện tại từ Local Storage
+ */
+
+function getLocalCart() {
+    const cart = localStorage.getItem(CART_KEY);
+    return cart ? JSON.parse(cart) : { items: [], total_price: 0 };
+}
+
+/**
+ * Lưu giỏ hàng hiện tại vào localStorage và update UI
+ */
+function saveLocalCart(cartData) {
+    localStorage.setItem(CART_KEY, JSON.stringify(cartData));
+    updateBadgeUI(cartData);
+}
+
+/**
+ * Lấy giỏ hàng hiện tại từ Server lưu về Local
+ */
+async function syncCartFromServer() {
+    try {
+        const res = await apiRequest('/cart?t=' + new Date().getTime());
+        if (res && res.data) {
+            saveLocalCart(res.data);
+            return res.data;
+        }
+    } catch (e) {
+        console.warn('Không thể đồng bộ giỏ hàng:', e);
+    }
+    return null;
+}
+
+/**
+ * Thêm sản phẩm vào giỏ - lưu vào DB
+ * @param {number} productId 
+ * @param {number} quantity 
+ */
+async function addToCart(productId, quantity = 1) {
+    return await apiRequest('/cart/add', {
+        method: 'POST',
+        body: JSON.stringify({
+            product_id: productId,
+            quantity: parseInt(quantity)
+        })
+    });
+}
+
+/**
+ * Cập nhật số lượng item - lưu vào DB
+ * @param {number} itemId - ID của item trong giỏ (không phải ID sản phẩm)
+ * @param {number} quantity - Số lượng mới
+ */
+async function updateCartItem(itemId, quantity) {
+    return await apiRequest(`/cart/update/${itemId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ quantity: parseInt(quantity) })
+    });
+}
+
+/**
+ * Xóa sản phẩm khỏi giỏ - lưu vào DB
+ */
+async function removeCartItem(itemId) {
+    return await apiRequest(`/cart/remove/${itemId}`, {
+        method: 'DELETE'
+    });
+}
+
+/**
+ * Xóa toàn bộ giỏ hàng - lưu vào DB
+ */
+async function clearCart() {
+    return await apiRequest('/cart/clear', {
+        method: 'DELETE'
+    });
+}
+
+
+// ============================================
+// UI Helper 
 // ============================================
 
 /**
- * Lấy giỏ hàng từ localStorage
- * @returns {array}
+ * Cập nhật Badge Giỏ hàng
+ * @param {object|null} cart - Dữ liệu giỏ hàng mới nhất (nếu có)
  */
-function getCart() {
-    const cart = localStorage.getItem('cart');
-    return cart ? JSON.parse(cart) : [];
-}
+function updateBadgeUI(cart = null) {
+    if (!cart) cart = getLocalCart();
 
-/**
- * Thêm sản phẩm vào giỏ hàng
- * @param {object} product - Sản phẩm cần thêm
- * @param {number} quantity - Số lượng
- */
-function addToCart(product, quantity = 1) {
-    const cart = getCart();
-    const existingItem = cart.find(item => item.id === product.id);
+    const count = (cart.items)
+        ? cart.items.reduce((sum, item) => sum + parseInt(item.quantity), 0)
+        : 0;
 
-    if (existingItem) {
-        existingItem.quantity += quantity;
-    } else {
-        cart.push({ ...product, quantity });
-    }
+    const badge = document.getElementById('cart-badge');
+    if (badge) {
+        badge.innerText = count;
+        badge.style.display = count > 0 ? 'inline-block' : 'none';
 
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartCount();
-}
-
-/**
- * Xóa sản phẩm khỏi giỏ hàng
- * @param {number} productId - ID sản phẩm
- */
-function removeFromCart(productId) {
-    const cart = getCart().filter(item => item.id !== productId);
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartCount();
-}
-
-/**
- * Cập nhật số lượng trong badge giỏ hàng
- */
-function updateCartCount() {
-    const cart = getCart();
-    const count = cart.reduce((total, item) => total + item.quantity, 0);
-    const countElement = document.getElementById('cart-count');
-    if (countElement) {
-        countElement.textContent = count;
+        // Hiệu ứng
+        if (count > 0) {
+            badge.classList.add('bg-warning');
+            setTimeout(() => badge.classList.remove('bg-warning'), 300);
+        }
     }
 }
+
+/**
+ * Cập nhật Badge Giỏ hàng
+ * @param {number} amount - Số tiền
+ */
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    updateBadgeUI();
+    syncCartFromServer();
+});

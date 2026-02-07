@@ -1,17 +1,21 @@
 /**
- * public/js/admin/product-manager.js
+ * public/js/admin/product.js
  */
 
 let productModal;
+let viewProductModal;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Khởi tạo Bootstrap Modal
     const modalEl = document.getElementById('productModal');
     if (modalEl) {
         productModal = new bootstrap.Modal(modalEl);
     }
 
-    // Gán sự kiện Submit Form
+    const viewModalEl = document.getElementById('viewProductModal');
+    if (viewModalEl) {
+        viewProductModal = new bootstrap.Modal(viewModalEl);
+    }
+
     const form = document.getElementById('productForm');
     if (form) {
         form.addEventListener('submit', handleFormSubmit);
@@ -55,6 +59,64 @@ function openEditModal(product) {
 
     document.getElementById('modalTitle').innerText = 'Cập nhật: ' + product.name;
     productModal.show();
+}
+
+// --- MODAL XEM CHI TIẾT ---
+function openViewModal(product) {
+    document.getElementById('v-name').innerText = product.name;
+    document.getElementById('v-code').innerText = product.code;
+    document.getElementById('v-category').innerText = product.category ? product.category.name : 'N/A';
+    document.getElementById('v-brand').innerText = product.brand ? product.brand.name : 'N/A';
+    document.getElementById('v-price').innerText = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.current_import_price);
+    document.getElementById('v-stock').innerText = product.stock_quantity;
+    document.getElementById('v-profit').innerText = product.specific_profit_margin ? product.specific_profit_margin + '%' : 'Mặc định';
+    document.getElementById('v-desc').innerText = product.description || 'Không có mô tả';
+
+    // Xử lý ảnh
+    const imgEl = document.getElementById('v-image');
+    if (product.image) {
+        if (product.image.startsWith('http')) {
+            imgEl.src = product.image;
+        } else {
+            imgEl.src = '/' + product.image;
+        }
+    } else {
+        imgEl.src = 'https://via.placeholder.com/150';
+    }
+
+    // Xử lý Specs (JSON)
+    const specsDiv = document.getElementById('v-specs');
+    specsDiv.innerHTML = ''; // Reset
+    // Kiểm tra dữ liệu
+    let specs = product.specifications;
+
+    // Nếu vì lý do nào đó nó vẫn là string (do chưa refresh cache model), ta parse nó
+    if (typeof specs === 'string') {
+        try {
+            specs = JSON.parse(specs);
+        } catch (e) {
+            specs = {};
+        }
+    }
+
+    // Render ra HTML
+    if (specs && typeof specs === 'object' && Object.keys(specs).length > 0) {
+        let html = '<ul class="list-unstyled mb-0">';
+
+        // Dùng Object.entries để duyệt qua key-value
+        for (const [key, value] of Object.entries(specs)) {
+            html += `<li class="mb-1">
+                    <span class="fw-bold text-dark">${key}:</span> 
+                    <span class="text-secondary">${value}</span>
+                 </li>`;
+        }
+        html += '</ul>';
+        specsDiv.innerHTML = html;
+    } else {
+        specsDiv.innerHTML = '<span class="text-muted fst-italic">Không có thông số kỹ thuật</span>';
+    }
+
+    viewProductModal.show();
 }
 
 

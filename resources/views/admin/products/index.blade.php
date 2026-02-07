@@ -30,8 +30,8 @@
                     <thead class="table-light">
                         <tr class="text-center">
                             <th width="5%">ID</th>
-                            <th width="10%">Ảnh</th>
-                            <th width="15%">Mã SKU</th>
+                            <th width="15%">Ảnh</th>
+                            <th width="10%">Mã SKU</th>
                             <th width="20%">Tên sản phẩm</th>
                             <th width="15%">Giá nhập</th>
                             <th width="10%">Tồn kho</th>
@@ -45,9 +45,9 @@
                             <td>{{ $product->id }}</td>
                             <td>
                                 @if(Str::startsWith($product->image, 'http'))
-                                    <img src="{{ $product->image }}" class="table-img" style="width: 50px; height: 50px; object-fit: cover;">
+                                    <img src="{{ $product->image }}" class="table-img" style="width: 100px; height: 75px; object-fit: contain;">
                                 @else
-                                    <img src="{{ asset($product->image ?? 'https://via.placeholder.com/50') }}" class="table-img" style="width: 50px; height: 50px; object-fit: cover;">
+                                    <img src="{{ asset($product->image ?? 'https://via.placeholder.com/50') }}" class="table-img" style="width: 125px; height: 75px; object-fit: contain;">
                                 @endif
                             </td>
                             <td class="fw-bold text-primary">{{ $product->code }}</td>
@@ -68,7 +68,7 @@
                                 @endif
                             </td>
                             <td>
-                                {!! $product->is_hidden ? '<span class="badge bg-secondary">Ẩn</span>' : '<span class="badge bg-primary">Hiện</span>' !!}
+                                {!! $product->is_hidden ? '<span class="badge bg-secondary px-3 py-2">Ẩn</span>' : '<span class="badge bg-primary px-3 py-2">Hiện</span>' !!}
                             </td>
                             <td class="text-center">
                                 <button class="btn btn-sm btn-warning" 
@@ -77,6 +77,9 @@
                                 </button>
                                 <button class="btn btn-sm btn-danger" onclick="deleteProduct({{ $product->id }})">
                                     <i class="bi bi-trash"></i>
+                                </button>
+                                <button class="btn btn-sm btn-info text-white me-1" onclick='openViewModal(@json($product))'>
+                                    <i class="bi bi-eye"></i>
                                 </button>
                             </td>
                         </tr>
@@ -99,10 +102,11 @@
     </div>
 </div>
 
+{{-- MODAL SỬA SẢN PHẨM --}}
 <div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-warning">
                 <h5 class="modal-title" id="modalTitle">Cập nhật sản phẩm</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -195,6 +199,66 @@
                         <button type="submit" class="btn btn-primary px-4 fw-bold"><i class="bi bi-save"></i> Lưu dữ liệu</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{{-- MODAL XEM CHI TIẾT SẢN PHẨM --}}
+<div class="modal fade" id="viewProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Chi tiết sản phẩm</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <img id="v-image" src="" class="img-fluid rounded border mb-3" style="max-height: 250px;">
+                    </div>
+                    <div class="col-md-8">
+                        <h4 id="v-name" class="fw-bold"></h4>
+                        <p class="text-muted">SKU: <span id="v-code"></span></p>
+                        
+                        <table class="table table-sm table-bordered">
+                            <tr>
+                                <th width="30%">Danh mục</th>
+                                <td id="v-category"></td>
+                            </tr>
+                            <tr>
+                                <th>Thương hiệu</th>
+                                <td id="v-brand"></td>
+                            </tr>
+                            <tr>
+                                <th>Giá nhập</th>
+                                <td class="text-danger fw-bold" id="v-price"></td>
+                            </tr>
+                            <tr>
+                                <th>Tồn kho</th>
+                                <td id="v-stock"></td>
+                            </tr>
+                            <tr>
+                                <th>Lãi riêng</th>
+                                <td id="v-profit"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <h6 class="fw-bold border-bottom pb-2">Mô tả</h6>
+                    <p id="v-desc" class="text-muted small"></p>
+                </div>
+
+                <div class="mt-3">
+                    <h6 class="fw-bold border-bottom pb-2">Thông số kỹ thuật</h6>
+                    <div id="v-specs" class="bg-light p-2 rounded small font-monospace"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
             </div>
         </div>
     </div>

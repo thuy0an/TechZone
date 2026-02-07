@@ -26,10 +26,17 @@
             
             <nav class="d-flex gap-5 align-items-center">
                 <a href="{{ route('home') }}" class="nav-link text-dark fw-medium">Trang chủ</a>
+                
+                <button class="btn btn-outline-dark position-relative border-0" type="button" onclick="Cart.open()">
+                    <i class="bi bi-cart-fill fs-5"></i>
+                    <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger px-3 py-2" style="display: none;">
+                        0
+                    </span>
+                </button>
 
                 <div id="nav-auth" class="d-flex gap-2">
-                    <a href="{{ route('login') }}" class="btn btn-outline-primary btn-sm">Đăng nhập</a>
-                    <a href="{{ route('register') }}" class="btn btn-primary btn-sm">Đăng ký</a>
+                    <a href="{{ route('login') }}" class="btn btn-outline-primary btn-md">Đăng nhập</a>
+                    <a href="{{ route('register') }}" class="btn btn-primary btn-md">Đăng ký</a>
                 </div>
             </nav>
         </div>
@@ -39,17 +46,56 @@
         @yield('content')
     </main>
 
+    {{-- OFF CANVAS GIỎ HÀNG  --}}
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="cartSidebar" aria-labelledby="cartSidebarLabel">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title fw-bold" id="cartSidebarLabel">
+                <i class="bi bi-bag-check-fill text-primary me-2"></i>Giỏ hàng của bạn
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        
+        <div class="offcanvas-body p-0" id="cart-body">
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="offcanvas-footer border-top p-3 bg-light" id="cart-footer" style="display: none;">
+            <div class="d-flex justify-content-between mb-3">
+                <span class="fw-bold">Tổng tạm tính:</span>
+                <span class="fw-bold text-danger fs-5" id="cart-total">0 đ</span>
+            </div>
+            <a href="#" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">
+                TIẾN HÀNH THANH TOÁN
+            </a>
+        </div>
+    </div>
+
     <footer class="bg-dark text-white py-4 mt-5">
         <div class="container text-center">
             <p class="mb-0">&copy; 2026 TechZone. Dự án môn học Web.</p>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        const API_BASE_URL = "{{ url('/api') }}"; // helper url() của Laravel
+    {{-- TOAST THÔNG BÁO --}}
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+        <div id="liveToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body fw-bold" id="toast-message">
+                    </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('js/api.js') }}"></script>
+    <script src="{{ asset('js/client/cart.js') }}"></script>
+
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
         // Kiểm tra Token và Info trong LocalStorage
         const token = localStorage.getItem('user_token');
