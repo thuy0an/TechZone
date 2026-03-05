@@ -1,8 +1,7 @@
-# 🛒 TechZone - Dự án Website Bán Hàng Công Nghệ
+# TechZone
 
-> Dự án web thương mại điện tử sử dụng **Laravel 12** làm Backend API và **HTML/CSS/JavaScript** làm Frontend.
+TechZone là dự án website kinh doanh thiết bị điện tử, xây trên Laravel 12 (backend)
 
----
 
 ## 👥 Thành Viên Nhóm
 
@@ -13,535 +12,181 @@
 | 3 | Nguyễn Tuấn Vũ | 3122410483 |
 | 4 | Nguyễn Hoàng Ngọc Phong | 3122410310 |
 
----
 
-## 📋 Mục Lục
 
-- [Giới thiệu](#-giới-thiệu)
-- [Kiến trúc dự án](#-kiến-trúc-dự-án)
-- [Yêu cầu hệ thống](#-yêu-cầu-hệ-thống)
-- [Cài đặt](#-cài-đặt)
-- [Cấu trúc dự án](#-cấu-trúc-dự-án)
-- [Các lệnh thường dùng](#-các-lệnh-thường-dùng)
-- [Tài liệu tham khảo](#-tài-liệu-tham-khảo)
 
----
+## 1) Tổng quan
 
-## 🎯 Giới Thiệu
+- Mục tiêu: xây hệ thống bán hàng + quản trị cho ngành hàng điện tử.
+- Trạng thái hiện tại: dự án đang ở giai đoạn nền tảng kiến trúc (base classes, route mẫu, giao diện trang chủ mẫu), chưa hoàn thiện nghiệp vụ theo SRS.
 
-**TechZone** là dự án website bán hàng công nghệ, được xây dựng với:
+## 2) Phạm vi theo SRS
 
-| Thành phần | Công nghệ |
-|------------|-----------|
-| **Backend** | Laravel 12 (PHP 8.2+) - REST API |
-| **Frontend** | HTML + CSS + JavaScript thuần |
-| **Database** | MySQL |
+1. **Storefront (Khách hàng)**
+   - Đăng ký/đăng nhập
+   - Tìm kiếm/lọc sản phẩm
+   - Giỏ hàng, checkout, thanh toán
+   - Lịch sử mua hàng
 
----
+2. **Admin Portal (Quản trị)**
+   - Quản lý sản phẩm, danh mục, thương hiệu
+   - Nhập kho, tính giá bình quân, cập nhật giá bán
+   - Quản lý khuyến mãi, đơn hàng, báo cáo tồn kho
+   - Nghiệp vụ tồn kho theo sản phẩm/lô (mở rộng theo SRS)
 
-## 🏗️ Kiến Trúc Dự Án
+## 3) Mức độ triển khai hiện tại so với SRS
 
-Dự án sử dụng mô hình **Client-Server** với API:
+### Đã có
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        FRONTEND                                  │
-│   📄 HTML + 🎨 CSS + ⚡ JavaScript                               │
-│   (Đặt trong thư mục public/)                                   │
-└─────────────────────┬───────────────────────────────────────────┘
-                      │ HTTP Request (fetch/AJAX)
-                      ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     LARAVEL BACKEND (API)                        │
-│                                                                  │
-│   📂 routes/api.php     → Định nghĩa API endpoints              │
-│   📂 Controllers/       → Xử lý logic, trả về JSON              │
-│   📂 Models/            → Tương tác với Database                 │
-└─────────────────────┬───────────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                        DATABASE (MySQL)                          │
-│   Bảng: users, products, categories, orders, ...                │
-└─────────────────────────────────────────────────────────────────┘
-```
+- Khung Laravel 12 chạy được.
+- Các lớp nền:
+  - `app/Http/Controllers/Api/BaseApiController.php`
+  - `app/Http/Requests/PaginationRequest.php`
+  - `app/Models/BaseModel.php`
+  - `app/Repositories/BaseRepository.php` + interface
+  - `app/Services/BaseService.php` + interface
+- Frontend demo:
+  - `public/index.html`
+  - `public/js/api.js`
+  - `public/js/app.js`
+- API test hoạt động: `GET /api/test`.
 
-### 🔄 Luồng hoạt động:
-1. **User** mở trang HTML trong trình duyệt
-2. **JavaScript** gọi API Laravel (ví dụ: `GET /api/products`)
-3. **Laravel Controller** xử lý request, lấy dữ liệu từ Database
-4. **Laravel** trả về dữ liệu dạng **JSON**
-5. **JavaScript** nhận JSON và render lên giao diện HTML
+### Mới ở mức khung / một phần
 
----
+- Có route bảo vệ bởi Sanctum: `GET /api/user` (cần auth).
+- Frontend có hàm gọi `/api/products`, `/api/categories` nhưng backend chưa khai báo route/controller thật.
 
-## 💻 Yêu Cầu Hệ Thống
+### Chưa triển khai theo SRS
 
-| Công cụ | Phiên bản tối thiểu |
-|---------|---------------------|
-| PHP | 8.2 trở lên |
-| Composer | 2.x |
-| MySQL | 8.0 trở lên |
-| XAMPP/Laragon | Phiên bản mới nhất |
-| Trình duyệt | Chrome, Firefox, Edge |
+- Toàn bộ UC nghiệp vụ chính (C1-C4, A1-A4): auth khách hàng/admin đầy đủ, catalog thật, giỏ hàng DB, checkout, promotions, nhập kho, xử lý đơn, báo cáo.
+- Bộ migration theo domain TechZone (hiện chỉ có migration mặc định của Laravel).
 
----
+## 4) Tech stack
 
-## 🚀 Cài Đặt
+- **Backend:** PHP 8.2+, Laravel 12
+- **Frontend:** HTML5, CSS3, JavaScript (vanilla)
+- **Database:** MySQL (khuyến nghị chạy qua XAMPP)
+- **Test:** Pest/PHPUnit (mặc định từ Laravel skeleton)
 
-### Bước 1: Clone dự án
-```bash
-git clone <repository-url>
-cd TechZone
-```
+## 5) Cài đặt trên Windows + XAMPP
 
-### Bước 2: Cài đặt PHP dependencies
-```bash
-composer install
-```
+### Yêu cầu
 
-### Bước 3: Cấu hình môi trường
-```bash
-# Copy file .env.example thành .env
-cp .env.example .env
+- XAMPP (Apache + MySQL)
+- PHP 8.2+ (nên dùng bản PHP của XAMPP hoặc PHP hệ thống tương thích)
+- Composer 2+
 
-# Tạo APP_KEY
-php artisan key:generate
-```
+### Các bước
 
-### Bước 4: Cấu hình Database
-Mở file `.env` và sửa thông tin database:
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=techzone
-DB_USERNAME=root
-DB_PASSWORD=
-```
+1. Mở XAMPP Control Panel, **Start Apache** và **Start MySQL**.
+2. Tại thư mục dự án, cài dependency:
 
-### Bước 5: Tạo database và chạy migration
-```bash
-# Tạo database "techzone" trong MySQL (dùng phpMyAdmin hoặc terminal)
+   `composer install`
 
-# Chạy migration để tạo các bảng
-php artisan migrate
-```
+3. Tạo file môi trường:
 
-### Bước 6: Chạy ứng dụng
-```bash
-# Chạy Laravel server
-php artisan serve
+   - Sao chép `.env.example` thành `.env`
+   - Sinh key:
 
-# Truy cập: http://localhost:8000
-```
+   `php artisan key:generate`
 
----
+4. Cấu hình DB trong `.env` (DB_HOST/DB_PORT/DB_DATABASE/DB_USERNAME/DB_PASSWORD).
+5. Chạy ứng dụng:
 
-## 📁 Cấu Trúc Dự Án
+   `php artisan serve`
+
+6. Truy cập:
+
+   - Frontend: `http://127.0.0.1:8000/index.html`
+   - API test: `http://127.0.0.1:8000/api/test`
+
+> Lưu ý: route `/` hiện redirect về `/index.html`.
+
+## 6) Tùy chọn cơ sở dữ liệu
+
+Có 2 hướng khởi tạo DB:
+
+### A. Dùng migration mặc định (nhanh để chạy skeleton)
+
+1. Tạo DB rỗng (ví dụ `techzone`).
+2. Cập nhật `.env` trỏ đến DB đó.
+3. Chạy:
+
+   `php artisan migrate`
+
+Kết quả: tạo các bảng mặc định Laravel (`users`, `sessions`, `cache`, `jobs`, ...), **chưa phải schema nghiệp vụ đầy đủ theo SRS**.
+
+### B. Dùng schema nghiệp vụ + dữ liệu mẫu
+
+1. Import `TableOfProject.sql` (script sẽ tạo DB `techzone_db` và các bảng nghiệp vụ).
+2. Import tiếp `DataMock.sql` để có dữ liệu mẫu.
+3. Cập nhật `.env`:
+
+   - `DB_DATABASE=techzone_db`
+
+4. Không chạy `migrate` lên cùng DB này nếu chưa rà soát xung đột schema.
+
+## 7) Endpoints hiện có
+
+### Web
+
+- `GET /` → redirect `/index.html`
+
+### API
+
+- `GET /api/test` → kiểm tra API hoạt động
+- `GET /api/user` → trả user hiện tại (cần `auth:sanctum`)
+
+## 8) Cấu trúc dự án (rút gọn)
 
 ```
 TechZone/
-│
-├── 📂 app/                             # 🔥 CODE PHP CHÍNH (Backend)
-│   │
-│   ├── 📂 Http/
-│   │   ├── Controllers/
-│   │   │   ├── Controller.php          # Laravel base controller
-│   │   │   └── Api/
-│   │   │       └── BaseApiController.php   # ⭐ Base API với response helpers
-│   │   └── Requests/
-│   │       └── PaginationRequest.php   # Validation cho pagination
-│   │
-│   ├── 📂 Models/                      # Eloquent Models
-│   │   ├── BaseModel.php               # ⭐ Base với soft delete, search
-│   │   └── User.php
-│   │
-│   ├── 📂 Repositories/                # Repository Pattern
-│   │   ├── Interfaces/
-│   │   │   └── BaseRepositoryInterface.php
-│   │   └── BaseRepository.php          # ⭐ CRUD, pagination, filtering
-│   │
-│   ├── 📂 Services/                    # Business Logic Layer
-│   │   ├── Interfaces/
-│   │   │   └── BaseServiceInterface.php
-│   │   └── BaseService.php             # ⭐ Transactions + lifecycle hooks
-│   │
-│   ├── 📂 Traits/
-│   │   └── ApiResponseTrait.php        # Response methods dùng chung
-│   │
-│   └── 📂 Providers/                   # Service providers
-│
-├── 📂 bootstrap/
-│   └── app.php                         # Đăng ký routes (api.php + web.php)
-│
-├── 📂 config/                          # ⚙️ Cấu hình ứng dụng
-│
-├── 📂 database/                        # 🗄️ Database
-│   ├── migrations/                     # Tạo/sửa cấu trúc bảng
-│   ├── seeders/                        # Dữ liệu mẫu
-│   └── factories/                      # Dữ liệu test
-│
-├── 📂 public/                          # 🌐 FRONTEND (HTML/CSS/JS)
-│   ├── index.html                      # Trang chủ
-│   ├── css/style.css                   # Styles
-│   └── js/
-│       ├── api.js                      # Gọi API
-│       └── app.js                      # Logic frontend
-│
-├── 📂 routes/                          # 🛣️ Routes
-│   ├── api.php                         # API routes (/api/*)
-│   └── web.php                         # Web routes
-│
-├── 📂 storage/logs/                    # Log files
-│
-└── 📂 vendor/                          # PHP packages
+├─ app/
+│  ├─ Http/
+│  │  ├─ Controllers/Api/BaseApiController.php
+│  │  └─ Requests/PaginationRequest.php
+│  ├─ Models/
+│  │  ├─ BaseModel.php
+│  │  └─ User.php
+│  ├─ Repositories/
+│  │  ├─ Interfaces/BaseRepositoryInterface.php
+│  │  └─ BaseRepository.php
+│  └─ Services/
+│     ├─ Interfaces/BaseServiceInterface.php
+│     └─ BaseService.php
+├─ database/
+│  ├─ migrations/ (mặc định Laravel)
+│  └─ seeders/
+├─ public/
+│  ├─ index.html
+│  ├─ css/style.css
+│  └─ js/{api.js, app.js}
+├─ routes/
+│  ├─ web.php
+│  └─ api.php
+├─ TableOfProject.sql
+├─ DataMock.sql
+└─ ĐẶC TẢ YÊU CẦU HỆ THỐNG PHẦN MỀM.md
 ```
+
+## 9) Roadmap đề xuất
+
+1. Đồng bộ schema chính thức: chọn chiến lược migration theo SRS (thay vì giữ song song SQL thủ công).
+2. Triển khai module Auth (User/Admin, phân quyền, Sanctum).
+3. Triển khai Catalog: categories/brands/products + tìm kiếm/lọc/phân trang thật.
+4. Triển khai Cart/Checkout/Orders + trạng thái đơn.
+5. Triển khai Import Notes + thuật toán giá bình quân + lịch sử giá.
+6. Triển khai Promotions + áp mã theo điều kiện.
+7. Bổ sung test nghiệp vụ và API test coverage.
 
 ---
 
-## 🎓 Hướng Dẫn Chi Tiết
+README này phản ánh **đúng trạng thái code hiện tại** và dùng SRS làm định hướng cho các bước tiếp theo.
 
-### 1. 📂 Tạo Model (kế thừa BaseModel)
 
-```php
-// app/Models/Product.php
 
-namespace App\Models;
 
-class Product extends BaseModel
-{
-    protected $fillable = ['name', 'price', 'description', 'category_id', 'status'];
 
-    // Override để custom search fields
-    protected function getSearchableFields(): array
-    {
-        return ['name', 'description'];
-    }
 
-    // Quan hệ với Category
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
-}
-```
 
-### 2. 📂 Tạo Repository
 
-```php
-// app/Repositories/ProductRepository.php
-
-namespace App\Repositories;
-
-use App\Models\Product;
-
-class ProductRepository extends BaseRepository
-{
-    public function __construct(Product $model)
-    {
-        parent::__construct($model);
-    }
-
-    // Override để custom search fields
-    protected function getSearchableFields(): array
-    {
-        return ['name', 'description'];
-    }
-}
-```
-
-### 3. 📂 Tạo Service
-
-```php
-// app/Services/ProductService.php
-
-namespace App\Services;
-
-use App\Repositories\ProductRepository;
-
-class ProductService extends BaseService
-{
-    public function __construct(ProductRepository $repository)
-    {
-        parent::__construct($repository);
-    }
-
-    // Hook trước khi tạo
-    protected function beforeCreate(array $data): array
-    {
-        $data['status'] = 1; // Default active
-        return $data;
-    }
-}
-```
-
-### 4. 📂 Tạo API Controller
-
-```php
-// app/Http/Controllers/Api/ProductController.php
-
-namespace App\Http\Controllers\Api;
-
-use App\Services\ProductService;
-use App\Http\Requests\PaginationRequest;
-
-class ProductController extends BaseApiController
-{
-    protected ProductService $service;
-
-    public function __construct(ProductService $service)
-    {
-        $this->service = $service;
-    }
-
-    public function index(PaginationRequest $request)
-    {
-        $data = $this->service->paginate(
-            $request->getPerPage(),
-            $request->getFilters(),
-            $request->getSortParams()
-        );
-        return $this->paginatedResponse($data);
-    }
-
-    public function show(int $id)
-    {
-        $product = $this->service->findById($id);
-        return $this->successResponse($product);
-    }
-
-    public function store(Request $request)
-    {
-        $product = $this->service->create($request->all());
-        return $this->createdResponse($product);
-    }
-
-    public function update(Request $request, int $id)
-    {
-        $product = $this->service->update($id, $request->all());
-        return $this->successResponse($product);
-    }
-
-    public function destroy(int $id)
-    {
-        $this->service->delete($id);
-        return $this->successResponse(null, 'Xóa thành công');
-    }
-}
-```
-
-### 5. 🛣️ Định nghĩa API Routes
-
-```php
-// routes/api.php
-
-use App\Http\Controllers\Api\ProductController;
-
-Route::apiResource('products', ProductController::class);
-```
-
-### 3. � Tạo file HTML
-
-```html
-<!-- public/products.html -->
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danh sách sản phẩm - TechZone</title>
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-    <h1>Danh sách sản phẩm</h1>
-    
-    <!-- Container để hiển thị sản phẩm -->
-    <div id="products-container"></div>
-
-    <script src="js/api.js"></script>
-    <script src="js/app.js"></script>
-</body>
-</html>
-```
-
-### 4. ⚡ Gọi API bằng JavaScript
-
-```javascript
-// public/js/api.js
-
-const API_BASE_URL = 'http://localhost:8000/api';
-
-// Hàm gọi API lấy danh sách sản phẩm
-async function getProducts() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/products`);
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Lỗi:', error);
-    }
-}
-
-// Hàm gọi API lấy 1 sản phẩm
-async function getProduct(id) {
-    const response = await fetch(`${API_BASE_URL}/products/${id}`);
-    return await response.json();
-}
-
-// Hàm tạo sản phẩm mới
-async function createProduct(productData) {
-    const response = await fetch(`${API_BASE_URL}/products`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(productData)
-    });
-    return await response.json();
-}
-```
-
-```javascript
-// public/js/app.js
-
-// Hiển thị danh sách sản phẩm khi trang load
-document.addEventListener('DOMContentLoaded', async () => {
-    const products = await getProducts();
-    const container = document.getElementById('products-container');
-    
-    products.forEach(product => {
-        container.innerHTML += `
-            <div class="product-card">
-                <img src="${product.image}" alt="${product.name}">
-                <h3>${product.name}</h3>
-                <p class="price">${product.price.toLocaleString()}đ</p>
-                <button onclick="addToCart(${product.id})">
-                    Thêm vào giỏ
-                </button>
-            </div>
-        `;
-    });
-});
-```
-
-### 5. 🗄️ Tạo Model và Migration
-
-```bash
-# Tạo Model Product kèm Migration
-php artisan make:model Product -m
-```
-
-```php
-// database/migrations/xxxx_create_products_table.php
-
-public function up()
-{
-    Schema::create('products', function (Blueprint $table) {
-        $table->id();
-        $table->string('name');
-        $table->text('description')->nullable();
-        $table->decimal('price', 10, 2);
-        $table->string('image')->nullable();
-        $table->integer('quantity')->default(0);
-        $table->foreignId('category_id')->constrained();
-        $table->timestamps();
-    });
-}
-```
-
-```php
-// app/Models/Product.php
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Model;
-
-class Product extends Model
-{
-    protected $fillable = [
-        'name', 'description', 'price', 'image', 'quantity', 'category_id'
-    ];
-
-    // Quan hệ với Category
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
-}
-```
-
----
-
-## ⌨️ Các Lệnh Thường Dùng
-
-### Artisan Commands (Laravel)
-```bash
-# Chạy server
-php artisan serve
-
-# Tạo Controller cho API
-php artisan make:controller Api/ProductController --api
-
-# Tạo Model + Migration
-php artisan make:model Product -m
-
-# Chạy migration
-php artisan migrate
-
-# Rollback migration
-php artisan migrate:rollback
-
-# Reset database (xóa hết data)
-php artisan migrate:fresh
-
-# Chạy seeder
-php artisan db:seed
-
-# Xem danh sách routes
-php artisan route:list
-
-# Xóa cache
-php artisan cache:clear
-php artisan config:clear
-```
-
----
-
-## 📚 Tài Liệu Tham Khảo
-
-| Chủ đề | Link |
-|--------|------|
-| Laravel Docs | [laravel.com/docs](https://laravel.com/docs) |
-| Laravel API Tutorial | [Laravel Bootcamp](https://bootcamp.laravel.com) |
-| JavaScript Fetch API | [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) |
-| REST API Design | [RESTful API Guidelines](https://restfulapi.net/) |
-
----
-
-## � Ghi Chú Quan Trọng
-
-### ⚠️ Lưu ý khi làm việc:
-- **Không commit file `.env`** - chứa thông tin nhạy cảm
-- **Không sửa trong `vendor/`** - sẽ bị ghi đè khi cài lại
-- **Xem log lỗi** tại `storage/logs/laravel.log`
-- **Test API** bằng Postman hoặc Thunder Client (VS Code extension)
-
-### 🔧 Xử lý lỗi CORS:
-Nếu gặp lỗi CORS khi gọi API từ HTML, sửa file `config/cors.php`:
-```php
-'paths' => ['api/*'],
-'allowed_origins' => ['*'],
-```
-
----
-
-## 📄 License
-
-Dự án phục vụ mục đích học tập.
-
----
-
-<p align="center">
-  <b>Made with ❤️ by TechZone Team</b>
-</p>

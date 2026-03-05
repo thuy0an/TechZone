@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'phone',
+        'is_locked',
     ];
 
     /**
@@ -41,8 +43,8 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'  => 'hashed',
+            'is_locked' => 'boolean',
         ];
     }
 }
