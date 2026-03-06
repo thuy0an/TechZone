@@ -132,7 +132,7 @@ abstract class BaseApiController extends Controller
      */
     protected function handleException(\Exception $e, string $defaultMessage = 'Có lỗi xảy ra'): JsonResponse
     {
-        \Log::error($e->getMessage(), ['trace' => $e->getTraceAsString()]);
+        \Illuminate\Support\Facades\Log::error($e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
         // ModelNotFoundException
         if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
