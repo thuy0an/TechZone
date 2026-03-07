@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Storefront\Auth\AuthController;
 use App\Http\Controllers\Api\Storefront\ProductController;
 use App\Http\Controllers\Api\Storefront\CartController;
 use App\Http\Controllers\Api\Storefront\OrderController;
+use App\Http\Controllers\Api\Admin\CategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,7 +55,14 @@ Route::prefix('storefront')->middleware('auth:sanctum')->group(function () {
 });
 
 
-
+// ============================================
+// ADMIN Routes
+// Lưu ý: Chưa thêm middleware auth vì US-32 (Admin Auth) chưa hoàn thành
+// Sẽ bổ sung ->middleware('auth:sanctum') sau
+// ============================================
+Route::prefix('admin')->group(function () {
+    Route::apiResource('categories', CategoryController::class);
+});
 
 
 /*
