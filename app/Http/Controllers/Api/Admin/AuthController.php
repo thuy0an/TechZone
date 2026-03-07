@@ -22,7 +22,7 @@ class AuthController extends BaseApiController
             $data = $this->authService->login($request->validated());
             return $this->successResponse($data, 'Admin đăng nhập thành công');
         } catch (\Exception $e) {
-            return $this->errorResponse('Đăng nhập thất bại', 401, $e->getMessage(),);
+            return $this->errorResponse('Đăng nhập thất bại', 401, $e->getMessage());
         }
     }
 

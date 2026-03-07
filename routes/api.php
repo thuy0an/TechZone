@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Storefront\OrderController;
 use App\Http\Controllers\Api\Admin\CategoryController;
 use App\Http\Controllers\Api\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
 
 /*
 |--------------------------------------------------------------------------
@@ -70,6 +71,9 @@ Route::prefix('admin')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         // ĐĂNG XUẤT
         Route::post('/logout', [AdminAuthController::class, 'logout']);
+
+        // QUẢN LÝ SẢN PHẨM
+        Route::apiResource('products', AdminProductController::class);
 
         Route::apiResource('categories', CategoryController::class);
 

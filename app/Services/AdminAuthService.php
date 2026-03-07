@@ -3,14 +3,14 @@
 namespace App\Services;
 
 use App\Services\Interfaces\AdminAuthServiceInterface;
-use App\Repositories\Interfaces\AdminRepositoryInterface;
+use App\Repositories\Interfaces\AdminAuthRepositoryInterface;
 use Illuminate\Support\Facades\Hash;
 
 class AdminAuthService extends BaseService implements AdminAuthServiceInterface
 {
-    protected AdminRepositoryInterface $adminRepository;
+    protected AdminAuthRepositoryInterface $adminRepository;
 
-    public function __construct(AdminRepositoryInterface $adminRepository)
+    public function __construct(AdminAuthRepositoryInterface $adminRepository)
     {
         parent::__construct($adminRepository);
         $this->adminRepository = $adminRepository;

@@ -3,10 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends BaseModel
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'category_id',
@@ -22,8 +23,10 @@ class Product extends BaseModel
         'profit_margin',
         'selling_price',
         'status',
-        'low_stock_threshold'
+        'low_stock_threshold',
     ];
+
+    protected $dates = ['deleted_at'];
 
     public function category()
     {
@@ -33,5 +36,10 @@ class Product extends BaseModel
     public function brand()
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    public function orderDetails()
+    {
+        return $this->hasMany(OrderDetail::class, 'product_id');
     }
 }

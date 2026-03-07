@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 
+use App\Services\CloudinaryService;
+
 use App\Repositories\Interfaces\ProductRepositoryInterface;
 use App\Repositories\ProductRepository;
 use App\Services\Interfaces\ProductServiceInterface;
@@ -62,9 +64,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AuthServiceInterface::class, AuthService::class);
         $this->app->bind(OrderServiceInterface::class, OrderService::class);
         $this->app->bind(CategoryServiceInterface::class, CategoryService::class);
-        $this->app->bind(AdminAuthServiceInterface::class, AdminAuthService::class);
 
+        $this->app->bind(AdminAuthServiceInterface::class, AdminAuthService::class);
         $this->app->bind(AdminOrderServiceInterface::class, AdminOrderService::class);
+        $this->app->singleton(CloudinaryService::class, function ($app) {
+            return new CloudinaryService();
+        });
     }
 
     /**
