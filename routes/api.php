@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\Storefront\ProductController;
 use App\Http\Controllers\Api\Storefront\CartController;
 use App\Http\Controllers\Api\Storefront\OrderController;
 use App\Http\Controllers\Api\Admin\CategoryController;
+use App\Http\Controllers\Api\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -61,7 +63,21 @@ Route::prefix('storefront')->middleware('auth:sanctum')->group(function () {
 // Sẽ bổ sung ->middleware('auth:sanctum') sau
 // ============================================
 Route::prefix('admin')->group(function () {
-    Route::apiResource('categories', CategoryController::class);
+    // API Public của Admin
+    Route::post('/login', [AdminAuthController::class, 'login']);
+
+    // Nhóm cần xác thực Token của Admin
+    Route::middleware('auth:sanctum')->group(function () {
+        // ĐĂNG XUẤT
+        Route::post('/logout', [AdminAuthController::class, 'logout']);
+
+        Route::apiResource('categories', CategoryController::class);
+
+        // QUẢN LÝ ĐƠN HÀNG
+        Route::get('/orders', [AdminOrderController::class, 'index']);
+        Route::get('/orders/{id}', [AdminOrderController::class, 'show']);
+        Route::put('/orders/{id}/status', [AdminOrderController::class, 'updateStatus']);
+    });
 });
 
 

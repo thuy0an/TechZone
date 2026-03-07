@@ -43,7 +43,7 @@ class CartController extends BaseApiController
 
             return $this->successResponse($cartItem, 'Đã thêm sản phẩm vào giỏ hàng');
         } catch (\Exception $e) {
-            return $this->errorResponse('Không thể thêm vào giỏ hàng', $e->getMessage(), 400);
+            return $this->errorResponse('Không thể thêm vào giỏ hàng', 400,  $e->getMessage());
         }
     }
 
@@ -56,7 +56,7 @@ class CartController extends BaseApiController
 
             return $this->successResponse([], 'Đã xóa sản phẩm khỏi giỏ hàng');
         } catch (\Exception $e) {
-            return $this->errorResponse('Lỗi xóa sản phẩm', $e->getMessage(), 400);
+            return $this->errorResponse('Lỗi xóa sản phẩm', 400, $e->getMessage());
         }
     }
 }

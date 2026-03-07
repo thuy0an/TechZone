@@ -29,6 +29,16 @@ use App\Repositories\CategoryRepository;
 use App\Services\Interfaces\CategoryServiceInterface;
 use App\Services\CategoryService;
 
+use App\Repositories\Interfaces\AdminAuthRepositoryInterface;
+use App\Repositories\AdminAuthRepository;
+use App\Services\Interfaces\AdminAuthServiceInterface;
+use App\Services\AdminAuthService;
+
+use App\Repositories\Interfaces\AdminOrderRepositoryInterface;
+use App\Repositories\AdminOrderRepository;
+use App\Services\Interfaces\AdminOrderServiceInterface;
+use App\Services\AdminOrderService;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -42,6 +52,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(OrderRepositoryInterface::class, OrderRepository::class);
         $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
+        $this->app->bind(AdminAuthRepositoryInterface::class, AdminAuthRepository::class);
+        $this->app->bind(AdminOrderRepositoryInterface::class, AdminOrderRepository::class);
 
 
         // Bind Services
@@ -50,6 +62,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AuthServiceInterface::class, AuthService::class);
         $this->app->bind(OrderServiceInterface::class, OrderService::class);
         $this->app->bind(CategoryServiceInterface::class, CategoryService::class);
+        $this->app->bind(AdminAuthServiceInterface::class, AdminAuthService::class);
+
+        $this->app->bind(AdminOrderServiceInterface::class, AdminOrderService::class);
     }
 
     /**
@@ -60,4 +75,3 @@ class AppServiceProvider extends ServiceProvider
         //
     }
 }
-
