@@ -18,6 +18,9 @@ Nếu trong database đã có sẵn user, hãy mở Postman và gọi API Login:
 
 * Method: POST
 
+* Headers: 
+> accept: application/json
+
 * URL: http://127.0.0.1:8000/api/storefront/login
 
 * Body (tab raw > JSON):
