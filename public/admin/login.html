@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập Quản trị - TechZone Admin</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="icon" href="/favicon.ico">
+</head>
+
+<body>
+
+<div class="login-page">
+    <div class="login-card">
+
+        <!-- Header -->
+        <div class="login-header">
+            <div class="login-logo">🛡️</div>
+            <h1>TechZone Admin</h1>
+            <p>Cổng quản trị hệ thống</p>
+        </div>
+
+        <!-- Body -->
+        <div class="login-body">
+
+            <!-- Alert -->
+            <div id="login-alert" class="alert alert-danger">
+                <span>⚠️</span>
+                <span id="login-alert-msg">Đăng nhập thất bại</span>
+            </div>
+
+            <!-- Form -->
+            <form id="login-form" novalidate>
+
+                <div class="form-group">
+                    <label for="email">Email quản trị</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">✉️</span>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            class="form-control"
+                            placeholder="admin@techzone.com"
+                            autocomplete="email"
+                            autofocus
+                        >
+                    </div>
+                    <div id="email-error" class="field-error"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mật khẩu</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            class="form-control"
+                            placeholder="Nhập mật khẩu"
+                            autocomplete="current-password"
+                        >
+                        <button type="button" class="toggle-password" id="toggle-password" title="Hiện/Ẩn mật khẩu">
+                            👁️
+                        </button>
+                    </div>
+                    <div id="password-error" class="field-error"></div>
+                </div>
+
+                <button type="submit" class="btn-login-submit" id="login-btn">
+                    <div class="spinner" id="login-spinner"></div>
+                    <span id="login-btn-text">Đăng nhập</span>
+                </button>
+
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="login-footer">
+            Trang này chỉ dành cho quản trị viên.<br>
+            Nếu bạn là khách hàng, <a href="/" style="color: #3b82f6;">về trang chủ</a>.
+        </div>
+
+    </div>
+</div>
+
+<script src="/js/admin-token.js"></script>
+<script src="/js/admin-api.js"></script>
+<script src="/js/admin-auth.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Nếu đã login thì về dashboard
+    redirectIfAdminLoggedIn();
+
+    const form       = document.getElementById('login-form');
+    const emailInput = document.getElementById('email');
+    const pwInput    = document.getElementById('password');
+    const loginBtn   = document.getElementById('login-btn');
+    const spinner    = document.getElementById('login-spinner');
+    const btnText    = document.getElementById('login-btn-text');
+    const alert      = document.getElementById('login-alert');
+    const alertMsg   = document.getElementById('login-alert-msg');
+    const togglePw   = document.getElementById('toggle-password');
+
+    // Toggle hiện/ẩn mật khẩu
+    togglePw.addEventListener('click', () => {
+        if (pwInput.type === 'password') {
+            pwInput.type = 'text';
+            togglePw.textContent = '🙈';
+        } else {
+            pwInput.type = 'password';
+            togglePw.textContent = '👁️';
+        }
+    });
+
+    // Ẩn lỗi khi user bắt đầu nhập
+    emailInput.addEventListener('input', () => {
+        emailInput.classList.remove('error');
+        document.getElementById('email-error').classList.remove('show');
+        hideAlert();
+    });
+    pwInput.addEventListener('input', () => {
+        pwInput.classList.remove('error');
+        document.getElementById('password-error').classList.remove('show');
+        hideAlert();
+    });
+
+    // Form submit
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const email    = emailInput.value.trim();
+        const password = pwInput.value;
+
+        // Client-side validation
+        let hasError = false;
+
+        if (!email) {
+            showFieldError('email', 'Email là bắt buộc');
+            hasError = true;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showFieldError('email', 'Email không hợp lệ');
+            hasError = true;
+        }
+
+        if (!password) {
+            showFieldError('password', 'Mật khẩu là bắt buộc');
+            hasError = true;
+        }
+
+        if (hasError) return;
+
+        // Loading state
+        setLoading(true);
+
+        try {
+            await adminLogin(email, password);
+            // Redirect sau khi đăng nhập thành công
+            window.location.href = '/admin/dashboard.html';
+        } catch (err) {
+            const msg = err?.data?.message
+                     || err?.data?.error
+                     || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
+            showAlert(msg);
+            setLoading(false);
+        }
+    });
+
+    function setLoading(loading) {
+        loginBtn.disabled  = loading;
+        spinner.classList.toggle('show', loading);
+        btnText.textContent = loading ? 'Đang đăng nhập...' : 'Đăng nhập';
+    }
+
+    function showAlert(msg) {
+        alertMsg.textContent = msg;
+        alert.classList.add('show');
+    }
+
+    function hideAlert() {
+        alert.classList.remove('show');
+    }
+
+    function showFieldError(field, msg) {
+        const input = document.getElementById(field);
+        const error = document.getElementById(`${field}-error`);
+        input.classList.add('error');
+        error.textContent = msg;
+        error.classList.add('show');
+    }
+});
+</script>
+
+</body>
+</html>

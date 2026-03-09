@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - TechZone Admin</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="icon" href="/favicon.ico">
+</head>
+
+<body>
+
+<div class="admin-layout">
+
+    <div id="admin-sidebar-root"></div>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="admin-main">
+
+        <div id="admin-topbar-root"></div>
+
+        <!-- Page Content -->
+        <main class="admin-content">
+
+            <!-- Welcome Banner -->
+            <div class="welcome-banner" id="welcome-banner">
+                <div>
+                    <div class="welcome-title" id="welcome-title">Xin chào! 👋</div>
+                    <div class="welcome-sub">Chào mừng bạn trở lại trang quản trị TechZone</div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">📦</div>
+                    <div>
+                        <div class="stat-value" id="stat-products">—</div>
+                        <div class="stat-label">Sản phẩm</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">🛒</div>
+                    <div>
+                        <div class="stat-value" id="stat-orders">—</div>
+                        <div class="stat-label">Đơn hàng</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon amber">📂</div>
+                    <div>
+                        <div class="stat-value" id="stat-categories">—</div>
+                        <div class="stat-label">Loại sản phẩm</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">🏷️</div>
+                    <div>
+                        <div class="stat-value" id="stat-brands">—</div>
+                        <div class="stat-label">Thương hiệu</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <span class="card-title">⚡ Truy cập nhanh</span>
+                </div>
+                <div class="card-body">
+                    <div class="quick-links">
+                        <a href="/admin/categories.html" class="quick-link-card">
+                            <div class="quick-link-icon">📂</div>
+                            <div class="quick-link-label">Loại sản phẩm</div>
+                            <div class="quick-link-sub">Thêm / Sửa / Xóa</div>
+                        </a>
+                        <a href="/admin/brands.html" class="quick-link-card">
+                            <div class="quick-link-icon">🏷️</div>
+                            <div class="quick-link-label">Thương hiệu</div>
+                            <div class="quick-link-sub">Thêm / Sửa / Xóa</div>
+                        </a>
+                        <a href="/admin/products.html" class="quick-link-card">
+                            <div class="quick-link-icon">📦</div>
+                            <div class="quick-link-label">Sản phẩm</div>
+                            <div class="quick-link-sub">Quản lý kho hàng</div>
+                        </a>
+                        <a href="/admin/orders.html" class="quick-link-card">
+                            <div class="quick-link-icon">🛒</div>
+                            <div class="quick-link-label">Đơn hàng</div>
+                            <div class="quick-link-sub">Xem & cập nhật</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Info Card -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">👤 Thông tin tài khoản</span>
+                </div>
+                <div class="card-body">
+                    <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+                        <tbody id="admin-info-table">
+                            <tr style="border-bottom:1px solid var(--border);">
+                                <td style="padding:12px 0; color:var(--text-secondary); width:160px;">Họ tên</td>
+                                <td style="padding:12px 0; font-weight:600;" id="info-name">—</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid var(--border);">
+                                <td style="padding:12px 0; color:var(--text-secondary);">Email</td>
+                                <td style="padding:12px 0;" id="info-email">—</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:12px 0; color:var(--text-secondary);">Vai trò</td>
+                                <td style="padding:12px 0;">
+                                    <span style="background:#eff6ff;color:#2563eb;padding:3px 10px;border-radius:20px;font-size:0.8rem;font-weight:600;">
+                                        Quản trị viên
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+</div>
+
+<div class="toast" id="admin-toast"></div>
+
+<script src="/js/admin-token.js"></script>
+<script src="/js/admin-api.js"></script>
+<script src="/js/admin-auth.js"></script>
+<script src="/js/admin-layout.js"></script>
+<script src="/js/admin-utils.js"></script>
+<script>
+initAdminLayout({ title: 'Dashboard', icon: '📊', activePage: 'dashboard' });
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const admin = getAdminInfo();
+    if (admin) {
+        document.getElementById('welcome-title').textContent = `Xin chào, ${admin.name}! 👋`;
+        document.getElementById('info-name').textContent  = admin.name  || '—';
+        document.getElementById('info-email').textContent = admin.email || '—';
+    }
+    await loadDashboardStats();
+});
+
+async function loadDashboardStats() {
+    try {
+        const [catRes, brandRes] = await Promise.all([
+            adminRequest('/categories?per_page=1'),
+            adminRequest('/brands?per_page=1'),
+        ]);
+        if (catRes?.data?.meta?.total !== undefined)
+            document.getElementById('stat-categories').textContent = catRes.data.meta.total;
+        if (brandRes?.data?.meta?.total !== undefined)
+            document.getElementById('stat-brands').textContent = brandRes.data.meta.total;
+    } catch (_) {}
+}
+</script>
+
+</body>
+</html>

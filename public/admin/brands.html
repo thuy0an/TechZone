@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thương hiệu - TechZone Admin</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="icon" href="/favicon.ico">
+</head>
+
+<body>
+<div class="admin-layout">
+
+    <div id="admin-sidebar-root"></div>
+
+    <!-- ===== MAIN ===== -->
+    <div class="admin-main">
+        <div id="admin-topbar-root"></div>
+
+        <main class="admin-content">
+            <div class="page-header">
+                <h1>Quản lý Thương hiệu</h1>
+                <p>Thêm, sửa, xóa thương hiệu sản phẩm trong hệ thống</p>
+            </div>
+
+            <div class="card">
+                <!-- Toolbar -->
+                <div class="card-header">
+                    <div class="toolbar">
+                        <div class="search-box">
+                            <span>🔍</span>
+                            <input type="text" id="search-input" placeholder="Tìm kiếm theo tên...">
+                        </div>
+                        <button class="btn-add" onclick="openAddModal()">
+                            ＋ Thêm thương hiệu
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:60px">#</th>
+                                <th style="width:80px; text-align:center">Logo</th>
+                                <th>Tên thương hiệu</th>
+                                <th>Ngày tạo</th>
+                                <th style="width:140px; text-align:center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="brand-table-body">
+                            <tr>
+                                <td colspan="5" class="table-loading">⏳ Đang tải dữ liệu...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="pagination-bar" style="display:none">
+                    <div class="pagination-info" id="pagination-info"></div>
+                    <div class="pagination-btns" id="pagination-btns"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- ===== MODAL: Add / Edit Brand ===== -->
+<div class="modal-overlay-form" id="form-modal">
+    <div class="modal-form-box">
+        <div class="modal-form-header">
+            <span class="modal-form-title" id="modal-title">Thêm thương hiệu</span>
+            <button class="modal-close-btn" onclick="closeFormModal()">✕</button>
+        </div>
+        <div class="modal-form-body">
+            <!-- Name field -->
+            <div class="form-group">
+                <label for="brand-name">Tên thương hiệu <span style="color:var(--admin-danger)">*</span></label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🏷️</span>
+                    <input type="text" id="brand-name" class="form-control" placeholder="VD: Samsung, Apple, Sony...">
+                </div>
+                <div id="brand-name-error" class="field-error"></div>
+            </div>
+
+            <!-- Logo upload -->
+            <div class="form-group">
+                <label>Logo thương hiệu <span style="color:var(--text-secondary); font-weight:400">(tùy chọn)</span></label>
+
+                <!-- Current logo (only shown in edit mode) -->
+                <div class="current-logo" id="current-logo-wrap" style="display:none">
+                    <span>Logo hiện tại:</span>
+                    <img src="" id="current-logo-img" alt="Logo hiện tại">
+                </div>
+
+                <!-- Upload area -->
+                <div class="logo-upload-area" id="logo-upload-area"
+                     onclick="document.getElementById('logo-file').click()"
+                     ondragover="handleDragOver(event)"
+                     ondragleave="handleDragLeave(event)"
+                     ondrop="handleDrop(event)">
+                    <div class="logo-upload-icon">📁</div>
+                    <div class="logo-upload-text">Nhấn để chọn ảnh</div>
+                    <div class="logo-upload-hint">JPG, JPEG, PNG – tối đa 2MB</div>
+                </div>
+                <input type="file" id="logo-file" accept="image/jpeg,image/jpg,image/png" style="display:none">
+
+                <!-- Preview after selection -->
+                <div class="logo-preview-wrap" id="logo-preview-wrap" style="display:none">
+                    <img src="" id="logo-preview-img" alt="Preview" class="logo-preview-img">
+                    <button class="logo-remove-btn" onclick="removeLogo()">✕ Xóa</button>
+                </div>
+
+                <div id="brand-logo-error" class="field-error"></div>
+            </div>
+        </div>
+        <div class="modal-form-footer">
+            <button class="btn btn-cancel" onclick="closeFormModal()">Hủy</button>
+            <button class="btn-save" id="save-btn" onclick="saveBrand()">
+                <span id="save-spinner" class="spinner"></span>
+                <span id="save-btn-text">Lưu</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL: Confirm Delete ===== -->
+<div class="modal-overlay" id="delete-modal">
+    <div class="modal-box">
+        <div class="modal-icon">🗑️</div>
+        <div class="modal-title">Xác nhận xóa</div>
+        <div class="modal-message">
+            Bạn có chắc muốn xóa thương hiệu
+            <strong id="delete-name"></strong>?<br>
+            <small style="color:var(--admin-danger)">Không thể xóa nếu đang có sản phẩm thuộc thương hiệu này.</small>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-cancel" onclick="closeDeleteModal()">Hủy</button>
+            <button class="btn btn-danger" id="confirm-delete-btn" onclick="doDelete()">Xóa</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="admin-toast"></div>
+
+<script src="/js/admin-token.js"></script>
+<script src="/js/admin-api.js"></script>
+<script src="/js/admin-auth.js"></script>
+<script src="/js/admin-layout.js"></script>
+<script src="/js/admin-utils.js"></script>
+<script>
+initAdminLayout({ title: 'Thương hiệu', icon: '🏷️', activePage: 'brands' });
+
+// ============================================================
+// State
+// ============================================================
+let currentPage   = 1;
+let totalPages    = 1;
+let searchTimeout = null;
+let editingId     = null;
+let deletingId    = null;
+let selectedFile  = null;
+
+// ============================================================
+// Init
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    loadBrands();
+
+    document.getElementById('search-input').addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentPage = 1;
+            loadBrands();
+        }, 400);
+    });
+
+    // File input change
+    document.getElementById('logo-file').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (file) handleFileSelected(file);
+    });
+});
+
+// ============================================================
+// Load & Render
+// ============================================================
+async function loadBrands() {
+    const search = document.getElementById('search-input').value.trim();
+    const params = new URLSearchParams({ page: currentPage, per_page: 10 });
+    if (search) params.append('search', search);
+
+    setTableLoading(true);
+
+    try {
+        const res = await adminRequest(`/brands?${params}`);
+        renderTable(res.data.data ?? res.data);
+        totalPages = renderPagination({
+            meta: res.data.meta ?? res.data,
+            currentPage,
+            onPageChange: (p) => { currentPage = p; loadBrands(); }
+        });
+    } catch (err) {
+        showTableError('Không thể tải dữ liệu. Vui lòng thử lại.');
+    }
+}
+
+function renderTable(items) {
+    const tbody = document.getElementById('brand-table-body');
+
+    if (!items || items.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5">
+                    <div class="table-empty">
+                        <div class="table-empty-icon">🏷️</div>
+                        <div class="table-empty-text">Chưa có thương hiệu nào</div>
+                    </div>
+                </td>
+            </tr>`;
+        return;
+    }
+
+    tbody.innerHTML = items.map(brand => `
+        <tr>
+            <td class="td-id">${brand.id}</td>
+            <td style="text-align:center">
+                ${brand.logo
+                    ? `<img src="${buildLogoUrl(brand.logo)}" alt="${escHtml(brand.name)}" style="width:40px;height:40px;object-fit:contain;border-radius:4px;border:1px solid var(--border-color)">`
+                    : `<div style="width:40px;height:40px;background:var(--bg-secondary);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:1.2rem;border:1px solid var(--border-color)">🏷️</div>`
+                }
+            </td>
+            <td class="td-name">${escHtml(brand.name)}</td>
+            <td style="color:var(--text-secondary); font-size:0.8rem">${formatDate(brand.created_at)}</td>
+            <td>
+                <div class="td-actions" style="justify-content:center">
+                    <button class="btn-edit" onclick="openEditModal(${brand.id}, '${escJs(brand.name)}', '${escJs(brand.logo ?? '')}')">✏️ Sửa</button>
+                    <button class="btn-delete" onclick="openDeleteModal(${brand.id}, '${escJs(brand.name)}')">🗑️ Xóa</button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function buildLogoUrl(logoPath) {
+    if (!logoPath) return '';
+    if (logoPath.startsWith('http')) return logoPath;
+    return `${location.protocol}//${location.hostname}:8000/storage/${logoPath.replace(/^\/+/, '')}`;
+}
+
+
+function setTableLoading(on) {
+    if (on) {
+        document.getElementById('brand-table-body').innerHTML =
+            `<tr><td colspan="5" class="table-loading">⏳ Đang tải...</td></tr>`;
+        document.getElementById('pagination-bar').style.display = 'none';
+    }
+}
+
+function showTableError(msg) {
+    document.getElementById('brand-table-body').innerHTML =
+        `<tr><td colspan="5" class="table-loading" style="color:var(--admin-danger)">⚠️ ${msg}</td></tr>`;
+}
+
+// ============================================================
+// Add Modal
+// ============================================================
+function openAddModal() {
+    editingId = null;
+    selectedFile = null;
+
+    document.getElementById('modal-title').textContent = 'Thêm thương hiệu';
+    document.getElementById('brand-name').value = '';
+    document.getElementById('current-logo-wrap').style.display = 'none';
+    document.getElementById('logo-upload-area').style.display = 'flex';
+    document.getElementById('logo-preview-wrap').style.display = 'none';
+    document.getElementById('logo-file').value = '';
+    clearAllErrors();
+
+    document.getElementById('form-modal').classList.add('show');
+    setTimeout(() => document.getElementById('brand-name').focus(), 100);
+}
+
+// ============================================================
+// Edit Modal
+// ============================================================
+function openEditModal(id, name, logoPath) {
+    editingId    = id;
+    selectedFile = null;
+
+    document.getElementById('modal-title').textContent = 'Sửa thương hiệu';
+    document.getElementById('brand-name').value = name;
+    document.getElementById('logo-file').value  = '';
+
+    // Show current logo if exists
+    const currentWrap = document.getElementById('current-logo-wrap');
+    if (logoPath) {
+        currentWrap.style.display = 'flex';
+        document.getElementById('current-logo-img').src = buildLogoUrl(logoPath);
+    } else {
+        currentWrap.style.display = 'none';
+    }
+
+    document.getElementById('logo-upload-area').style.display = 'flex';
+    document.getElementById('logo-preview-wrap').style.display = 'none';
+    clearAllErrors();
+
+    document.getElementById('form-modal').classList.add('show');
+    setTimeout(() => document.getElementById('brand-name').focus(), 100);
+}
+
+function closeFormModal() {
+    document.getElementById('form-modal').classList.remove('show');
+}
+
+// ============================================================
+// Logo file handling
+// ============================================================
+function handleFileSelected(file) {
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!validTypes.includes(file.type)) {
+        showFieldError('brand-logo', 'Chỉ chấp nhận file JPG, JPEG, PNG');
+        return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+        showFieldError('brand-logo', 'File không được vượt quá 2MB');
+        return;
+    }
+
+    clearFieldError('brand-logo');
+    selectedFile = file;
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        document.getElementById('logo-preview-img').src = e.target.result;
+        document.getElementById('logo-upload-area').style.display = 'none';
+        document.getElementById('logo-preview-wrap').style.display = 'flex';
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeLogo() {
+    selectedFile = null;
+    document.getElementById('logo-file').value = '';
+    document.getElementById('logo-preview-img').src = '';
+    document.getElementById('logo-preview-wrap').style.display = 'none';
+    document.getElementById('logo-upload-area').style.display = 'flex';
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    document.getElementById('logo-upload-area').classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+    document.getElementById('logo-upload-area').classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('logo-upload-area').classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileSelected(file);
+}
+
+// ============================================================
+// Save (Create / Update)
+// ============================================================
+async function saveBrand() {
+    const name = document.getElementById('brand-name').value.trim();
+    clearErrors('brand-name', 'brand-logo');
+    if (!name) { showFieldError('brand-name', 'Tên thương hiệu là bắt buộc'); return; }
+
+    setSaveLoading(true);
+    const formData = new FormData();
+    formData.append('name', name);
+    if (selectedFile) formData.append('logo', selectedFile);
+
+    try {
+        if (editingId) {
+            formData.append('_method', 'PUT');
+            await adminRequestFormData(`/brands/${editingId}`, formData);
+            showAdminToast('Cập nhật thương hiệu thành công ✅');
+        } else {
+            await adminRequestFormData('/brands', formData);
+            showAdminToast('Thêm thương hiệu thành công ✅');
+        }
+        closeFormModal();
+        currentPage = editingId ? currentPage : 1;
+        loadBrands();
+    } catch (err) {
+        const errors = err?.data?.errors;
+        if (errors?.name)      showFieldError('brand-name', errors.name[0]);
+        else if (errors?.logo) showFieldError('brand-logo', errors.logo[0]);
+        else                   showFieldError('brand-name', err?.data?.message ?? 'Có lỗi xảy ra');
+    } finally {
+        setSaveLoading(false);
+    }
+}
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeFormModal(); closeDeleteModal(); }
+});
+
+function openDeleteModal(id, name) {
+    deletingId = id;
+    document.getElementById('delete-name').textContent = `"${name}"`;
+    document.getElementById('delete-modal').classList.add('show');
+}
+
+function closeDeleteModal() {
+    document.getElementById('delete-modal').classList.remove('show');
+    deletingId = null;
+}
+
+async function doDelete() {
+    if (!deletingId) return;
+    const btn = document.getElementById('confirm-delete-btn');
+    btn.disabled = true; btn.textContent = 'Đang xóa...';
+    try {
+        await adminRequest(`/brands/${deletingId}`, { method: 'DELETE' });
+        showAdminToast('Xóa thương hiệu thành công ✅');
+        closeDeleteModal();
+        if (currentPage > 1 && document.querySelectorAll('#brand-table-body tr').length === 1) currentPage--;
+        loadBrands();
+    } catch (err) {
+        closeDeleteModal();
+        const msg = err?.data?.message || 'Không thể xóa thương hiệu này';
+        showAdminToast((err?.status === 409 ? '⛔ ' : '❌ ') + msg, 'error', 5000);
+    } finally {
+        btn.disabled = false; btn.textContent = 'Xóa';
+    }
+}
+</script>
+</body>
+</html>

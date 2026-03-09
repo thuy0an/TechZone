@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Storefront\ProductController;
 use App\Http\Controllers\Api\Storefront\CartController;
 use App\Http\Controllers\Api\Storefront\OrderController;
 use App\Http\Controllers\Api\Admin\CategoryController;
+use App\Http\Controllers\Api\Admin\BrandController;
 use App\Http\Controllers\Api\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
@@ -76,6 +77,9 @@ Route::prefix('admin')->group(function () {
         Route::apiResource('products', AdminProductController::class);
 
         Route::apiResource('categories', CategoryController::class);
+
+        // QUẢN LÝ THƯƠNG HIỆU (US-18)
+        Route::apiResource('brands', BrandController::class);
 
         // QUẢN LÝ ĐƠN HÀNG
         Route::get('/orders', [AdminOrderController::class, 'index']);

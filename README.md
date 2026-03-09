@@ -17,8 +17,15 @@ TechZone là dự án website kinh doanh thiết bị điện tử, xây trên L
 
 ## 1) Tổng quan
 
-- Mục tiêu: xây hệ thống bán hàng + quản trị cho ngành hàng điện tử.
-- Trạng thái hiện tại: dự án đang ở giai đoạn nền tảng kiến trúc (base classes, route mẫu, giao diện trang chủ mẫu), chưa hoàn thiện nghiệp vụ theo SRS.
+- **Mục tiêu:** Xây hệ thống bán hàng + quản trị cho ngành hàng điện tử.
+- **Trạng thái hiện tại:** Đã triển khai Admin Portal (xác thực, CRUD danh mục & thương hiệu) và nền tảng Storefront (xác thực khách hàng, giỏ hàng, đặt hàng). Backend theo kiến trúc Repository + Service. Frontend Admin theo chuẩn SOLID với các module dùng chung.
+
+### Truy cập nhanh
+
+| Đối tượng | URL |
+|-----------|-----|
+| **Trang Admin** | `http://127.0.0.1:8000/admin/login.html` |
+| **Trang Khách hàng** | `http://127.0.0.1:8000/index.html` |
 
 ## 2) Phạm vi theo SRS
 
@@ -36,30 +43,34 @@ TechZone là dự án website kinh doanh thiết bị điện tử, xây trên L
 
 ## 3) Mức độ triển khai hiện tại so với SRS
 
-### Đã có
+### Đã hoàn thiện
 
-- Khung Laravel 12 chạy được.
-- Các lớp nền:
-  - `app/Http/Controllers/Api/BaseApiController.php`
-  - `app/Http/Requests/PaginationRequest.php`
-  - `app/Models/BaseModel.php`
-  - `app/Repositories/BaseRepository.php` + interface
-  - `app/Services/BaseService.php` + interface
-- Frontend demo:
-  - `public/index.html`
-  - `public/js/api.js`
-  - `public/js/app.js`
-- API test hoạt động: `GET /api/test`.
+**Backend (API)**
+- Khung Laravel 12 + kiến trúc Repository/Service Pattern với base class cho tất cả module.
+- **Admin Auth:** đăng nhập, đăng xuất, Sanctum token (`/api/admin/login`, `/api/admin/logout`).
+- **Storefront Auth:** đăng ký, đăng nhập, đăng xuất khách hàng.
+- **Category (Admin):** CRUD đầy đủ, tìm kiếm, phân trang.
+- **Brand (Admin):** CRUD đầy đủ, upload logo Cloudinary, tìm kiếm, phân trang.
+- **Product (Admin/Storefront):** danh sách, chi tiết, quản lý sản phẩm.
+- **Cart:** xem, thêm, xóa sản phẩm khỏi giỏ.
+- **Order:** đặt hàng (checkout), lịch sử đơn hàng, quản lý đơn cho admin.
 
-### Mới ở mức khung / một phần
-
-- Có route bảo vệ bởi Sanctum: `GET /api/user` (cần auth).
-- Frontend có hàm gọi `/api/products`, `/api/categories` nhưng backend chưa khai báo route/controller thật.
+**Frontend Admin** (`public/admin/`)
+- Kiến trúc SOLID — 5 module JS dùng chung:
+  - `admin-token.js` — quản lý localStorage token (S)
+  - `admin-api.js` — HTTP client (S)
+  - `admin-auth.js` — guards, login/logout (S)
+  - `admin-layout.js` — inject sidebar/topbar/modal tự động (O, D)
+  - `admin-utils.js` — tiện ích: escape, format, pagination (I, D)
+- Các trang: `login.html`, `dashboard.html`, `categories.html`, `brands.html`.
 
 ### Chưa triển khai theo SRS
 
-- Toàn bộ UC nghiệp vụ chính (C1-C4, A1-A4): auth khách hàng/admin đầy đủ, catalog thật, giỏ hàng DB, checkout, promotions, nhập kho, xử lý đơn, báo cáo.
-- Bộ migration theo domain TechZone (hiện chỉ có migration mặc định của Laravel).
+- Trang sản phẩm admin (`products.html`) và trang đơn hàng admin (`orders.html`).
+- Quản lý nhập kho, tính giá bình quân, cập nhật giá bán.
+- Quản lý khuyến mãi/mã giảm giá.
+- Báo cáo tồn kho.
+- Giao diện Storefront chi tiết (tìm kiếm/lọc, giỏ hàng UI, checkout UI).
 
 ## 4) Tech stack
 
@@ -97,10 +108,13 @@ TechZone là dự án website kinh doanh thiết bị điện tử, xây trên L
 
 6. Truy cập:
 
-   - Frontend: `http://127.0.0.1:8000/index.html`
-   - API test: `http://127.0.0.1:8000/api/test`
+   | Trang | URL |
+   |-------|-----|
+   | **Admin** (đăng nhập quản trị) | `http://127.0.0.1:8000/admin/login.html` |
+   | **Khách hàng** (storefront) | `http://127.0.0.1:8000/index.html` |
+   | API test | `http://127.0.0.1:8000/api/test` |
 
-> Lưu ý: route `/` hiện redirect về `/index.html`.
+> Tài khoản admin mặc định: xem file `database/seeders/AdminSeeder.php`.
 
 ## 6) Tùy chọn cơ sở dữ liệu
 
@@ -132,10 +146,42 @@ Kết quả: tạo các bảng mặc định Laravel (`users`, `sessions`, `cach
 
 - `GET /` → redirect `/index.html`
 
-### API
+### API — Admin (cần Bearer token admin)
 
-- `GET /api/test` → kiểm tra API hoạt động
-- `GET /api/user` → trả user hiện tại (cần `auth:sanctum`)
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| POST | `/api/admin/login` | Đăng nhập admin |
+| POST | `/api/admin/logout` | Đăng xuất admin |
+| GET/POST | `/api/admin/categories` | Danh sách / Tạo danh mục |
+| GET/PUT/DELETE | `/api/admin/categories/{id}` | Chi tiết / Sửa / Xóa danh mục |
+| GET/POST | `/api/admin/brands` | Danh sách / Tạo thương hiệu |
+| GET/PUT/DELETE | `/api/admin/brands/{id}` | Chi tiết / Sửa / Xóa thương hiệu |
+| GET/POST | `/api/admin/products` | Danh sách / Tạo sản phẩm |
+| GET/PUT/DELETE | `/api/admin/products/{id}` | Chi tiết / Sửa / Xóa sản phẩm |
+| GET | `/api/admin/orders` | Danh sách đơn hàng |
+| PUT | `/api/admin/orders/{id}/status` | Cập nhật trạng thái đơn |
+
+### API — Storefront (public)
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| GET | `/api/test` | Kiểm tra API |
+| POST | `/api/storefront/register` | Đăng ký khách hàng |
+| POST | `/api/storefront/login` | Đăng nhập khách hàng |
+| GET | `/api/storefront/products` | Danh sách sản phẩm |
+| GET | `/api/storefront/products/{id}` | Chi tiết sản phẩm |
+| GET | `/api/storefront/categories` | Danh sách danh mục |
+
+### API — Storefront (cần Bearer token khách hàng)
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| GET | `/api/storefront/cart` | Xem giỏ hàng |
+| POST | `/api/storefront/cart/add` | Thêm vào giỏ |
+| DELETE | `/api/storefront/cart/delete/{id}` | Xóa khỏi giỏ |
+| POST | `/api/storefront/checkout` | Đặt hàng |
+| GET | `/api/storefront/orders` | Lịch sử đơn hàng |
+| POST | `/api/storefront/logout` | Đăng xuất |
 
 ## 8) Cấu trúc dự án (rút gọn)
 
@@ -143,41 +189,55 @@ Kết quả: tạo các bảng mặc định Laravel (`users`, `sessions`, `cach
 TechZone/
 ├─ app/
 │  ├─ Http/
-│  │  ├─ Controllers/Api/BaseApiController.php
-│  │  └─ Requests/PaginationRequest.php
-│  ├─ Models/
-│  │  ├─ BaseModel.php
-│  │  └─ User.php
-│  ├─ Repositories/
-│  │  ├─ Interfaces/BaseRepositoryInterface.php
-│  │  └─ BaseRepository.php
-│  └─ Services/
-│     ├─ Interfaces/BaseServiceInterface.php
-│     └─ BaseService.php
+│  │  ├─ Controllers/Api/
+│  │  │  ├─ Admin/   (AuthController, CategoryController, BrandController, ProductController, OrderController)
+│  │  │  └─ Storefront/ (AuthController, ProductController, CartController, OrderController)
+│  │  ├─ Requests/   (form validation cho từng module)
+│  │  └─ Resources/  (JSON transformers)
+│  ├─ Models/        (Admin, User, Product, Brand, Category, Cart, CartItem, Order, OrderDetail, ImportNote)
+│  ├─ Repositories/  (Base + Admin/Order/Cart/Category/Product/User + Interfaces)
+│  └─ Services/      (Base + AdminAuth/AdminOrder/Auth/Cart/Category/Cloudinary/Order/Product + Interfaces)
 ├─ database/
-│  ├─ migrations/ (mặc định Laravel)
-│  └─ seeders/
+│  ├─ migrations/
+│  └─ seeders/       (AdminSeeder, ...)
 ├─ public/
-│  ├─ index.html
-│  ├─ css/style.css
-│  └─ js/{api.js, app.js}
+│  ├─ index.html                    ← Storefront (trang khách hàng)
+│  ├─ admin/
+│  │  ├─ login.html                 ← Trang đăng nhập admin
+│  │  ├─ dashboard.html
+│  │  ├─ categories.html
+│  │  └─ brands.html
+│  ├─ css/admin.css
+│  └─ js/
+│     ├─ admin-token.js             ← module: localStorage token
+│     ├─ admin-api.js               ← module: HTTP client
+│     ├─ admin-auth.js              ← module: auth guards + login/logout
+│     ├─ admin-layout.js            ← module: inject sidebar/topbar
+│     └─ admin-utils.js             ← module: tiện ích dùng chung
 ├─ routes/
 │  ├─ web.php
 │  └─ api.php
 ├─ TableOfProject.sql
-├─ DataMock.sql
-└─ ĐẶC TẢ YÊU CẦU HỆ THỐNG PHẦN MỀM.md
+└─ DataMock.sql
 ```
 
 ## 9) Roadmap đề xuất
 
-1. Đồng bộ schema chính thức: chọn chiến lược migration theo SRS (thay vì giữ song song SQL thủ công).
-2. Triển khai module Auth (User/Admin, phân quyền, Sanctum).
-3. Triển khai Catalog: categories/brands/products + tìm kiếm/lọc/phân trang thật.
-4. Triển khai Cart/Checkout/Orders + trạng thái đơn.
-5. Triển khai Import Notes + thuật toán giá bình quân + lịch sử giá.
-6. Triển khai Promotions + áp mã theo điều kiện.
-7. Bổ sung test nghiệp vụ và API test coverage.
+- [x] Khung Laravel 12 + base classes (Repository/Service Pattern)
+- [x] Admin Auth (đăng nhập/đăng xuất, Sanctum token)
+- [x] Storefront Auth (đăng ký/đăng nhập khách hàng)
+- [x] CRUD Category (admin) — backend + UI
+- [x] CRUD Brand + upload logo (admin) — backend + UI
+- [x] Product management — backend API
+- [x] Cart & Checkout — backend API
+- [x] Order management — backend API
+- [x] Frontend Admin SOLID module system
+- [ ] Trang sản phẩm admin (`products.html`) + trang đơn hàng admin (`orders.html`)
+- [ ] Storefront UI chi tiết (tìm kiếm/lọc, giỏ hàng, checkout)
+- [ ] Nhập kho + thuật toán giá bình quân + lịch sử giá
+- [ ] Quản lý khuyến mãi / mã giảm giá
+- [ ] Báo cáo tồn kho
+- [ ] Test coverage (Pest/PHPUnit)
 
 ---
 
