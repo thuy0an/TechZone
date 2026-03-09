@@ -2,32 +2,34 @@
 
 namespace App\Services;
 
-use Cloudinary\Cloudinary;
+use Cloudinary\Configuration\Configuration;
+use Cloudinary\Api\Upload\UploadApi;
 
 class CloudinaryService
 {
-    protected $cloudinary;
-
-    public function __construct()
+    public function upload($file, $folder = 'techzone/products')
     {
-        $this->cloudinary = new Cloudinary([
+        if (!$file) return null;
+
+        // Cấu hình trực tiếp từ env để đảm bảo không bị null
+        $config = Configuration::instance([
             'cloud' => [
                 'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
                 'api_key'    => env('CLOUDINARY_API_KEY'),
                 'api_secret' => env('CLOUDINARY_API_SECRET'),
             ],
+            'url' => [
+                'secure' => true
+            ]
         ]);
-    }
 
-    public function upload($file, $folder = 'techzone/products')
-    {
-        if (!$file) return null;
+        $upload = new UploadApi($config);
 
-        $result = $this->cloudinary->uploadApi()->upload(
+        $result = $upload->upload(
             $file->getRealPath(),
             ['folder' => $folder]
         );
 
-        return $result['secure_url']; // Trả về đường dẫn https
+        return $result['secure_url'];
     }
 }

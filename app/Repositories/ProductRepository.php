@@ -46,9 +46,24 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
             });
         }
 
-        // Lọc theo trạng thái ẩn/hiện
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['category_id'])) {
+            $query->where('category_id', $filters['category_id']);
+        }
+
+        if (!empty($filters['brand_id'])) {
+            $query->where('brand_id', $filters['brand_id']);
+        }
+
+        if (!empty($filters['min_price'])) {
+            $query->where('selling_price', '>=', $filters['min_price']);
+        }
+
+        if (!empty($filters['max_price'])) {
+            $query->where('selling_price', '<=', $filters['max_price']);
         }
 
         return $query->orderBy('created_at', 'desc')->paginate($perPage);
@@ -61,12 +76,9 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
     {
         $product = $this->model->findOrFail($id);
 
-        // Đồng bộ trạng thái kinh doanh sang 'hidden' trước khi xóa mềm
         $product->status = 'hidden';
-        $product->save();
 
-        // Eloquent sẽ tự động điền deleted_at nếu Model sử dụng SoftDeletes
-        return $product->delete();
+        return $product->save();
     }
 
     public function hasActiveOrders(int $productId): bool
@@ -89,7 +101,7 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
      */
     public function forceDelete(int $id)
     {
-        $product = $this->model->withTrashed()->findOrFail($id);
-        return $product->forceDelete();
+        $product = $this->model->findOrFail($id);
+        return $product->delete();
     }
 }

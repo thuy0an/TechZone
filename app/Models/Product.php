@@ -3,11 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends BaseModel
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'category_id',
@@ -25,8 +24,6 @@ class Product extends BaseModel
         'status',
         'low_stock_threshold',
     ];
-
-    protected $dates = ['deleted_at'];
 
     public function category()
     {

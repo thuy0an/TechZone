@@ -278,7 +278,7 @@ function openAddModal() {
     document.getElementById('logo-upload-area').style.display = 'flex';
     document.getElementById('logo-preview-wrap').style.display = 'none';
     document.getElementById('logo-file').value = '';
-    clearAllErrors();
+    clearErrors('brand-name', 'brand-logo');
 
     document.getElementById('form-modal').classList.add('show');
     setTimeout(() => document.getElementById('brand-name').focus(), 100);
@@ -306,7 +306,7 @@ function openEditModal(id, name, logoPath) {
 
     document.getElementById('logo-upload-area').style.display = 'flex';
     document.getElementById('logo-preview-wrap').style.display = 'none';
-    clearAllErrors();
+    clearErrors('brand-name', 'brand-logo');
 
     document.getElementById('form-modal').classList.add('show');
     setTimeout(() => document.getElementById('brand-name').focus(), 100);

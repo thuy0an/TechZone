@@ -43,6 +43,10 @@ class ProductService extends BaseService implements ProductServiceInterface
         $filters = [
             'search' => $request->input('search'),
             'status' => $request->input('status'),
+            'category_id' => $request->input('category_id'),
+            'brand_id'    => $request->input('brand_id'),
+            'min_price'   => $request->input('min_price'),
+            'max_price'   => $request->input('max_price'),
         ];
         $perPage = $request->input('per_page', 15);
 
@@ -63,6 +67,10 @@ class ProductService extends BaseService implements ProductServiceInterface
     public function updateProductForAdmin(int $id, array $data)
     {
         $product = $this->repository->findById($id);
+
+        if (isset($data['image_file'])) {
+            $data['image'] = $this->cloudinaryService->upload($data['image_file']);
+        }
 
         // Nếu Admin thay đổi 'Biên độ lợi nhuận' (profit_margin), 
         // hệ thống tự động tính lại giá bán dựa trên giá nhập hiện tại.

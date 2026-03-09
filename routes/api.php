@@ -8,7 +8,7 @@ use App\Http\Controllers\Api\Storefront\CartController;
 use App\Http\Controllers\Api\Storefront\OrderController;
 use App\Http\Controllers\Api\Admin\CategoryController;
 use App\Http\Controllers\Api\Admin\BrandController;
-use App\Http\Controllers\Api\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Api\Admin\Auth\AuthController as AdminAuthController;
 use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
 
@@ -31,7 +31,10 @@ Route::get('/test', function () {
     ]);
 });
 
+// ============================================
+// STOREFRONT Routes
 // Nhóm Public (Không cần đăng nhập)
+// ============================================
 Route::prefix('storefront')->group(function () {
     // HIỂN THỊ SẢN PHẨM 
     Route::get('/products', [ProductController::class, 'index']); // Danh sách SP
@@ -43,7 +46,10 @@ Route::prefix('storefront')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 });
 
+// ============================================
+// STOREFRONT Routes
 // Nhóm cần đăng nhập
+// ============================================
 Route::prefix('storefront')->middleware('auth:sanctum')->group(function () {
     // GIỎ HÀNG
     Route::get('/cart', [CartController::class, 'index']); // xem giỏ hàng

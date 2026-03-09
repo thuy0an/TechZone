@@ -892,6 +892,13 @@ table.data-table tbody tr:hover { background: #f8fafc; }
     transform: translateY(-1px);
 }
 
+.flex-row{
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    justify-content: flex-start;
+}
+
 /* ============================================
    PAGINATION
    ============================================ */
@@ -1114,6 +1121,26 @@ table.data-table tbody tr:hover { background: #f8fafc; }
     background: white;
     padding: 2px;
     border: 1px solid var(--border);
+}
+
+.cursor-pointer:hover{
+    cursor: pointer;
+}
+
+.danger{
+    background-color: #ee2525;
+    padding: 10px 20px 10px 20px;
+    color: #fff;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.success{
+    background-color: rgb(28, 179, 28);
+    padding: 10px 20px 10px 20px;
+    color: #fff;
+    border-radius: 8px;
+    font-weight: bold;
 }
 
 /* ---- Responsive ---- */
