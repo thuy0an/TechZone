@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đơn hàng - TechZone Admin</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="icon" href="/favicon.ico">
+</head>
+<body>
+<div class="admin-layout">
+    <div id="admin-sidebar-root"></div>
+    <div class="admin-main">
+        <div id="admin-topbar-root"></div>
+
+        <main class="admin-content">
+            <div class="page-header">
+                <h1>Quản lý Đơn hàng</h1>
+                <p>Xem danh sách và cập nhật trạng thái đơn hàng từ khách hàng</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="toolbar" style="gap: 12px;">
+                        <div class="search-box" style="width: 400px">
+                            <span>🔍</span>
+                            <input type="text" id="search-input" placeholder="Tìm theo mã đơn hoặc tên khách, SĐT...">
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <label style="font-size: 0.8rem; color: var(--text-secondary);">Từ:</label>
+                                <input type="date" id="filter-start-date" class="form-control" style="width:200px;" onchange="loadOrders()">
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <label style="font-size: 0.8rem; color: var(--text-secondary);">Đến:</label>
+                                <input type="date" id="filter-end-date" class="form-control" style="width:200px;" onchange="loadOrders()">
+                            </div>
+                            <select id="filter-payment" class="form-control" style="width:200px;" onchange="currentPage=1; loadOrders()">
+                                <option value="">Mọi thanh toán</option>
+                                <option value="cash">💵 Tiền mặt</option>
+                                <option value="bank_transfer">🏦 Chuyển khoản</option>
+                                <option value="online">💳 Online (VNPay/Momo)</option>
+                            </select>
+                        </div>
+
+                        <select id="filter-status" class="form-control" style="width:250px;" onchange="currentPage=1; loadOrders()">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="pending">Chờ xử lý</option>
+                            <option value="confirmed">Đã xác nhận</option>
+                            <option value="shipping">Đang giao hàng</option>
+                            <option value="delivered">Đã giao hàng</option>
+                            <option value="completed">Hoàn thành</option>
+                            <option value="cancelled">Đã hủy</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:140px">Mã đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Phương thức thanh toán</th>
+                                <th>Trạng thái</th>
+                                <th style="width:120px; text-align:center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="order-table-body">
+                            <tr><td colspan="7" class="table-loading">⏳ Đang tải đơn hàng...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination" id="pagination-bar" style="display:none">
+                    <div class="pagination-info" id="pagination-info"></div>
+                    <div class="pagination-btns" id="pagination-btns"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div class="modal-overlay-form" id="form-modal">
+    <div class="modal-form-box" style="max-width: 600px;">
+        <div class="modal-form-header">
+            <span class="modal-form-title">Chi tiết đơn hàng <span id="view-order-code"></span></span>
+            <button class="modal-close-btn" onclick="closeFormModal()">✕</button>
+        </div>
+        <div class="modal-form-body">
+            <div style="background: var(--bg-body); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <p>👤 <strong>Người nhận:</strong> <span id="view-receiver"></span></p>
+                <p>📞 <strong>Số điện thoại:</strong> <span id="view-phone"></span></p>
+                <p>📍 <strong>Địa chỉ:</strong> <span id="view-address"></span></p>
+                <p>📧 <strong>Email:</strong> <span id="view-email"></span></p>
+            </div>
+
+            <div class="form-group">
+                <label>Cập nhật trạng thái mới</label>
+                <select id="update-status" class="form-control"></select>
+                <small id="status-hint" style="color:var(--text-secondary); margin-top:5px; display:block;"></small>
+            </div>
+        </div>
+        <div class="modal-form-footer">
+            <button class="btn btn-cancel" onclick="closeFormModal()">Đóng</button>
+            <button class="btn-save" id="save-btn" onclick="updateOrderStatus()">Lưu cập nhật</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="admin-toast"></div>
+
+<script src="/js/admin/admin-token.js"></script>
+<script src="/js/admin/admin-api.js"></script>
+<script src="/js/admin/admin-auth.js"></script>
+<script src="/js/admin/admin-layout.js"></script>
+<script src="/js/admin/admin-utils.js"></script>
+<script>
+initAdminLayout({ title: 'Đơn hàng', icon: '🛒', activePage: 'orders' });
+
+let currentPage = 1;
+let searchTimeout = null;
+let currentOrder = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadOrders();
+    
+    // Debounce tìm kiếm
+    document.getElementById('search-input').addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentPage = 1;
+            loadOrders();
+        }, 400);
+    });
+});
+
+async function loadOrders() {
+    const search = document.getElementById('search-input').value.trim();
+    const status = document.getElementById('filter-status').value;
+    const payment_method = document.getElementById('filter-payment').value; 
+    const startDate = document.getElementById('filter-start-date').value;
+    const endDate = document.getElementById('filter-end-date').value;
+
+    const params = new URLSearchParams({ page: currentPage, per_page: 10 });
+    
+    if (search) params.append('search', search);
+    if (status) params.append('status', status);
+    if (payment_method) params.append('payment_method', payment_method);
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+
+    setTableLoading(true);
+
+    try {
+        const res = await adminRequest(`/orders?${params}`);
+        renderTable(res.data.data ?? res.data);
+        renderPagination({
+            meta: res.data.meta ?? res.data,
+            currentPage,
+            onPageChange: (p) => { currentPage = p; loadOrders(); }
+        });
+    } catch (err) {
+        showTableError('Không thể tải danh sách đơn hàng.');
+    }
+}
+
+function getStatusConfig(status) {
+    const map = {
+        'new':       { label: 'Mới', class: 'secondary' },
+        'confirmed': { label: 'Đã xác nhận', class: 'info' },
+        'shipping':  { label: 'Đang giao', class: 'processing' },
+        'delivered': { label: 'Đã giao hàng', class: 'warning' },
+        'completed': { label: 'Hoàn thành', class: 'success' },
+        'cancelled': { label: 'Đã hủy', class: 'danger' },
+        'failed':    { label: 'Thất bại', class: 'danger' }
+    };
+    return map[status] || { label: status, class: 'secondary' };
+}
+
+function getPaymentMethodText(method) {
+    const map = {
+        'cash': 'Tiền mặt',
+        'online': 'Thanh toán Online',
+        'bank_transfer': 'Chuyển khoản'
+    };
+    return map[method] || method;
+}
+
+function renderTable(items) {
+    const tbody = document.getElementById('order-table-body');
+    if (!items || items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="table-empty">Không tìm thấy đơn hàng nào</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = items.map(order => {
+        const status = getStatusConfig(order.status);
+        return `
+        <tr>
+            <td class="td-id">#${order.id}</td>
+            <td class="td-name">${escHtml(order.receiver_name)}</td>
+            <td style="font-size:0.85rem">${formatDate(order.created_at)}</td>
+            <td style="font-weight:700">${new Intl.NumberFormat('vi-VN').format(order.total_amount)}đ</td>
+            <td style="font-size:0.85rem">
+                ${getPaymentMethodText(order.payment_method)}
+            </td>
+            <td><span class="badge ${status.class}">${status.label}</span></td>
+            <td>
+                <div class="td-actions" style="justify-content:center">
+                    <button class="btn-edit" onclick="openOrderModal(${order.id})">🔍 Xử lý</button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+async function openOrderModal(id) {
+    try {
+        const res = await adminRequest(`/orders/${id}`);
+        currentOrder = res.data;
+
+        // Fill data
+        document.getElementById('view-order-code').textContent = `#${currentOrder.order_code}`;
+        document.getElementById('view-receiver').textContent = currentOrder.receiver_name;
+        document.getElementById('view-phone').textContent = currentOrder.receiver_phone;
+        document.getElementById('view-address').textContent = currentOrder.receiver_address;
+        document.getElementById('view-email').textContent = currentOrder.receiver_email;
+
+        // Định nghĩa Map luồng trạng thái (Workflow Map)
+        const workflowMap = {
+            'new':       ['confirmed', 'cancelled'],
+            'confirmed': ['shipping', 'cancelled'],
+            'shipping':  ['delivered', 'failed'],
+            'delivered': [],
+            'completed': [],
+            'cancelled': ['new'],
+            'failed':    ['shipping', 'cancelled']
+        };
+
+        // Định nghĩa Text hiển thị cho từng trạng thái
+        const statusLabels = {
+            'new':       'Mới',
+            'confirmed': 'Xác nhận đơn',
+            'shipping':  'Bắt đầu giao hàng (nhân viên kho xác nhận)',
+            'delivered': 'Đã giao hàng (Chờ xác nhận)',
+            'completed': 'Hoàn thành đơn hàng',
+            'cancelled': 'Hủy đơn hàng',
+            'failed':    'Giao hàng thất bại'
+        };
+
+        const statusSelect = document.getElementById('update-status');
+        const currentStatus = currentOrder.status;
+        
+        // Lấy danh sách các trạng thái kế tiếp hợp lệ
+        const nextAllowed = workflowMap[currentStatus] || [];
+
+        // Tạo HTML cho Option đầu tiên là trạng thái hiện tại (disabled)
+        let optionsHtml = `<option value="${currentStatus}" disabled selected>
+            Hiện tại: ${statusLabels[currentStatus]}
+        </option>`;
+
+        // Render các option hợp lệ tiếp theo
+        if (nextAllowed.length > 0) {
+            optionsHtml += nextAllowed.map(statusKey => 
+                `<option value="${statusKey}">${statusLabels[statusKey]}</option>`
+            ).join('');
+        }
+
+        statusSelect.innerHTML = optionsHtml;
+
+        // Xử lý trạng thái nút Lưu (Đóng băng nếu không còn bước chuyển tiếp)
+        const saveBtn = document.getElementById('save-btn');
+        const statusHint = document.getElementById('status-hint');
+
+        if(currentStatus === 'delivered'){
+            saveBtn.disabled = true;
+            statusHint.textContent = 'Đơn hàng này đã được giao, chỉ được đợi khách hàng xác nhận hoàn thành.';
+            statusHint.style.color = 'var(--admin-success)';
+        }
+        else if (nextAllowed.length === 0) {
+            saveBtn.disabled = true;
+            statusHint.textContent = 'Đơn hàng này đã kết thúc, không thể thay đổi thêm.';
+            statusHint.style.color = 'var(--admin-danger)';
+        } 
+        else {
+            saveBtn.disabled = false;
+            statusHint.textContent = 'Vui lòng chọn trạng thái tiếp theo hợp lệ.';
+            statusHint.style.color = 'var(--text-secondary)';
+        }
+
+        document.getElementById('form-modal').classList.add('show');
+
+    } catch (err) {
+        showAdminToast('Không thể lấy chi tiết đơn hàng', 'error');
+    }
+}
+
+async function updateOrderStatus() {
+    const newStatus = document.getElementById('update-status').value;
+    if (newStatus === currentOrder.status) {
+        closeFormModal();
+        return;
+    }
+
+    setSaveLoading(true);
+    try {
+        // Gọi API PUT /admin/orders/{id}/status
+        await adminRequest(`/orders/${currentOrder.id}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status: newStatus })
+        });
+        
+        showAdminToast('Cập nhật trạng thái thành công ✅');
+        closeFormModal();
+        loadOrders();
+    } catch (err) {
+        showAdminToast(err.data?.message || 'Lỗi khi cập nhật trạng thái', 'error');
+    } finally {
+        setSaveLoading(false);
+    }
+}
+
+function setTableLoading(on) {
+    if (on) {
+        document.getElementById('order-table-body').innerHTML = `<tr><td colspan="7" class="table-loading">⏳ Đang tải...</td></tr>`;
+        document.getElementById('pagination-bar').style.display = 'none';
+    }
+}
+
+function showTableError(msg) {
+    document.getElementById('order-table-body').innerHTML = `<tr><td colspan="7" class="table-loading" style="color:var(--admin-danger)">⚠️ ${msg}</td></tr>`;
+}
+
+function closeFormModal() {
+    document.getElementById('form-modal').classList.remove('show');
+}
+</script>
+</body>
+</html>

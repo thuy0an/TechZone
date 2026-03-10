@@ -15,23 +15,39 @@ const API_BASE_URL = '/api';
 async function apiRequest(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
 
-    const defaultOptions = {
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-        },
+    const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...(options.headers || {})
     };
 
-    const config = { ...defaultOptions, ...options };
+    // Tự động đính kèm Token của Customer nếu có
+    const token = localStorage.getItem('storefront_token');
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const config = { ...options, headers };
 
     try {
         const response = await fetch(url, config);
+        const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            // Nếu token hết hạn hoặc lỗi 401, tự động xóa session và bắt đăng nhập lại
+            if (response.status === 401 && endpoint !== '/storefront/login') {
+                localStorage.removeItem('storefront_token');
+                localStorage.removeItem('storefront_user');
+                window.location.href = '/login.html';
+            }
+
+            const err = new Error(data.message || 'Lỗi kết nối API');
+            err.status = response.status;
+            err.data = data;
+            throw err;
         }
 
-        return await response.json();
+        return data;
     } catch (error) {
         console.error('API Error:', error);
         throw error;

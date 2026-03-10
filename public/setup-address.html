@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thiết lập địa chỉ - TechZone</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body style="background-color: var(--bg-color);">
+
+    <header class="header">
+        <div class="container" style="display: flex; justify-content: center; padding: 15px 20px;">
+            <a href="/" class="logo">
+                <span class="logo-icon">📱</span> TechZone
+            </a>
+        </div>
+    </header>
+
+    <main class="section">
+        <div class="container" style="max-width: 500px; margin: 0 auto;">
+            <div style="background: var(--white); padding: 40px; border-radius: var(--radius); box-shadow: var(--shadow-lg);">
+                
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div style="font-size: 3rem; margin-bottom: 10px;">📍</div>
+                    <h2 style="color: var(--primary-color);">Cập nhật địa chỉ nhận hàng</h2>
+                    <p style="color: var(--text-light); font-size: 0.95rem; margin-top: 5px;">
+                        Thêm địa chỉ giao hàng để mua sắm nhanh chóng hơn. Bạn có thể bỏ qua và thêm sau.
+                    </p>
+                </div>
+
+                <div id="address-alert" class="form-error" style="background: #fef2f2; padding: 12px; border-radius: var(--radius); margin-bottom: 20px; border: 1px solid #fca5a5;"></div>
+
+                <form id="address-form" onsubmit="event.preventDefault(); handleSaveAddress();">
+                    <div class="form-group">
+                        <label for="receiver_name">Tên người nhận <span style="color: #ef4444;">*</span></label>
+                        <input type="text" id="receiver_name" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="receiver_phone">Số điện thoại nhận hàng <span style="color: #ef4444;">*</span></label>
+                        <input type="tel" id="receiver_phone" class="form-control" placeholder="VD: 0901234567" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Địa chỉ chi tiết <span style="color: #ef4444;">*</span></label>
+                        <input type="text" id="address" class="form-control" placeholder="Số nhà, tên đường, phường/xã, quận/huyện..." required>
+                    </div>
+
+                    <div style="display: flex; gap: 15px; margin-top: 30px;">
+                        <button type="button" class="btn" style="flex: 1; background: #f3f4f6; color: var(--text-color); border: 1px solid var(--border-color);" onclick="skipAddress()">
+                            Bỏ qua lúc này
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="btn-save-address" style="flex: 1;">
+                            Lưu địa chỉ
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Chặn người dùng nếu chưa đăng nhập mà lọt vào trang này
+            if (!isLoggedIn()) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            // Tự động điền tên người dùng vào ô Tên người nhận
+            const user = getCurrentUser();
+            if (user && user.name) {
+                document.getElementById('receiver_name').value = user.name;
+            }
+        });
+
+        async function handleSaveAddress() {
+            const receiver_name = document.getElementById('receiver_name').value.trim();
+            const receiver_phone = document.getElementById('receiver_phone').value.trim();
+            const address = document.getElementById('address').value.trim();
+            const btn = document.getElementById('btn-save-address');
+            const alertBox = document.getElementById('address-alert');
+
+            alertBox.classList.remove('show');
+            btn.disabled = true;
+            btn.textContent = 'Đang lưu...';
+
+            try {
+                // apiRequest sẽ tự động gửi kèm Token
+                await apiRequest('/storefront/addresses', {
+                    method: 'POST',
+                    body: JSON.stringify({ receiver_name, receiver_phone, address })
+                });
+
+                alert('Lưu địa chỉ thành công! Bắt đầu mua sắm thôi.');
+                window.location.href = '/';
+            } catch (err) {
+                alertBox.textContent = err.data?.message || 'Lỗi khi lưu địa chỉ. Vui lòng kiểm tra lại thông tin.';
+                alertBox.classList.add('show');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Lưu địa chỉ';
+            }
+        }
+
+        function skipAddress() {
+            // Chuyển thẳng về trang chủ nếu người dùng chọn Bỏ qua
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

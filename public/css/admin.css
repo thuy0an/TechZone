@@ -1143,6 +1143,53 @@ table.data-table tbody tr:hover { background: #f8fafc; }
     font-weight: bold;
 }
 
+.badge {
+    padding: 6px 12px; /* Điều chỉnh lại padding một chút để badge trông thanh thoát hơn trong bảng */
+    color: #fff;
+    border-radius: 8px;
+    font-weight: bold;
+    display: inline-block;
+    font-size: 0.85rem;
+    text-align: center;
+    min-width: 100px;
+}
+
+/* Màu xám cho đơn hàng mới */
+.secondary {
+    background-color: #64748b;
+    padding: 10px 20px;
+    color: #fff;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+/* Màu xanh dương cho đã xác nhận */
+.info {
+    background-color: #3b82f6;
+    padding: 10px 20px;
+    color: #fff;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+/* Màu tím cho đang giao hàng */
+.processing {
+    background-color: #8b5cf6;
+    padding: 10px 20px;
+    color: #fff;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+/* Màu vàng hổ phách cho đã giao tới khách (chờ đối soát/thanh toán) */
+.warning {
+    background-color: #f59e0b;
+    padding: 10px 20px;
+    color: #fff;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
     .admin-sidebar { transform: translateX(-100%); }

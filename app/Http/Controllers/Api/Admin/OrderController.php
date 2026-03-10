@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\Admin\Order\UpdateStatusRequest;
 use App\Services\Interfaces\AdminOrderServiceInterface;
+use App\Models\Order;
 use Illuminate\Http\Request;
 
 class OrderController extends BaseApiController
@@ -23,6 +24,9 @@ class OrderController extends BaseApiController
             $filters = [
                 'status' => $request->input('status'),
                 'search' => $request->input('search'),
+                'payment_method' => $request->query('payment_method'),
+                'start_date' => $request->query('start_date'),
+                'end_date'   => $request->query('end_date'),
             ];
 
             $perPage = $request->input('per_page', 15);
@@ -52,10 +56,30 @@ class OrderController extends BaseApiController
     public function updateStatus(UpdateStatusRequest $request, $id)
     {
         try {
-            $newStatus = $request->validated()['status'];
-            $order = $this->orderService->updateOrderStatus($id, $newStatus);
+            $order = Order::findOrFail($id);
+            $newStatus = $request->input('status');
 
-            return $this->successResponse($order, "Đã cập nhật đơn hàng sang trạng thái: {$newStatus}");
+            // Danh sách trạng thái Admin được phép thực hiện
+            $adminAllowed = ['confirmed', 'cancelled', 'failed'];
+
+            if (!in_array($newStatus, $adminAllowed)) {
+                return $this->errorResponse(
+                    "Bạn không có quyền chuyển đơn hàng sang trạng thái này.",
+                    403
+                );
+            }
+
+            // Chặn nếu đơn hàng đã ở trạng thái cuối (Completed/Cancelled)
+            if (in_array($order->status, ['completed', 'cancelled'])) {
+                return $this->errorResponse(
+                    "Đơn hàng đã kết thúc, không thể chỉnh sửa.",
+                    400
+                );
+            }
+
+            $order->update(['status' => $newStatus]);
+
+            return $this->successResponse($order, 'Cập nhật trạng thái thành công');
         } catch (\Exception $e) {
             return $this->errorResponse('Không thể cập nhật trạng thái', 400, $e->getMessage(),);
         }

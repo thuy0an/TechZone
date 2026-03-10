@@ -43,8 +43,12 @@ use App\Services\AdminOrderService;
 
 use App\Repositories\Interfaces\BrandRepositoryInterface;
 use App\Repositories\BrandRepository;
+use App\Repositories\Interfaces\UserAddressRepositoryInterface;
+use App\Repositories\UserAddressRepository;
 use App\Services\Interfaces\BrandServiceInterface;
 use App\Services\BrandService;
+use App\Services\Interfaces\UserAddressServiceInterface;
+use App\Services\UserAddressService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -62,6 +66,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AdminAuthRepositoryInterface::class, AdminAuthRepository::class);
         $this->app->bind(AdminOrderRepositoryInterface::class, AdminOrderRepository::class);
         $this->app->bind(BrandRepositoryInterface::class, BrandRepository::class);
+        $this->app->bind(UserAddressRepositoryInterface::class, UserAddressRepository::class);
 
 
         // Bind Services
@@ -70,6 +75,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AuthServiceInterface::class, AuthService::class);
         $this->app->bind(OrderServiceInterface::class, OrderService::class);
         $this->app->bind(CategoryServiceInterface::class, CategoryService::class);
+        $this->app->bind(UserAddressServiceInterface::class, UserAddressService::class);
 
         $this->app->bind(AdminAuthServiceInterface::class, AdminAuthService::class);
         $this->app->bind(AdminOrderServiceInterface::class, AdminOrderService::class);

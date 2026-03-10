@@ -172,6 +172,16 @@ a {
     transform: translateY(-2px);
 }
 
+.btn-login-form {
+    background: var(--primary-color);
+    color: var(--white);
+}
+
+.btn-login-form:hover {
+    background: gray;
+    transform: translateY(-2px);
+}
+
 .btn-secondary {
     background: var(--secondary-color);
     color: var(--white);
@@ -179,6 +189,105 @@ a {
 
 .btn-secondary:hover {
     opacity: 0.9;
+}
+
+/* ============================================
+   Form Styles 
+   ============================================ */
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-error {
+    color: #ef4444;
+    font-size: 0.85rem;
+    margin-top: 5px;
+    display: none;
+}
+.form-error.show { display: block; }
+
+/* ============================================
+   User Dropdown Styles 
+   ============================================ */
+
+.user-dropdown {
+    padding: 5px 0;
+}
+
+.dropdown-content {
+    display: none; 
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: var(--white);
+    min-width: 250px;
+    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius);
+    padding: 10px 0;
+    z-index: 1000;
+    border: 1px solid var(--border-color);
+    margin-top: 10px;
+}
+
+.dropdown-content.show {
+    display: block !important;
+}
+
+.dropdown-content a {
+    color: var(--text-color);
+    padding: 10px 20px;
+    display: block;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.dropdown-content a:hover{
+    background-color: lightgray;
+}
+
+.btn-logout-storefront {
+    width: 90%;
+    margin: 5px 5%;
+    padding: 8px;
+    border: none;
+    background-color: #fff1f2; 
+    color: #e11d48;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+    padding-left: 20px;
+}
+
+.btn-logout-storefront:hover {
+    background-color: #ffe4e6;
+    color: #be123c;
 }
 
 /* ============================================

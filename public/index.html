@@ -12,61 +12,54 @@
 
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <a href="index.html" class="logo">
-                <span class="logo-icon">🛒</span>
-                <span class="logo-text">TechZone</span>
-            </a>
-            <nav class="nav">
-                <a href="index.html" class="nav-link active">Trang chủ</a>
-                <a href="products.html" class="nav-link">Sản phẩm</a>
-                <a href="cart.html" class="nav-link">Giỏ hàng <span id="cart-count" class="badge">0</span></a>
-                <a href="login.html" class="nav-link btn-login">Đăng nhập</a>
-            </nav>
-        </div>
-    </header>
+    <div id="storefront-header-root"></div>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container">
-            <h1>Chào mừng đến với <span class="highlight">TechZone</span></h1>
-            <p>Khám phá các sản phẩm công nghệ mới nhất với giá tốt nhất</p>
-            <a href="products.html" class="btn btn-primary">Xem sản phẩm</a>
-        </div>
-    </section>
-
-    <!-- Featured Products -->
-    <section class="section">
-        <div class="container">
-            <h2 class="section-title">Sản phẩm nổi bật</h2>
-            <div id="featured-products" class="products-grid">
-                <!-- Products sẽ được load bằng JavaScript -->
-                <div class="loading">Đang tải sản phẩm...</div>
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <h1>Chào mừng đến với <span class="highlight">TechZone</span></h1>
+                <p>Khám phá những thiết bị công nghệ mới nhất và tốt nhất với giá cả cạnh tranh.</p>
+                <a href="/products.html" class="btn btn-primary">Mua sắm ngay</a>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- API Status -->
-    <section class="section section-dark">
-        <div class="container">
-            <h2 class="section-title">Trạng thái API</h2>
-            <div id="api-status" class="api-status">
-                <p>Đang kiểm tra kết nối API...</p>
+        <!-- Featured Products -->
+        <section class="section">
+            <div class="container">
+                <h2 class="section-title">Sản phẩm nổi bật</h2>
+                <div id="featured-products" class="products-grid">
+                    <!-- Products sẽ được load bằng JavaScript -->
+                    <div class="loading">Đang tải sản phẩm...</div>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
+
+        <!-- API Status -->
+        <section class="section section-dark">
+            <div class="container">
+                <h2 class="section-title">Trạng thái API</h2>
+                <div id="api-status" class="api-status">
+                    <p>Đang kiểm tra kết nối API...</p>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2025 TechZone. Dự án môn học Web.</p>
-        </div>
-    </footer>
+    <div id="storefront-footer-root"></div>
 
     <!-- Scripts -->
-    <script src="js/api.js"></script>
-    <script src="js/app.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/app-layout.js"></script>
+<script src="/js/app.js"></script>
+<script>
+// Gọi hàm để vẽ Header và Footer, báo cho nó biết đang ở trang 'home'
+document.addEventListener('DOMContentLoaded', () => {
+    initStorefrontLayout({ activePage: 'home' });
+});
+</script>
 </body>
 
 </html>

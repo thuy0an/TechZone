@@ -66,6 +66,11 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
             $query->where('selling_price', '<=', $filters['max_price']);
         }
 
+        if (isset($filters['low_stock']) && $filters['low_stock'] === 'true') {
+            // Lọc những sản phẩm có tồn kho nhỏ hơn hoặc bằng ngưỡng cảnh báo
+            $query->whereColumn('stock_quantity', '<=', 'low_stock_threshold');
+        }
+
         return $query->orderBy('created_at', 'desc')->paginate($perPage);
     }
 

@@ -29,6 +29,19 @@ class AdminOrderRepository extends BaseRepository implements AdminOrderRepositor
             });
         }
 
+        if (!empty($filters['start_date'])) {
+            $query->whereDate('created_at', '>=', $filters['start_date']);
+        }
+
+        // LỌC THEO NGÀY KẾT THÚC
+        if (!empty($filters['end_date'])) {
+            $query->whereDate('created_at', '<=', $filters['end_date']);
+        }
+
+        if (!empty($filters['payment_method'])) {
+            $query->where('payment_method', $filters['payment_method']);
+        }
+
         return $query->orderBy('created_at', 'desc')->paginate($perPage);
     }
 }

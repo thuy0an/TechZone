@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Storefront\Auth\AuthController;
 use App\Http\Controllers\Api\Storefront\ProductController;
 use App\Http\Controllers\Api\Storefront\CartController;
 use App\Http\Controllers\Api\Storefront\OrderController;
+use App\Http\Controllers\Api\Storefront\AddressController;
 use App\Http\Controllers\Api\Admin\CategoryController;
 use App\Http\Controllers\Api\Admin\BrandController;
 use App\Http\Controllers\Api\Admin\Auth\AuthController as AdminAuthController;
@@ -59,6 +60,10 @@ Route::prefix('storefront')->middleware('auth:sanctum')->group(function () {
     // ĐẶT HÀNG (CHECKOUT)
     Route::post('/checkout', [OrderController::class, 'checkout']); // chốt đơn
     Route::get('/orders', [OrderController::class, 'myOrders']); // lịch sử đơn hàng
+
+    // ĐỊA CHỈ NHẬN HÀNG
+    Route::get('/addresses', [AddressController::class, 'index']);
+    Route::post('/addresses', [AddressController::class, 'store']);
 
     // ĐĂNG XUẤT
     Route::post('/logout', [AuthController::class, 'logout']);

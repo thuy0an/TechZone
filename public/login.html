@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - TechZone</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="container">
+            <a href="/" class="logo">
+                <span class="logo-icon">📱</span>
+                TechZone
+            </a>
+            <nav class="nav">
+                <a href="/" class="nav-link">Trang chủ</a>
+                <a href="/products.html" class="nav-link">Sản phẩm</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="section">
+        <div class="container" style="max-width: 450px; margin: 0 auto;">
+            <div style="background: var(--white); padding: 40px; border-radius: var(--radius); box-shadow: var(--shadow-lg); text-align: center;">
+                <h1 style="margin-bottom: 10px; color: var(--primary-color);">Đăng nhập</h1>
+                <p style="color: var(--text-light); margin-bottom: 30px;">Chào mừng trở lại TechZone</p>
+
+                <div id="login-alert" style="display:none; background: #fef2f2; color: #ef4444; border: 1px solid #fca5a5; padding: 10px; border-radius: var(--radius); margin-bottom: 20px; text-align: left; font-size: 0.9rem;">
+                </div>
+
+                <form id="login-form" onsubmit="event.preventDefault(); handleLogin();">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" class="form-control" placeholder="Nhập email của bạn" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Mật khẩu</label>
+                        <input type="password" id="password" class="form-control" placeholder="Nhập mật khẩu" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-login-form" id="btn-submit" style="width: 100%; margin-top: 10px;">
+                        Đăng nhập
+                    </button>
+                </form>
+
+                <p style="margin-top: 25px; font-size: 0.95rem;">
+                    Chưa có tài khoản? <a href="/register.html" style="color: var(--primary-color); font-weight: 600;">Đăng ký ngay</a>
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (isLoggedIn()) {
+                window.location.href = '/';
+            }
+        });
+
+        async function handleLogin() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('btn-submit');
+            const alertBox = document.getElementById('login-alert');
+
+            // Reset UI
+            alertBox.style.display = 'none';
+            btn.disabled = true;
+            btn.textContent = 'Đang xử lý...';
+
+            try {
+                await loginCustomer(email, password);
+                
+                await checkAddressAndRedirect();
+
+                alert('Đăng nhập thành công!');
+                
+            } catch (err) {
+                alertBox.textContent = err.data?.message || err.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
+                alertBox.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Đăng nhập';
+            }
+        }
+    </script>
+</body>
+</html>
