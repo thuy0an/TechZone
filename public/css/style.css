@@ -28,7 +28,7 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
     line-height: 1.6;
@@ -309,12 +309,44 @@ a {
     color: inherit;
 }
 
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.section-header .section-title {
+    margin-bottom: 0;
+    text-align: left;
+}
+
+.btn-view-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 24px;
+    background: var(--primary-color);
+    color: var(--white);
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: var(--radius);
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.btn-view-all:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
 /* ============================================
    Products Grid
    ============================================ */
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 25px;
 }
 
@@ -422,6 +454,240 @@ a {
     }
     
     .products-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
     }
+
+    .categories-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .pagination-wrapper {
+        flex-wrap: wrap;
+    }
+}
+
+/* ============================================
+   Categories Grid — Premium Design
+   ============================================ */
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.category-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    width: 100%;
+    background: var(--white);
+    border-radius: 14px;
+    border: 1.5px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(.4,0,.2,1);
+    position: relative;
+    overflow: hidden;
+}
+
+.category-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.04), rgba(16, 185, 129, 0.04));
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.category-card:hover::before {
+    opacity: 1;
+}
+
+.category-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px -5px rgba(37, 99, 235, 0.15), 0 4px 10px -3px rgba(0, 0, 0, 0.06);
+}
+
+.category-card.active {
+    border-color: var(--primary-color);
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.06), rgba(37, 99, 235, 0.1));
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12), 0 4px 12px rgba(37, 99, 235, 0.1);
+}
+
+.category-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+.category-card.active .category-icon-wrapper {
+    background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+}
+
+.category-icon {
+    font-size: 1.4rem;
+    line-height: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.category-name {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--text-color);
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.category-card.active .category-name {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.category-arrow {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: all 0.25s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.category-card:hover .category-arrow,
+.category-card.active .category-arrow {
+    opacity: 1;
+    transform: translateX(0);
+    color: var(--primary-color);
+}
+
+/* ============================================
+   Section Alt Background
+   ============================================ */
+.section-alt {
+    background: linear-gradient(180deg, #f1f5f9 0%, var(--bg-color) 100%);
+}
+
+/* ============================================
+   Product Image Wrapper
+   ============================================ */
+.product-image-wrapper {
+    position: relative;
+    overflow: hidden;
+}
+
+.product-image-wrapper img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.product-card:hover .product-image-wrapper img {
+    transform: scale(1.05);
+}
+
+.product-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.product-badge.out-of-stock {
+    background: #ef4444;
+    color: var(--white);
+}
+
+.product-name {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-clamp: 2;
+    overflow: hidden;
+}
+
+/* ============================================
+   Pagination
+   ============================================ */
+.pagination-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 40px;
+    padding: 16px 0;
+}
+
+.pagination-wrapper.pagination-right {
+    justify-content: flex-end;
+}
+
+.page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--white);
+    color: var(--text-color);
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.page-btn:hover:not(.disabled):not(.active) {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.page-btn.active {
+    background: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+    font-weight: 700;
+}
+
+.page-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.page-ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 40px;
+    color: var(--text-light);
+    font-size: 1rem;
+}
+
+.page-info {
+    margin-left: 16px;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    white-space: nowrap;
 }

@@ -95,4 +95,10 @@ class ProductService extends BaseService implements ProductServiceInterface
         $this->repository->forceDelete($id);
         return ['type' => 'force_delete'];
     }
+
+    public function getProductsByCategory(int $categoryId, $request)
+    {
+        $perPage = $request->get('limit', 10);
+        return $this->repository->getProductsByCategory($categoryId, $perPage);
+    }
 }

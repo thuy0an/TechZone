@@ -11,4 +11,5 @@ interface ProductRepositoryInterface extends BaseRepositoryInterface
     public function softDeleteProduct(int $id);
     public function hasActiveOrders(int $productId);
     public function forceDelete(int $id);
+    public function getProductsByCategory(int $categoryId, int $perPage = 10);
 }

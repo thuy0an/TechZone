@@ -109,4 +109,15 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
         $product = $this->model->findOrFail($id);
         return $product->delete();
     }
+
+    /**
+     * Lấy sản phẩm theo danh mục (chỉ sản phẩm đang bán) có phân trang
+     */
+    public function getProductsByCategory(int $categoryId, int $perPage = 10)
+    {
+        return $this->model
+            ->where('category_id', $categoryId)
+            ->where('status', 'visible')
+            ->paginate($perPage);
+    }
 }

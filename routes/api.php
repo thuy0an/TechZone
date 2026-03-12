@@ -39,6 +39,7 @@ Route::get('/test', function () {
 Route::prefix('storefront')->group(function () {
     // HIỂN THỊ SẢN PHẨM 
     Route::get('/products', [ProductController::class, 'index']); // Danh sách SP
+    Route::get('/products/category/{category_id}', [ProductController::class, 'productsByCategory']); // SP theo danh mục
     Route::get('/products/{id}', [ProductController::class, 'show']); // Chi tiết SP
     Route::get('/categories', [ProductController::class, 'categories']); // Danh sách danh mục
 

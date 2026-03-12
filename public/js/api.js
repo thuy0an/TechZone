@@ -131,6 +131,25 @@ async function getCategories() {
     return await apiRequest('/categories');
 }
 
+/**
+ * Lấy danh sách danh mục cho storefront
+ * @returns {Promise<object>}
+ */
+async function getStorefrontCategories() {
+    return await apiRequest('/storefront/categories');
+}
+
+/**
+ * Lấy sản phẩm theo danh mục có phân trang
+ * @param {number} categoryId - ID danh mục
+ * @param {number} page - Trang hiện tại (mặc định: 1)
+ * @param {number} limit - Số SP mỗi trang (mặc định: 10)
+ * @returns {Promise<object>}
+ */
+async function getProductsByCategory(categoryId, page = 1, limit = 10) {
+    return await apiRequest(`/storefront/products/category/${categoryId}?page=${page}&limit=${limit}`);
+}
+
 // ============================================
 // Cart API (Local Storage based)
 // ============================================
