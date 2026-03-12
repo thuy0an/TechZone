@@ -26,6 +26,7 @@ TechZone là dự án website kinh doanh thiết bị điện tử, xây trên L
 |-----------|-----|
 | **Trang Admin** | `http://127.0.0.1:8000/admin/login.html` |
 | **Trang Khách hàng** | `http://127.0.0.1:8000/index.html` |
+| **Trang API Docs** | `http://127.0.0.1:8000/docs/api` |
 
 ## 2) Phạm vi theo SRS
 
