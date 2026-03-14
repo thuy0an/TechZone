@@ -49,6 +49,13 @@ Route::prefix('storefront')->group(function () {
 });
 
 // ============================================
+// CLIENT Routes (Alias cho storefront public)
+// ============================================
+Route::prefix('client')->group(function () {
+    Route::get('/products/category/{category_id}', [ProductController::class, 'productsByCategory']);
+});
+
+// ============================================
 // STOREFRONT Routes
 // Nhóm cần đăng nhập
 // ============================================

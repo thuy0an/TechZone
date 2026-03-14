@@ -8,7 +8,7 @@
     <title>TechZone - Cửa hàng Công Nghệ</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" href="favicon.ico">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -21,6 +21,11 @@
             <div class="container">
                 <h1>Chào mừng đến với <span class="highlight">TechZone</span></h1>
                 <p>Khám phá những thiết bị công nghệ mới nhất và tốt nhất với giá cả cạnh tranh.</p>
+                <div class="hero-highlights">
+                    <span class="hero-pill">Sản phẩm chính hãng</span>
+                    <span class="hero-pill">Giao hàng nhanh</span>
+                    <span class="hero-pill">Hỗ trợ 24/7</span>
+                </div>
                 <a href="/products.html" class="btn btn-primary">Mua sắm ngay</a>
             </div>
         </section>
@@ -29,14 +34,17 @@
         <section class="section" id="featured-products-section">
             <div class="container">
                 <div class="section-header">
-                    <h2 class="section-title">Sản phẩm nổi bật</h2>
+                    <h2 class="section-title" id="featured-products-title">Sản phẩm nổi bật</h2>
                     <a href="/products.html" class="btn-view-all">Xem tất cả →</a>
+                </div>
+                <div id="home-categories-list" class="chips-wrap">
+                    <span class="loading">Đang tải danh mục...</span>
                 </div>
                 <div id="featured-products" class="products-grid">
                     <div class="loading">Đang tải sản phẩm...</div>
                 </div>
                 <!-- Pagination -->
-                <div id="pagination-container" class="pagination-wrapper pagination-right" style="display: none;"></div>
+                <div id="pagination-container" class="pagination-wrapper pagination-right is-hidden"></div>
             </div>
         </section>
     </main>

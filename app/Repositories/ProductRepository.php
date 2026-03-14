@@ -4,6 +4,8 @@ namespace App\Repositories;
 
 use App\Models\Product;
 use App\Repositories\Interfaces\ProductRepositoryInterface;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Schema;
 
 class ProductRepository extends BaseRepository implements ProductRepositoryInterface
 {
@@ -14,7 +16,8 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
 
     public function getStorefrontProducts($filters = [], $perPage = 12)
     {
-        $query = $this->model->with(['category', 'brand'])->where('status', 'visible');
+        $query = $this->model->with(['category', 'brand']);
+        $this->applyVisibleFilter($query);
 
         if (isset($filters['search'])) {
             $query->where('name', 'like', '%' . $filters['search'] . '%');
@@ -29,9 +32,10 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
 
     public function getVisibleProductById($id)
     {
-        return $this->model->with(['category', 'brand'])
-            ->where('status', 'visible')
-            ->findOrFail($id);
+        $query = $this->model->with(['category', 'brand']);
+        $this->applyVisibleFilter($query);
+
+        return $query->findOrFail($id);
     }
 
     public function getAdminProducts(array $filters = [], int $perPage = 15)
@@ -115,9 +119,24 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
      */
     public function getProductsByCategory(int $categoryId, int $perPage = 10)
     {
-        return $this->model
+        $query = $this->model
             ->where('category_id', $categoryId)
-            ->where('status', 'visible')
-            ->paginate($perPage);
+            ->select(['id', 'name', 'image', 'selling_price', 'stock_quantity', 'category_id']);
+
+        $this->applyVisibleFilter($query);
+
+        return $query->paginate($perPage);
+    }
+
+    private function applyVisibleFilter(Builder $query): void
+    {
+        if (Schema::hasColumn('products', 'is_hidden')) {
+            $query->where('is_hidden', 0);
+            return;
+        }
+
+        if (Schema::hasColumn('products', 'status')) {
+            $query->where('status', 'visible');
+        }
     }
 }

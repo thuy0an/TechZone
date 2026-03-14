@@ -98,7 +98,9 @@ class ProductService extends BaseService implements ProductServiceInterface
 
     public function getProductsByCategory(int $categoryId, $request)
     {
-        $perPage = $request->get('limit', 10);
+        $perPage = (int) $request->get('limit', 10);
+        $perPage = max(1, min($perPage, 50));
+
         return $this->repository->getProductsByCategory($categoryId, $perPage);
     }
 }

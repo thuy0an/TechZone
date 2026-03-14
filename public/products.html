@@ -8,7 +8,7 @@
     <title>Sản phẩm - TechZone</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" href="favicon.ico">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -16,25 +16,54 @@
     <div id="storefront-header-root"></div>
 
     <main>
-        <!-- Categories Section -->
-        <section class="section" id="categories-section">
+        <section class="section products-shell" id="products-shell-section">
             <div class="container">
-                <h2 class="section-title">Danh mục sản phẩm</h2>
-                <div id="categories-list" class="categories-grid">
-                    <div class="loading">Đang tải danh mục...</div>
+                <div class="products-shell-head">
+                    <h2 class="section-title">Danh mục sản phẩm</h2>
+                    <p class="section-subtitle">Chọn danh mục, tìm nhanh sản phẩm và duyệt theo từng trang.</p>
                 </div>
-            </div>
-        </section>
 
-        <!-- Products by Category Section -->
-        <section class="section section-alt" id="category-products-section">
-            <div class="container">
-                <h2 class="section-title" id="category-products-title">Tất cả sản phẩm</h2>
-                <div id="category-products" class="products-grid">
-                    <div class="loading">Chọn một danh mục để xem sản phẩm</div>
+                <div class="products-desktop-layout">
+                    <aside class="products-sidebar" id="categories-section">
+                        <h3 class="panel-title">Bộ lọc danh mục</h3>
+                        <p class="sidebar-note">Chọn 1 danh mục để lọc sản phẩm.</p>
+                        <label for="category-select" class="sr-only">Chọn danh mục sản phẩm</label>
+                        <select id="category-select" class="category-filter-select" title="Chọn danh mục sản phẩm">
+                            <option value="">Đang tải danh mục...</option>
+                        </select>
+                    </aside>
+
+                    <section class="products-main section-alt" id="category-products-section">
+                        <div class="products-toolbar">
+                            <div class="toolbar-search">
+                                <label for="product-search-input">Tìm nhanh trong trang</label>
+                                <input id="product-search-input" type="text" placeholder="Nhập tên sản phẩm..." autocomplete="off">
+                            </div>
+
+                            <div class="toolbar-sort">
+                                <label for="product-sort-select">Sắp xếp</label>
+                                <select id="product-sort-select">
+                                    <option value="default">Mặc định</option>
+                                    <option value="name_asc">Tên A-Z</option>
+                                    <option value="name_desc">Tên Z-A</option>
+                                    <option value="price_asc">Giá thấp đến cao</option>
+                                    <option value="price_desc">Giá cao đến thấp</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="products-topline">
+                            <h2 class="section-title" id="category-products-title">Tất cả sản phẩm</h2>
+                            <p class="products-meta" id="products-meta">Đang tải dữ liệu...</p>
+                        </div>
+
+                        <div id="category-products" class="products-grid">
+                            <div class="loading">Chọn một danh mục để xem sản phẩm</div>
+                        </div>
+
+                        <div id="pagination-container" class="pagination-wrapper is-hidden"></div>
+                    </section>
                 </div>
-                <!-- Pagination -->
-                <div id="pagination-container" class="pagination-wrapper" style="display: none;"></div>
             </div>
         </section>
     </main>

@@ -1,328 +1,356 @@
 /**
  * TechZone - Main Application
- * Logic chính của frontend
+ * Frontend logic cho trang chủ và trang sản phẩm theo danh mục.
  */
 
-// State quản lý danh mục & phân trang
-let currentCategoryId = null;
-let currentPage = 1;
 const PRODUCTS_PER_PAGE = 8;
 
-// Emoji icons cho từng loại danh mục
-const CATEGORY_ICONS = {
-    'điện thoại': '📱', 'phone': '📱',
-    'laptop': '💻', 'máy tính': '💻', 'pc': '🖥️',
-    'tablet': '📋', 'máy tính bảng': '📋',
-    'tai nghe': '🎧', 'headphone': '🎧', 'earphone': '🎧',
-    'đồng hồ': '⌚', 'watch': '⌚', 'smartwatch': '⌚',
-    'phụ kiện': '🔌', 'accessory': '🔌', 'accessories': '🔌',
-    'loa': '🔊', 'speaker': '🔊',
-    'camera': '📷', 'màn hình': '🖥️', 'monitor': '🖥️',
-    'bàn phím': '⌨️', 'keyboard': '⌨️',
-    'chuột': '🖱️', 'mouse': '🖱️',
-    'tivi': '📺', 'tv': '📺',
-    'máy in': '🖨️', 'printer': '🖨️',
-    'ổ cứng': '💾', 'storage': '💾', 'ssd': '💾',
-    'ram': '🧩', 'linh kiện': '🧩',
-    'gaming': '🎮', 'game': '🎮',
-    'mạng': '📡', 'network': '📡', 'router': '📡',
+const state = {
+    pageType: 'unknown',
+    currentCategoryId: null,
+    currentCategoryName: 'Tất cả sản phẩm',
+    currentPage: 1,
+    searchTerm: '',
+    sortBy: 'default',
+    lastFetchedProducts: [],
+    lastPagination: null,
 };
 
-function getCategoryIcon(name) {
-    const lower = name.toLowerCase();
-    for (const [key, icon] of Object.entries(CATEGORY_ICONS)) {
-        if (lower.includes(key)) return icon;
-    }
-    return '📦';
-}
+const CATEGORY_ICONS = {
+    'điện thoại': '📱',
+    'laptop': '💻',
+    'tablet': '📟',
+    'smartwatch': '⌚',
+    'đồng hồ': '⌚',
+    'phụ kiện': '🎧',
+};
 
-// ============================================
-// DOM Ready
-// ============================================
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('TechZone loaded!');
     updateCartCount();
 
-    // Trang chủ: load featured products
     if (document.getElementById('featured-products')) {
-        await loadFeaturedProducts();
+        state.pageType = 'home';
+        await initHomePage();
     }
 
-    // Trang products: load categories + products
-    if (document.getElementById('categories-list')) {
-        await loadCategories();
+    if (document.getElementById('category-products')) {
+        state.pageType = 'products';
+        await initProductsPage();
     }
 });
 
-// ============================================
-// Homepage: Featured Products (có phân trang)
-// ============================================
-async function loadFeaturedProducts() {
-    const container = document.getElementById('featured-products');
-    const paginationContainer = document.getElementById('pagination-container');
-    if (!container) return;
+async function initHomePage() {
+    await renderHomeCategoryTabs();
+    await loadCurrentCategoryProducts(1);
+}
 
-    container.innerHTML = '<div class="loading">Đang tải sản phẩm...</div>';
+async function initProductsPage() {
+    setupProductsToolbar();
+    await renderProductsPageCategories();
+    await loadCurrentCategoryProducts(1);
+}
 
-    try {
-        const response = await apiRequest(`/storefront/products?per_page=${PRODUCTS_PER_PAGE}&page=1`);
-        const products = response.data || [];
-        const pagination = response.pagination || null;
+function setupProductsToolbar() {
+    const searchInput = document.getElementById('product-search-input');
+    const sortSelect = document.getElementById('product-sort-select');
+    const categorySelect = document.getElementById('category-select');
 
-        if (!products || products.length === 0) {
-            container.innerHTML = '<div class="loading">Chưa có sản phẩm nào</div>';
-            return;
-        }
+    if (searchInput) {
+        searchInput.addEventListener('input', (event) => {
+            state.searchTerm = event.target.value.trim().toLowerCase();
+            renderCurrentProductsFromState();
+        });
+    }
 
-        renderProducts(container, products);
+    if (sortSelect) {
+        sortSelect.addEventListener('change', (event) => {
+            state.sortBy = event.target.value;
+            renderCurrentProductsFromState();
+        });
+    }
 
-        // Hiển thị pagination ở góc dưới phải
-        if (pagination && pagination.last_page > 1 && paginationContainer) {
-            currentCategoryId = '__all_home__';
-            renderPagination(paginationContainer, pagination);
-            paginationContainer.style.display = 'flex';
-        }
-    } catch (error) {
-        container.innerHTML = `
-            <div class="loading">
-                <p>⚠️ Không thể tải sản phẩm</p>
-                <p style="font-size: 0.9rem;">${error.message}</p>
-            </div>
-        `;
+    if (categorySelect) {
+        categorySelect.addEventListener('change', (event) => {
+            const selectedValue = event.target.value;
+
+            if (!selectedValue) {
+                selectAllProducts();
+                return;
+            }
+
+            const selectedLabel = event.target.options[event.target.selectedIndex]?.text || 'Danh mục';
+            selectCategory(Number(selectedValue), selectedLabel);
+        });
     }
 }
 
-// ============================================
-// Products Page: Load Categories
-// ============================================
-async function loadCategories() {
-    const container = document.getElementById('categories-list');
+async function renderHomeCategoryTabs() {
+    const container = document.getElementById('home-categories-list');
     if (!container) return;
 
     try {
         const response = await getStorefrontCategories();
-        const categories = response.data || response;
+        const categories = response.data || [];
 
-        if (!categories || categories.length === 0) {
-            container.innerHTML = '<div class="loading">Chưa có danh mục nào</div>';
-            return;
-        }
+        const allChip = `<button class="chip active" id="category-chip-all" onclick="selectAllProducts()">Tất cả</button>`;
+        const chips = categories.map(cat => (
+            `<button class="chip" id="category-chip-${cat.id}" onclick="selectCategory(${cat.id}, '${escapeSingleQuote(cat.name)}')">${cat.name}</button>`
+        )).join('');
 
-        let html = `
-            <div class="category-card active" id="category-card-all" onclick="selectAllProducts()">
-                <div class="category-icon-wrapper">
-                    <span class="category-icon">🛍️</span>
-                </div>
-                <span class="category-name">Tất cả</span>
-                <span class="category-arrow">→</span>
-            </div>
-        `;
-
-        html += categories.map(cat => {
-            const icon = getCategoryIcon(cat.name);
-            return `
-            <div class="category-card" id="category-card-${cat.id}" onclick="selectCategory(${cat.id}, '${cat.name.replace(/'/g, "\\'")}')">
-                <div class="category-icon-wrapper">
-                    <span class="category-icon">${icon}</span>
-                </div>
-                <span class="category-name">${cat.name}</span>
-                <span class="category-arrow">→</span>
-            </div>
-            `;
-        }).join('');
-
-        container.innerHTML = html;
-        await loadAllProducts();
+        container.innerHTML = allChip + chips;
     } catch (error) {
-        container.innerHTML = `
-            <div class="loading">
-                <p>⚠️ Không thể tải danh mục</p>
-                <p style="font-size: 0.9rem;">${error.message}</p>
-            </div>
-        `;
+        container.innerHTML = '<span class="loading">Không tải được danh mục</span>';
     }
 }
 
-// ============================================
-// Products Page: Load All Products (có phân trang)
-// ============================================
-async function loadAllProducts(page = 1) {
-    currentCategoryId = '__all__';
-    currentPage = page;
-
-    highlightCategory('all');
-
-    const title = document.getElementById('category-products-title');
-    if (title) title.textContent = 'Tất cả sản phẩm';
-
-    const container = document.getElementById('category-products');
-    const paginationContainer = document.getElementById('pagination-container');
-    if (!container) return;
-
-    container.innerHTML = '<div class="loading">Đang tải sản phẩm...</div>';
-    if (paginationContainer) paginationContainer.style.display = 'none';
+async function renderProductsPageCategories() {
+    const categorySelect = document.getElementById('category-select');
+    if (!categorySelect) return;
 
     try {
-        const response = await apiRequest(`/storefront/products?per_page=${PRODUCTS_PER_PAGE}&page=${page}`);
-        const products = response.data || [];
-        const pagination = response.pagination || null;
+        const response = await getStorefrontCategories();
+        const categories = response.data || [];
 
-        if (!products || products.length === 0) {
-            container.innerHTML = '<div class="loading">Chưa có sản phẩm nào</div>';
-            return;
-        }
+        const options = [
+            '<option value="">Tất cả sản phẩm</option>',
+            ...categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`),
+        ];
 
-        renderProducts(container, products);
-
-        if (pagination && paginationContainer) {
-            renderPagination(paginationContainer, pagination);
-            paginationContainer.style.display = 'flex';
-        }
+        categorySelect.innerHTML = options.join('');
+        categorySelect.value = '';
     } catch (error) {
-        container.innerHTML = `
-            <div class="loading">
-                <p>⚠️ Không thể tải sản phẩm</p>
-                <p style="font-size: 0.9rem;">${error.message}</p>
-            </div>
-        `;
+        categorySelect.innerHTML = '<option value="">Không tải được danh mục</option>';
     }
 }
 
 function selectAllProducts() {
-    loadAllProducts(1);
+    state.currentCategoryId = null;
+    state.currentCategoryName = 'Tất cả sản phẩm';
+    state.currentPage = 1;
+    highlightCategory();
+    updateSectionTitle();
+    loadCurrentCategoryProducts(1);
 }
 
-// ============================================
-// Products Page: Select Category
-// ============================================
-async function selectCategory(categoryId, categoryName) {
-    currentCategoryId = categoryId;
-    currentPage = 1;
-
+function selectCategory(categoryId, categoryName) {
+    state.currentCategoryId = categoryId;
+    state.currentCategoryName = categoryName;
+    state.currentPage = 1;
     highlightCategory(categoryId);
-
-    const title = document.getElementById('category-products-title');
-    if (title) title.textContent = categoryName;
-
-    await loadProductsByCategory(categoryId, 1);
+    updateSectionTitle();
+    loadCurrentCategoryProducts(1);
 }
 
-function highlightCategory(id) {
+function highlightCategory(categoryId = null) {
     document.querySelectorAll('.category-card').forEach(card => card.classList.remove('active'));
-    const activeCard = document.getElementById(`category-card-${id}`);
-    if (activeCard) activeCard.classList.add('active');
+    document.querySelectorAll('.chip').forEach(chip => chip.classList.remove('active'));
+
+    const categorySelect = document.getElementById('category-select');
+    if (categorySelect) {
+        categorySelect.value = categoryId === null ? '' : String(categoryId);
+    }
+
+    if (categoryId === null) {
+        document.getElementById('category-card-all')?.classList.add('active');
+        document.getElementById('category-chip-all')?.classList.add('active');
+        return;
+    }
+
+    document.getElementById(`category-card-${categoryId}`)?.classList.add('active');
+    document.getElementById(`category-chip-${categoryId}`)?.classList.add('active');
 }
 
-async function loadProductsByCategory(categoryId, page) {
-    const container = document.getElementById('category-products');
-    const paginationContainer = document.getElementById('pagination-container');
-    if (!container) return;
+function updateSectionTitle() {
+    const homeTitle = document.getElementById('featured-products-title');
+    const productTitle = document.getElementById('category-products-title');
 
-    container.innerHTML = '<div class="loading">Đang tải sản phẩm...</div>';
-    if (paginationContainer) paginationContainer.style.display = 'none';
+    if (homeTitle) {
+        homeTitle.textContent = state.currentCategoryId ? `Nổi bật: ${state.currentCategoryName}` : 'Sản phẩm nổi bật';
+    }
+
+    if (productTitle) {
+        productTitle.textContent = state.currentCategoryName;
+    }
+}
+
+async function loadCurrentCategoryProducts(page = 1) {
+    state.currentPage = page;
+
+    const productContainer = state.pageType === 'home'
+        ? document.getElementById('featured-products')
+        : document.getElementById('category-products');
+    const paginationContainer = document.getElementById('pagination-container');
+
+    if (!productContainer) return;
+
+    productContainer.innerHTML = '<div class="loading">Đang tải sản phẩm...</div>';
+    if (paginationContainer) {
+        paginationContainer.classList.add('is-hidden');
+    }
 
     try {
-        const response = await getProductsByCategory(categoryId, page, PRODUCTS_PER_PAGE);
+        const response = state.currentCategoryId === null
+            ? await apiRequest(`/storefront/products?per_page=${PRODUCTS_PER_PAGE}&page=${page}`)
+            : await getProductsByCategory(state.currentCategoryId, page, PRODUCTS_PER_PAGE);
+
         const products = response.data || [];
         const pagination = response.pagination || null;
 
-        if (!products || products.length === 0) {
-            container.innerHTML = '<div class="loading">Không có sản phẩm nào trong danh mục này</div>';
+        state.lastFetchedProducts = products;
+        state.lastPagination = pagination;
+
+        if (products.length === 0) {
+            productContainer.innerHTML = '<div class="loading">Không có sản phẩm phù hợp.</div>';
+            updateProductsMeta(0, 0, pagination);
             return;
         }
 
-        renderProducts(container, products);
+        renderCurrentProductsFromState();
 
         if (pagination && paginationContainer) {
             renderPagination(paginationContainer, pagination);
-            paginationContainer.style.display = 'flex';
+            paginationContainer.classList.remove('is-hidden');
         }
     } catch (error) {
-        container.innerHTML = `
+        productContainer.innerHTML = `
             <div class="loading">
-                <p>⚠️ Không thể tải sản phẩm</p>
-                <p style="font-size: 0.9rem;">${error.message}</p>
+                <p>Không thể tải sản phẩm.</p>
+                <p class="loading-detail">${error.message || 'Vui lòng thử lại sau.'}</p>
             </div>
         `;
     }
 }
 
-// ============================================
-// Render Products
-// ============================================
-function renderProducts(container, products) {
-    if (!products || products.length === 0) {
-        container.innerHTML = '<div class="loading">Không có sản phẩm nào</div>';
+function renderCurrentProductsFromState() {
+    const productContainer = state.pageType === 'home'
+        ? document.getElementById('featured-products')
+        : document.getElementById('category-products');
+
+    if (!productContainer) return;
+
+    const transformedProducts = transformProductsForDisplay(state.lastFetchedProducts);
+
+    if (transformedProducts.length === 0) {
+        productContainer.innerHTML = '<div class="loading">Không có sản phẩm khớp từ khóa trong trang này.</div>';
+        updateProductsMeta(0, state.lastFetchedProducts.length, state.lastPagination);
         return;
     }
 
+    renderProducts(productContainer, transformedProducts);
+    updateProductsMeta(transformedProducts.length, state.lastFetchedProducts.length, state.lastPagination);
+}
+
+function transformProductsForDisplay(products) {
+    const source = Array.isArray(products) ? [...products] : [];
+
+    const filtered = state.searchTerm
+        ? source.filter(item => String(item.name || '').toLowerCase().includes(state.searchTerm))
+        : source;
+
+    switch (state.sortBy) {
+        case 'name_asc':
+            filtered.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'vi'));
+            break;
+        case 'name_desc':
+            filtered.sort((a, b) => String(b.name || '').localeCompare(String(a.name || ''), 'vi'));
+            break;
+        case 'price_asc':
+            filtered.sort((a, b) => Number(a.price ?? a.selling_price ?? 0) - Number(b.price ?? b.selling_price ?? 0));
+            break;
+        case 'price_desc':
+            filtered.sort((a, b) => Number(b.price ?? b.selling_price ?? 0) - Number(a.price ?? a.selling_price ?? 0));
+            break;
+        default:
+            break;
+    }
+
+    return filtered;
+}
+
+function updateProductsMeta(visibleCount, pageCount, pagination) {
+    const metaElement = document.getElementById('products-meta');
+    if (!metaElement) return;
+
+    if (!pagination) {
+        metaElement.textContent = `Hiển thị ${visibleCount} sản phẩm`;
+        return;
+    }
+
+    const isFiltered = state.searchTerm.length > 0;
+    const filterText = isFiltered ? ` | Khớp từ khóa: ${visibleCount}/${pageCount}` : '';
+    metaElement.textContent = `Trang ${pagination.current_page}/${pagination.last_page} | Tổng ${pagination.total} sản phẩm${filterText}`;
+}
+
+function renderProducts(container, products) {
     container.innerHTML = products.map(product => {
-        const imgSrc = product.image || 'https://via.placeholder.com/300x200?text=No+Image';
-        const price = product.price || product.selling_price || 0;
+        const price = Number(product.price ?? product.selling_price ?? 0);
+        const image = resolveImageUrl(product.image);
         const name = product.name || 'Sản phẩm';
-        const status = product.status || '';
-        const escapedName = name.replace(/'/g, "\\'");
+        const escapedName = escapeSingleQuote(name);
+        const isOutOfStock = Number(product.stock_quantity || 0) <= 0;
 
         return `
-        <div class="product-card">
-            <div class="product-image-wrapper">
-                <img src="${imgSrc}" alt="${name}" loading="lazy">
-                ${status === 'Hết hàng' ? '<span class="product-badge out-of-stock">Hết hàng</span>' : ''}
-            </div>
-            <div class="product-info">
-                <h3 class="product-name">${name}</h3>
-                <p class="product-price">${formatPrice(price)}</p>
-                <button class="btn btn-secondary" onclick="handleAddToCart(${product.id}, '${escapedName}', ${price})" ${status === 'Hết hàng' ? 'disabled' : ''}>
-                    🛒 Thêm vào giỏ
-                </button>
-            </div>
-        </div>
-    `;
+            <article class="product-card">
+                <div class="product-image-wrapper">
+                    <img src="${image}" alt="${name}" loading="lazy" onerror="this.src='https://via.placeholder.com/400x260?text=No+Image'">
+                    ${isOutOfStock ? '<span class="product-badge out-of-stock">Hết hàng</span>' : '<span class="product-badge in-stock">Sẵn hàng</span>'}
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">${name}</h3>
+                    <p class="product-price">${formatPrice(price)}</p>
+                    <button class="btn btn-secondary" onclick="handleAddToCart(${product.id}, '${escapedName}', ${price})" ${isOutOfStock ? 'disabled' : ''}>
+                        Thêm vào giỏ
+                    </button>
+                </div>
+            </article>
+        `;
     }).join('');
 }
 
-// ============================================
-// Pagination
-// ============================================
 function renderPagination(container, pagination) {
-    if (!container) return;
+    const current = pagination.current_page;
+    const total = pagination.last_page;
 
-    const { current_page, last_page, total } = pagination;
-    let html = '';
+    const prevBtn = `
+        <button class="page-btn ${current <= 1 ? 'disabled' : ''}" onclick="goToPage(${current - 1})" ${current <= 1 ? 'disabled' : ''}>
+            Trước
+        </button>
+    `;
 
-    html += `<button class="page-btn ${current_page <= 1 ? 'disabled' : ''}" 
-                onclick="goToPage(${current_page - 1})" 
-                ${current_page <= 1 ? 'disabled' : ''}>
-                ‹ Trước
-            </button>`;
+    const nextBtn = `
+        <button class="page-btn ${current >= total ? 'disabled' : ''}" onclick="goToPage(${current + 1})" ${current >= total ? 'disabled' : ''}>
+            Sau
+        </button>
+    `;
 
-    const pages = getPageNumbers(current_page, last_page);
-    pages.forEach(p => {
-        if (p === '...') {
-            html += `<span class="page-ellipsis">…</span>`;
-        } else {
-            html += `<button class="page-btn ${p === current_page ? 'active' : ''}" 
-                        onclick="goToPage(${p})">${p}</button>`;
-        }
-    });
+    const pages = getPageNumbers(current, total).map(page => {
+        if (page === '...') return '<span class="page-ellipsis">...</span>';
+        return `<button class="page-btn ${page === current ? 'active' : ''}" onclick="goToPage(${page})">${page}</button>`;
+    }).join('');
 
-    html += `<button class="page-btn ${current_page >= last_page ? 'disabled' : ''}" 
-                onclick="goToPage(${current_page + 1})" 
-                ${current_page >= last_page ? 'disabled' : ''}>
-                Sau ›
-            </button>`;
-
-    html += `<span class="page-info">Trang ${current_page}/${last_page} (${total} SP)</span>`;
-
-    container.innerHTML = html;
+    container.innerHTML = `
+        ${prevBtn}
+        ${pages}
+        ${nextBtn}
+        <span class="page-info">Trang ${current}/${total} • ${pagination.total} sản phẩm</span>
+    `;
 }
 
 function getPageNumbers(current, total) {
-    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    if (total <= 7) {
+        return Array.from({ length: total }, (_, index) => index + 1);
+    }
 
     const pages = [1];
     if (current > 3) pages.push('...');
-    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pages.push(i);
+
+    const start = Math.max(2, current - 1);
+    const end = Math.min(total - 1, current + 1);
+
+    for (let page = start; page <= end; page += 1) {
+        pages.push(page);
+    }
+
     if (current < total - 2) pages.push('...');
     pages.push(total);
     return pages;
@@ -330,79 +358,51 @@ function getPageNumbers(current, total) {
 
 function goToPage(page) {
     if (page < 1) return;
-    currentPage = page;
+    loadCurrentCategoryProducts(page);
 
-    if (currentCategoryId === '__all__') {
-        loadAllProducts(page);
-    } else if (currentCategoryId === '__all_home__') {
-        loadHomePage(page);
-    } else if (currentCategoryId) {
-        loadProductsByCategory(currentCategoryId, page);
-    }
-
-    // Scroll lên section sản phẩm
-    const section = document.getElementById('category-products-section') || document.getElementById('featured-products-section');
-    if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const targetSection = document.getElementById('category-products-section') || document.getElementById('featured-products-section');
+    targetSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-async function loadHomePage(page) {
-    const container = document.getElementById('featured-products');
-    const paginationContainer = document.getElementById('pagination-container');
-    if (!container) return;
-
-    container.innerHTML = '<div class="loading">Đang tải sản phẩm...</div>';
-
-    try {
-        const response = await apiRequest(`/storefront/products?per_page=${PRODUCTS_PER_PAGE}&page=${page}`);
-        const products = response.data || [];
-        const pagination = response.pagination || null;
-
-        renderProducts(container, products);
-
-        if (pagination && pagination.last_page > 1 && paginationContainer) {
-            renderPagination(paginationContainer, pagination);
-            paginationContainer.style.display = 'flex';
-        }
-    } catch (error) {
-        container.innerHTML = `<div class="loading"><p>⚠️ Không thể tải sản phẩm</p></div>`;
-    }
-}
-
-// ============================================
-// Cart Handlers
-// ============================================
 function handleAddToCart(id, name, price) {
     addToCart({ id, name, price });
-    showNotification(`Đã thêm "${name}" vào giỏ hàng!`);
+    showNotification(`Đã thêm "${name}" vào giỏ hàng`);
 }
 
-// ============================================
-// Utilities
-// ============================================
+function getCategoryIcon(name) {
+    const lowerName = String(name || '').toLowerCase();
+    for (const key of Object.keys(CATEGORY_ICONS)) {
+        if (lowerName.includes(key)) return CATEGORY_ICONS[key];
+    }
+    return '📦';
+}
+
+function resolveImageUrl(image) {
+    if (!image) return 'https://via.placeholder.com/400x260?text=No+Image';
+    if (String(image).startsWith('http') || String(image).startsWith('/')) return image;
+    return `/storage/${image}`;
+}
+
+function escapeSingleQuote(value) {
+    return String(value).replace(/'/g, "\\'");
+}
+
 function formatPrice(price) {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+        maximumFractionDigits: 0,
+    }).format(price || 0);
 }
 
 function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed; bottom: 20px; right: 20px;
-        background: ${type === 'success' ? '#10b981' : '#ef4444'};
-        color: white; padding: 15px 25px; border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 1000;
-        animation: slideIn 0.3s ease; font-family: 'Inter', sans-serif;
-    `;
+    notification.className = `toast-notification ${type}`;
     notification.textContent = message;
     document.body.appendChild(notification);
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
 
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
-`;
-document.head.appendChild(style);
+    window.setTimeout(() => {
+        notification.classList.add('fade-out');
+        window.setTimeout(() => notification.remove(), 240);
+    }, 2000);
+}
