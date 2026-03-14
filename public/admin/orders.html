@@ -159,9 +159,12 @@ async function loadOrders() {
         const res = await adminRequest(`/orders?${params}`);
         renderTable(res.data.data ?? res.data);
         renderPagination({
-            meta: res.data.meta ?? res.data,
+            meta: res.pagination,
             currentPage,
-            onPageChange: (p) => { currentPage = p; loadOrders(); }
+            onPageChange: (p) => { 
+                currentPage = p; 
+                loadOrders(); 
+            }
         });
     } catch (err) {
         showTableError('Không thể tải danh sách đơn hàng.');

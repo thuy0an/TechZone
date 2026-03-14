@@ -32,7 +32,7 @@ class OrderController extends BaseApiController
             $perPage = $request->input('per_page', 15);
             $orders = $this->orderService->getListOrders($filters, $perPage);
 
-            return $this->successResponse($orders, 'Lấy danh sách đơn hàng thành công');
+            return $this->paginatedResponse($orders, 'Lấy danh sách đơn hàng thành công');
         } catch (\Exception $e) {
             return $this->errorResponse('Lỗi lấy danh sách đơn hàng', 500, $e->getMessage());
         }

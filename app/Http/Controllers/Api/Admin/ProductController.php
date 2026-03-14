@@ -22,7 +22,7 @@ class ProductController extends BaseApiController
     {
         try {
             $products = $this->productService->getAdminProductsList($request);
-            return $this->successResponse($products, 'Danh sách sản phẩm quản trị');
+            return $this->paginatedResponse($products, 'Danh sách sản phẩm quản trị');
         } catch (\Exception $e) {
             return $this->errorResponse('Lỗi tải danh sách', $e->getMessage(), 500);
         }
