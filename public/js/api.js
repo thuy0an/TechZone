@@ -150,6 +150,15 @@ async function getProductsByCategory(categoryId, page = 1, limit = 10) {
     return await apiRequest(`/storefront/products/category/${categoryId}?page=${page}&limit=${limit}`);
 }
 
+/**
+ * Lấy chi tiết sản phẩm cho storefront
+ * @param {number} id - Product ID
+ * @returns {Promise<object>}
+ */
+async function getStorefrontProductDetail(id) {
+    return await apiRequest(`/storefront/products/${id}`);
+}
+
 // ============================================
 // Cart API (Local Storage based)
 // ============================================

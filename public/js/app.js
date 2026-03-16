@@ -14,6 +14,9 @@ const state = {
     sortBy: 'default',
     lastFetchedProducts: [],
     lastPagination: null,
+    detailQuantity: 1,
+    currentDetailProduct: null,
+    relatedCarouselTimers: {},
 };
 
 const CATEGORY_ICONS = {
@@ -27,6 +30,10 @@ const CATEGORY_ICONS = {
 
 document.addEventListener('DOMContentLoaded', async () => {
     updateCartCount();
+
+    if (document.getElementById('product-detail-modal')) {
+        setupProductDetailModal();
+    }
 
     if (document.getElementById('featured-products')) {
         state.pageType = 'home';
@@ -282,6 +289,8 @@ function updateProductsMeta(visibleCount, pageCount, pagination) {
 }
 
 function renderProducts(container, products) {
+    const hasDetailModal = Boolean(document.getElementById('product-detail-modal'));
+
     container.innerHTML = products.map(product => {
         const price = Number(product.price ?? product.selling_price ?? 0);
         const image = resolveImageUrl(product.image);
@@ -289,8 +298,10 @@ function renderProducts(container, products) {
         const escapedName = escapeSingleQuote(name);
         const isOutOfStock = Number(product.stock_quantity || 0) <= 0;
 
+        const cardOpenHandler = hasDetailModal ? `onclick="openProductDetail(${product.id})"` : '';
+
         return `
-            <article class="product-card">
+            <article class="product-card" ${cardOpenHandler}>
                 <div class="product-image-wrapper">
                     <img src="${image}" alt="${name}" loading="lazy" onerror="this.src='https://via.placeholder.com/400x260?text=No+Image'">
                     ${isOutOfStock ? '<span class="product-badge out-of-stock">Hết hàng</span>' : '<span class="product-badge in-stock">Sẵn hàng</span>'}
@@ -298,7 +309,7 @@ function renderProducts(container, products) {
                 <div class="product-info">
                     <h3 class="product-name">${name}</h3>
                     <p class="product-price">${formatPrice(price)}</p>
-                    <button class="btn btn-secondary" onclick="handleAddToCart(${product.id}, '${escapedName}', ${price})" ${isOutOfStock ? 'disabled' : ''}>
+                    <button class="btn btn-secondary" onclick="event.stopPropagation(); handleAddToCart(${product.id}, '${escapedName}', ${price})" ${isOutOfStock ? 'disabled' : ''}>
                         Thêm vào giỏ
                     </button>
                 </div>
@@ -364,8 +375,9 @@ function goToPage(page) {
     targetSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function handleAddToCart(id, name, price) {
-    addToCart({ id, name, price });
+function handleAddToCart(id, name, price, quantity = null) {
+    const desiredQuantity = Math.max(1, Number(quantity || 1));
+    addToCart({ id, name, price }, desiredQuantity);
     showNotification(`Đã thêm "${name}" vào giỏ hàng`);
 }
 
@@ -405,4 +417,362 @@ function showNotification(message, type = 'success') {
         notification.classList.add('fade-out');
         window.setTimeout(() => notification.remove(), 240);
     }, 2000);
+}
+
+function setupProductDetailModal() {
+    const overlay = document.getElementById('product-detail-modal');
+    if (!overlay) return;
+
+    overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) {
+            closeProductDetail();
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && overlay.classList.contains('is-open')) {
+            closeProductDetail();
+        }
+    });
+}
+
+async function openProductDetail(productId) {
+    const overlay = document.getElementById('product-detail-modal');
+    if (!overlay) return;
+
+    overlay.classList.add('is-open');
+    overlay.setAttribute('aria-hidden', 'false');
+
+    setProductDetailLoading();
+
+    try {
+        const response = await getStorefrontProductDetail(productId);
+        const product = response.data || response;
+        renderProductDetail(product);
+    } catch (error) {
+        renderProductDetailError(error?.message || 'Không thể tải chi tiết sản phẩm.');
+    }
+}
+
+function closeProductDetail() {
+    const overlay = document.getElementById('product-detail-modal');
+    if (!overlay) return;
+    overlay.classList.remove('is-open');
+    overlay.setAttribute('aria-hidden', 'true');
+    stopRelatedCarousels();
+}
+
+function setProductDetailLoading() {
+    const title = document.getElementById('product-detail-title');
+    const image = document.getElementById('product-detail-image');
+    const price = document.getElementById('product-detail-price');
+    const description = document.getElementById('product-detail-description');
+    const brand = document.getElementById('product-detail-brand');
+    const stock = document.getElementById('product-detail-stock');
+    const stockQuantity = document.getElementById('product-detail-quantity');
+    const qtyValue = document.getElementById('product-detail-qty-value');
+    const specsList = document.getElementById('product-detail-specs-list');
+    const addButton = document.getElementById('product-detail-add');
+    const relatedList = document.getElementById('product-related-list');
+    const relatedSection = document.getElementById('product-related');
+
+    if (title) title.textContent = 'Đang tải...';
+    if (image) image.src = 'https://via.placeholder.com/520x360?text=Loading';
+    if (price) price.textContent = '';
+    if (description) description.textContent = '';
+    if (brand) brand.textContent = '';
+    if (stock) {
+        stock.textContent = '';
+        stock.classList.remove('out');
+    }
+    if (stockQuantity) stockQuantity.textContent = '';
+    if (qtyValue) qtyValue.textContent = '1';
+    if (specsList) specsList.innerHTML = '';
+    if (addButton) {
+        addButton.disabled = true;
+        addButton.onclick = null;
+    }
+    if (relatedList) relatedList.innerHTML = '<div class="loading">Đang tải gợi ý...</div>';
+    if (relatedSection) relatedSection.style.display = '';
+    stopRelatedCarousels();
+}
+
+function renderProductDetailError(message) {
+    const title = document.getElementById('product-detail-title');
+    const description = document.getElementById('product-detail-description');
+    const specsList = document.getElementById('product-detail-specs-list');
+
+    if (title) title.textContent = 'Không thể tải dữ liệu';
+    if (description) description.textContent = message;
+    if (specsList) {
+        specsList.innerHTML = '<div class="product-spec-item"><span class="product-spec-key">Thông báo</span><span class="product-spec-value">Vui lòng thử lại</span></div>';
+    }
+}
+
+function renderProductDetail(product) {
+    const title = document.getElementById('product-detail-title');
+    const image = document.getElementById('product-detail-image');
+    const price = document.getElementById('product-detail-price');
+    const description = document.getElementById('product-detail-description');
+    const brand = document.getElementById('product-detail-brand');
+    const stock = document.getElementById('product-detail-stock');
+    const stockQuantity = document.getElementById('product-detail-quantity');
+    const specsList = document.getElementById('product-detail-specs-list');
+    const addButton = document.getElementById('product-detail-add');
+    const qtyValue = document.getElementById('product-detail-qty-value');
+    const qtyMinus = document.getElementById('product-detail-qty-minus');
+    const qtyPlus = document.getElementById('product-detail-qty-plus');
+
+    const resolvedImage = resolveImageUrl(product.image);
+    const productName = product.name || 'Sản phẩm';
+    const productPrice = Number(product.price ?? product.selling_price ?? 0);
+    const availableQuantity = Number(product.stock_quantity || 0);
+    const stockStatus = product.stock_status || (availableQuantity > 0 ? 'In Stock' : 'Out of Stock');
+    const isOutOfStock = availableQuantity <= 0;
+
+    state.currentDetailProduct = {
+        id: product.id,
+        name: productName,
+        price: productPrice,
+        unit: product.unit || 'sản phẩm',
+        availableQuantity,
+    };
+    state.detailQuantity = 1;
+
+    if (title) title.textContent = productName;
+    if (image) image.src = resolvedImage;
+    if (price) price.textContent = formatPrice(productPrice);
+    if (description) description.textContent = product.description || 'Chưa có mô tả chi tiết.';
+    if (brand) {
+        const brandName = product.brand_name ? `Thương hiệu: ${product.brand_name}` : '';
+        const categoryName = product.category_name ? `Danh mục: ${product.category_name}` : '';
+        brand.textContent = [brandName, categoryName].filter(Boolean).join(' • ');
+    }
+    if (stock) {
+        stock.textContent = stockStatus;
+        stock.classList.toggle('out', isOutOfStock);
+    }
+    if (stockQuantity) {
+        stockQuantity.textContent = `Còn ${availableQuantity} ${product.unit || 'sản phẩm'}`;
+    }
+
+    if (qtyValue) qtyValue.textContent = String(state.detailQuantity);
+    if (qtyMinus) {
+        qtyMinus.onclick = () => updateDetailQuantity(-1);
+    }
+    if (qtyPlus) {
+        qtyPlus.onclick = () => updateDetailQuantity(1);
+    }
+
+    if (specsList) {
+        specsList.innerHTML = renderSpecifications(product.specifications);
+    }
+
+    if (addButton) {
+        addButton.disabled = isOutOfStock;
+        addButton.onclick = () => {
+            if (isOutOfStock) return;
+            handleAddToCart(product.id, productName, productPrice, state.detailQuantity);
+        };
+    }
+
+    loadRelatedProducts(product);
+}
+
+async function loadRelatedProducts(product) {
+    const relatedSection = document.getElementById('product-related');
+    const listContainer = document.getElementById('product-related-list');
+
+    if (!relatedSection || !listContainer) return;
+
+    try {
+        const [categoryRes, brandRes] = await Promise.all([
+            apiRequest(`/storefront/products?category_id=${product.category_id}&per_page=8`),
+            apiRequest(`/storefront/products?brand_id=${product.brand_id}&per_page=8`),
+        ]);
+
+        const merged = [...(categoryRes.data || []), ...(brandRes.data || [])]
+            .filter(item => item.id !== product.id)
+            .reduce((acc, item) => {
+                if (!acc.seen.has(item.id)) {
+                    acc.seen.add(item.id);
+                    acc.items.push(item);
+                }
+                return acc;
+            }, { seen: new Set(), items: [] }).items;
+
+        listContainer.innerHTML = renderRelatedCards(merged);
+        relatedSection.style.display = merged.length ? '' : 'none';
+
+        setupRelatedCarousel('related');
+    } catch (error) {
+        relatedSection.style.display = 'none';
+    }
+}
+
+function setupRelatedCarousel(type) {
+    const container = document.getElementById(`product-related-${type === 'related' ? 'list' : type}`);
+    if (!container) return;
+
+    const prevBtn = document.querySelector(`.carousel-btn.prev[data-carousel="${type}"]`);
+    const nextBtn = document.querySelector(`.carousel-btn.next[data-carousel="${type}"]`);
+
+    const scrollStep = () => {
+        const card = container.querySelector('.related-card');
+        if (!card) return 0;
+        const gap = parseInt(window.getComputedStyle(container).columnGap || '0', 10);
+        return card.getBoundingClientRect().width + gap;
+    };
+
+    const updateButtons = () => {
+        if (!prevBtn || !nextBtn) return;
+        const maxScrollLeft = container.scrollWidth - container.clientWidth - 1;
+        prevBtn.disabled = container.scrollLeft <= 0;
+        nextBtn.disabled = container.scrollLeft >= maxScrollLeft;
+    };
+
+    if (prevBtn) {
+        prevBtn.onclick = (event) => {
+            event.stopPropagation();
+            container.scrollBy({ left: -scrollStep(), behavior: 'smooth' });
+        };
+    }
+
+    if (nextBtn) {
+        nextBtn.onclick = (event) => {
+            event.stopPropagation();
+            container.scrollBy({ left: scrollStep(), behavior: 'smooth' });
+        };
+    }
+
+    container.addEventListener('scroll', updateButtons);
+    updateButtons();
+
+    setupDragScroll(container, type, scrollStep);
+    startRelatedCarousel(type, container, scrollStep);
+}
+
+function startRelatedCarousel(type, container, stepFn) {
+    stopRelatedCarousel(type);
+
+    const interval = window.setInterval(() => {
+        if (!container || !container.isConnected) {
+            stopRelatedCarousel(type);
+            return;
+        }
+
+        const step = stepFn();
+        if (!step) return;
+
+        const maxScrollLeft = container.scrollWidth - container.clientWidth;
+        const nextLeft = container.scrollLeft + step;
+        container.scrollTo({ left: nextLeft >= maxScrollLeft ? 0 : nextLeft, behavior: 'smooth' });
+    }, 2800);
+
+    state.relatedCarouselTimers[type] = interval;
+}
+
+function stopRelatedCarousel(type) {
+    if (state.relatedCarouselTimers[type]) {
+        window.clearInterval(state.relatedCarouselTimers[type]);
+        delete state.relatedCarouselTimers[type];
+    }
+}
+
+function stopRelatedCarousels() {
+    Object.keys(state.relatedCarouselTimers).forEach(stopRelatedCarousel);
+}
+
+function setupDragScroll(container, type, stepFn) {
+    let isDown = false;
+    let startX = 0;
+    let scrollLeft = 0;
+
+    container.addEventListener('mousedown', (event) => {
+        isDown = true;
+        startX = event.pageX - container.offsetLeft;
+        scrollLeft = container.scrollLeft;
+        container.classList.add('dragging');
+    });
+
+    container.addEventListener('mouseleave', () => {
+        isDown = false;
+        container.classList.remove('dragging');
+    });
+
+    container.addEventListener('mouseup', () => {
+        isDown = false;
+        container.classList.remove('dragging');
+    });
+
+    container.addEventListener('mousemove', (event) => {
+        if (!isDown) return;
+        event.preventDefault();
+        const x = event.pageX - container.offsetLeft;
+        const walk = (x - startX) * 1.2;
+        container.scrollLeft = scrollLeft - walk;
+    });
+
+    container.addEventListener('touchstart', () => stopRelatedCarousels());
+    container.addEventListener('touchend', () => startRelatedCarousel(type, container, stepFn));
+}
+
+function renderRelatedCards(items) {
+    if (!items || items.length === 0) {
+        return '<div class="loading">Không có sản phẩm phù hợp.</div>';
+    }
+
+    return items.map(item => {
+        const image = resolveImageUrl(item.image);
+        const name = item.name || 'Sản phẩm';
+        const price = Number(item.price ?? item.selling_price ?? 0);
+
+        return `
+            <button class="related-card" type="button" onclick="event.stopPropagation(); openProductDetail(${item.id})">
+                <img src="${image}" alt="${name}" loading="lazy" onerror="this.src='https://via.placeholder.com/240x160?text=No+Image'">
+                <div class="related-info">
+                    <span class="related-name">${name}</span>
+                    <span class="related-price">${formatPrice(price)}</span>
+                </div>
+            </button>
+        `;
+    }).join('');
+}
+
+function updateDetailQuantity(delta) {
+    const product = state.currentDetailProduct;
+    if (!product) return;
+
+    const maxQty = Math.max(1, product.availableQuantity || 1);
+    const next = Math.max(1, Math.min(maxQty, state.detailQuantity + delta));
+    state.detailQuantity = next;
+
+    const qtyValue = document.getElementById('product-detail-qty-value');
+    if (qtyValue) qtyValue.textContent = String(next);
+}
+
+function renderSpecifications(specifications) {
+    if (!specifications || (Array.isArray(specifications) && specifications.length === 0)) {
+        return '<div class="product-spec-item"><span class="product-spec-key">Thông số</span><span class="product-spec-value">Chưa có dữ liệu</span></div>';
+    }
+
+    if (Array.isArray(specifications)) {
+        return specifications.map((item) => {
+            if (typeof item === 'string') {
+                return `<div class="product-spec-item"><span class="product-spec-key">•</span><span class="product-spec-value">${item}</span></div>`;
+            }
+
+            const key = item.label || item.key || 'Thông số';
+            const value = item.value ?? '';
+            return `<div class="product-spec-item"><span class="product-spec-key">${key}</span><span class="product-spec-value">${value}</span></div>`;
+        }).join('');
+    }
+
+    if (typeof specifications === 'object') {
+        return Object.entries(specifications).map(([key, value]) => (
+            `<div class="product-spec-item"><span class="product-spec-key">${key}</span><span class="product-spec-value">${value ?? ''}</span></div>`
+        )).join('');
+    }
+
+    return '<div class="product-spec-item"><span class="product-spec-key">Thông số</span><span class="product-spec-value">Chưa có dữ liệu</span></div>';
 }

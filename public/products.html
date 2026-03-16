@@ -68,6 +68,45 @@
         </section>
     </main>
 
+    <div class="product-detail-overlay" id="product-detail-modal" aria-hidden="true">
+        <div class="product-detail-modal" role="dialog" aria-modal="true" aria-labelledby="product-detail-title">
+            <button class="product-detail-close" type="button" aria-label="Đóng" onclick="closeProductDetail()">✕</button>
+            <div class="product-detail-body">
+                <div class="product-detail-media">
+                    <img id="product-detail-image" src="" alt="Hình ảnh sản phẩm" />
+                    <span class="product-detail-stock" id="product-detail-stock"></span>
+                </div>
+                <div class="product-detail-info">
+                    <h3 id="product-detail-title">Đang tải...</h3>
+                    <p class="product-detail-brand" id="product-detail-brand"></p>
+                    <p class="product-detail-price" id="product-detail-price"></p>
+                    <p class="product-detail-quantity" id="product-detail-quantity"></p>
+                    <p class="product-detail-description" id="product-detail-description"></p>
+                    <div class="product-detail-actions">
+                        <div class="quantity-control" id="product-detail-qty-control">
+                            <button type="button" class="qty-btn" id="product-detail-qty-minus">-</button>
+                            <span class="qty-value" id="product-detail-qty-value">1</span>
+                            <button type="button" class="qty-btn" id="product-detail-qty-plus">+</button>
+                        </div>
+                        <button class="btn btn-secondary" id="product-detail-add" type="button">Thêm vào giỏ</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-detail-specs" id="product-detail-specs">
+                <h4>Thông số kỹ thuật</h4>
+                <div class="product-detail-specs-list" id="product-detail-specs-list"></div>
+            </div>
+            <div class="product-related" id="product-related">
+                <h4>Gợi ý sản phẩm</h4>
+                <div class="product-related-carousel">
+                    <button class="carousel-btn prev" type="button" data-carousel="related" aria-label="Xem trước">‹</button>
+                    <div class="product-related-grid" id="product-related-list"></div>
+                    <button class="carousel-btn next" type="button" data-carousel="related" aria-label="Xem tiếp">›</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <div id="storefront-footer-root"></div>
 

@@ -27,6 +27,10 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
             $query->where('category_id', $filters['category_id']);
         }
 
+        if (isset($filters['brand_id'])) {
+            $query->where('brand_id', $filters['brand_id']);
+        }
+
         return $query->paginate($perPage);
     }
 
