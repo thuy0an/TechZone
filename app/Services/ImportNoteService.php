@@ -22,7 +22,8 @@ class ImportNoteService extends BaseService implements ImportNoteServiceInterfac
 
     public function getImportNotes($request)
     {
-        $filters = $request->only(['status', 'from_date', 'to_date']);
+        $filters = $request->only(['status', 'supplier_id', 'from_date', 'to_date']);
+
         return $this->repository->getList($filters, $request->input('per_page', 15));
     }
 

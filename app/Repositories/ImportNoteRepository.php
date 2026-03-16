@@ -20,6 +20,10 @@ class ImportNoteRepository extends BaseRepository implements ImportNoteRepositor
             $query->where('status', $filters['status']);
         }
 
+        if (!empty($filters['supplier_id'])) {
+            $query->where('supplier_id', $filters['supplier_id']);
+        }
+
         if (!empty($filters['from_date'])) {
             $query->whereDate('import_date', '>=', $filters['from_date']);
         }
