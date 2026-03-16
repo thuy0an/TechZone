@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Storefront\OrderController;
 use App\Http\Controllers\Api\Storefront\AddressController;
 use App\Http\Controllers\Api\Admin\CategoryController;
 use App\Http\Controllers\Api\Admin\BrandController;
+use \App\Http\Controllers\Api\Admin\SupplierController;
 use App\Http\Controllers\Api\Admin\Auth\AuthController as AdminAuthController;
 use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
@@ -104,6 +105,9 @@ Route::prefix('admin')->group(function () {
         Route::get('/orders', [AdminOrderController::class, 'index']);
         Route::get('/orders/{id}', [AdminOrderController::class, 'show']);
         Route::put('/orders/{id}/status', [AdminOrderController::class, 'updateStatus']);
+
+        // QUẢN LÝ NHÀ CUNG CẤP
+        Route::apiResource('suppliers', SupplierController::class);
     });
 });
 

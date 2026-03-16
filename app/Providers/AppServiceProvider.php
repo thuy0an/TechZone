@@ -50,6 +50,11 @@ use App\Services\BrandService;
 use App\Services\Interfaces\UserAddressServiceInterface;
 use App\Services\UserAddressService;
 
+use App\Repositories\Interfaces\SupplierRepositoryInterface;
+use App\Repositories\SupplierRepository;
+use App\Services\Interfaces\SupplierServiceInterface;
+use App\Services\SupplierService;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -67,7 +72,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AdminOrderRepositoryInterface::class, AdminOrderRepository::class);
         $this->app->bind(BrandRepositoryInterface::class, BrandRepository::class);
         $this->app->bind(UserAddressRepositoryInterface::class, UserAddressRepository::class);
-
+        $this->app->bind(SupplierRepositoryInterface::class, SupplierRepository::class);
 
         // Bind Services
         $this->app->bind(ProductServiceInterface::class, ProductService::class);
@@ -80,6 +85,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AdminAuthServiceInterface::class, AdminAuthService::class);
         $this->app->bind(AdminOrderServiceInterface::class, AdminOrderService::class);
         $this->app->bind(BrandServiceInterface::class, BrandService::class);
+        $this->app->bind(SupplierServiceInterface::class, SupplierService::class);
         $this->app->singleton(CloudinaryService::class, function ($app) {
             return new CloudinaryService();
         });

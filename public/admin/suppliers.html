@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhà cung cấp - TechZone Admin</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="icon" href="/favicon.ico">
+</head>
+<body>
+<div class="admin-layout">
+    <div id="admin-sidebar-root"></div>
+    <div class="admin-main">
+        <div id="admin-topbar-root"></div>
+
+        <main class="admin-content">
+            <div class="page-header">
+                <h1>Quản lý Nhà cung cấp</h1>
+                <p>Thêm, sửa, xóa thông tin các đối tác cung cấp sản phẩm</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="toolbar flex-row" style="justify-content: space-between;">
+                        <div class="search-box" style="width: 400px">
+                            <span>🔍</span>
+                            <input type="text" id="search-input" placeholder="Tìm theo tên, SĐT, email..." onkeyup="if(event.key==='Enter') { currentPage=1; loadSuppliers(); }">
+                        </div>
+                        <button class="btn-add" onclick="openFormModal()">+ Thêm Nhà cung cấp</button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:80px">ID</th>
+                                <th>Nhà cung cấp</th>
+                                <th>Liên hệ</th>
+                                <th>Địa chỉ</th>
+                                <th>Ngày tạo</th>
+                                <th style="width:160px; text-align:center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="supplier-table-body">
+                            <tr><td colspan="6" class="table-loading">⏳ Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-container" id="pagination-bar" style="display: none;">
+                    <div class="pagination-info" id="pagination-info"></div>
+                    <div class="pagination-btns" id="pagination-btns"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div class="modal-overlay-form" id="form-modal">
+    <div class="modal-form-box" style="max-width: 650px;">
+        <div class="modal-form-header">
+            <span class="modal-form-title" id="modal-title">Thêm Nhà cung cấp</span>
+            <button class="modal-close-btn" onclick="closeFormModal()">✕</button>
+        </div>
+        
+        <form id="supplier-form" onsubmit="saveSupplier(event)">
+            <input type="hidden" id="supplier-id">
+            
+            <div class="modal-form-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="col-left">
+                    <div class="form-group">
+                        <label>Tên nhà cung cấp <span style="color:var(--admin-danger)">*</span></label>
+                        <input type="text" id="supplier-name" class="form-control" placeholder="VD: Công ty TNHH ABC" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Số điện thoại</label>
+                        <input type="text" id="supplier-phone" class="form-control" placeholder="VD: 0901234567">
+                    </div>
+                </div>
+                
+                <div class="col-right">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="supplier-email" class="form-control" placeholder="VD: contact@abc.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Địa chỉ</label>
+                        <textarea id="supplier-address" class="form-control" rows="3" placeholder="Số nhà, đường, quận/huyện..."></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-form-footer">
+                <button type="button" class="btn btn-cancel" onclick="closeFormModal()">Hủy</button>
+                <button type="submit" class="btn-save" id="btn-save">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="delete-modal">
+    <div class="modal-box">
+        <div class="modal-icon">🗑️</div>
+        <div class="modal-title">Xác nhận xóa</div>
+        <div class="modal-message">
+            Bạn có chắc muốn xóa nhà cung cấp
+            <strong id="delete-target-name"></strong>?<br>
+            <small style="color:var(--text-secondary)">Hệ thống sẽ chặn xóa nếu nhà cung cấp này đã có lịch sử nhập kho.</small>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-cancel" onclick="closeDeleteModal()">Hủy</button>
+            <button class="btn btn-danger" id="confirm-delete-btn" onclick="doDelete()">Xóa</button>
+        </div>
+    </div>
+</div>
+
+<script src="/js/admin/admin-token.js"></script>
+<script src="/js/admin/admin-api.js"></script>
+<script src="/js/admin/admin-auth.js"></script>
+<script src="/js/admin/admin-utils.js"></script>
+<script src="/js/admin/admin-layout.js"></script>
+<script>
+let currentPage = 1;
+let deleteId = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    requireAdminAuth();
+    initAdminLayout({ title: 'Nhà cung cấp', activePage: 'suppliers' });
+    loadSuppliers();
+});
+
+async function loadSuppliers() {
+    const search = document.getElementById('search-input').value.trim();
+    const params = new URLSearchParams({ page: currentPage, per_page: 15 });
+    if (search) params.append('search', search);
+
+    setTableLoading(true);
+
+    try {
+        const res = await adminRequest(`/suppliers?${params}`); //
+        
+        const suppliersData = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+        
+        renderTable(suppliersData);
+        
+        renderPagination({ //
+            meta: res.pagination, 
+            currentPage,
+            onPageChange: (p) => { currentPage = p; loadSuppliers(); }
+        });
+    } catch (err) {
+        console.error("Lỗi API:", err);
+        showTableError('Không thể tải danh sách nhà cung cấp. Vui lòng thử lại.');
+    }
+}
+
+function renderTable(data) {
+        const tbody = document.getElementById('supplier-table-body');
+        
+        if (!data || data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 30px; color: var(--text-muted);">Không tìm thấy nhà cung cấp nào.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = data.map(item => `
+            <tr>
+                <td class="td-id">#${item.id}</td>
+                <td class="td-name" style="font-weight: 600;">${AdminString.esc(item.name || '—')}</td>
+                <td style="font-size:0.85rem; line-height: 1.6;">
+                    📞 ${item.phone ? AdminString.esc(item.phone) : '<span style="color: gray;">—</span>'}<br>
+                    ✉️ ${item.email ? AdminString.esc(item.email) : '<span style="color: gray;">—</span>'}
+                </td>
+                <td>
+                    <div style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" 
+                         title="${AdminString.esc(item.address || '')}">
+                        ${item.address ? AdminString.esc(item.address) : '<span style="color: gray;">—</span>'}
+                    </div>
+                </td>
+                <td>${AdminString.date(item.created_at)}</td>
+                <td>
+                    <div class="td-actions" style="justify-content: center;">
+                        <button class="btn-edit" onclick="openFormModal(${item.id})">✏️ Sửa</button>
+                        <button class="btn-delete" onclick="confirmDelete(${item.id}, '${AdminString.escJs(item.name || '')}')">🗑️ Xóa</button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+function setTableLoading(on) {
+    if (on) {
+        document.getElementById('supplier-table-body').innerHTML = `<tr><td colspan="6" class="table-loading">⏳ Đang tải...</td></tr>`;
+        document.getElementById('pagination-bar').style.display = 'none';
+    }
+}
+
+function showTableError(msg) {
+    document.getElementById('supplier-table-body').innerHTML = `<tr><td colspan="6" class="table-empty text-danger">${msg}</td></tr>`;
+    document.getElementById('pagination-bar').style.display = 'none';
+}
+
+// ==========================================
+// THÊM / SỬA (Modal)
+// ==========================================
+async function openFormModal(id = null) {
+    const modal = document.getElementById('form-modal');
+    const form = document.getElementById('supplier-form');
+    const title = document.getElementById('modal-title');
+    
+    form.reset();
+    document.getElementById('supplier-id').value = '';
+
+    if (id) {
+        title.textContent = 'Cập nhật Nhà cung cấp';
+        try {
+            const res = await adminRequest(`/suppliers/${id}`);
+            const sp = res.data;
+            document.getElementById('supplier-id').value = sp.id;
+            document.getElementById('supplier-name').value = sp.name || '';
+            document.getElementById('supplier-phone').value = sp.phone || '';
+            document.getElementById('supplier-email').value = sp.email || '';
+            document.getElementById('supplier-address').value = sp.address || '';
+        } catch (e) {
+            showAdminToast('Không thể lấy thông tin nhà cung cấp', 'error'); //
+            return;
+        }
+    } else {
+        title.textContent = 'Thêm Nhà cung cấp';
+    }
+
+    modal.classList.add('show');
+}
+
+function closeFormModal() {
+    document.getElementById('form-modal').classList.remove('show');
+}
+
+async function saveSupplier(e) {
+    e.preventDefault();
+    const id = document.getElementById('supplier-id').value;
+    const btnSave = document.getElementById('btn-save');
+    
+    const payload = {
+        name: document.getElementById('supplier-name').value.trim(),
+        phone: document.getElementById('supplier-phone').value.trim(),
+        email: document.getElementById('supplier-email').value.trim(),
+        address: document.getElementById('supplier-address').value.trim()
+    };
+
+    btnSave.disabled = true;
+    btnSave.textContent = 'Đang lưu...';
+
+    try {
+        const endpoint = id ? `/suppliers/${id}` : '/suppliers';
+        const method = id ? 'PUT' : 'POST';
+        
+        await adminRequest(endpoint, { //
+            method: method,
+            body: JSON.stringify(payload)
+        });
+
+        showAdminToast(id ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
+        closeFormModal();
+        loadSuppliers();
+    } catch (err) {
+        showAdminToast(err.data?.message || 'Lỗi khi lưu dữ liệu', 'error');
+    } finally {
+        btnSave.disabled = false;
+        btnSave.textContent = 'Lưu lại';
+    }
+}
+
+// ==========================================
+// XÓA (Modal)
+// ==========================================
+function confirmDelete(id, name) {
+    deleteId = id;
+    document.getElementById('delete-target-name').textContent = name;
+    document.getElementById('delete-modal').classList.add('show');
+}
+
+function closeDeleteModal() {
+    deleteId = null;
+    document.getElementById('delete-modal').classList.remove('show');
+}
+
+async function doDelete() {
+        if (!deleteId) return;
+        
+        const btn = document.getElementById('confirm-delete-btn');
+        btn.disabled = true; 
+        btn.textContent = 'Đang xử lý...';
+        
+        try {
+            await adminRequest(`/suppliers/${deleteId}`, { method: 'DELETE' });
+            showAdminToast('Đã xóa thành công!');
+            closeDeleteModal();
+            loadSuppliers();
+        } catch (err) {
+            showAdminToast(err.data?.message || 'Lỗi khi xóa nhà cung cấp', 'error');
+            closeDeleteModal();
+        } finally {
+            // Trả lại trạng thái cho nút xóa sau khi chạy xong
+            btn.disabled = false;
+            btn.textContent = 'Xóa';
+        }
+    }
+
+</script>
+</body>
+</html>

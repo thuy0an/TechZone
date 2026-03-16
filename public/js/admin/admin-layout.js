@@ -14,13 +14,14 @@
 // ============================================================
 const ADMIN_NAV = [
     { type: 'section', label: 'Tổng quan' },
-    { type: 'item', page: 'dashboard',  href: '/admin/dashboard.html',  icon: '📊', label: 'Dashboard' },
+    { type: 'item', page: 'dashboard', href: '/admin/dashboard.html', icon: '📊', label: 'Dashboard' },
     { type: 'section', label: 'Danh mục' },
     { type: 'item', page: 'categories', href: '/admin/categories.html', icon: '📂', label: 'Loại sản phẩm' },
-    { type: 'item', page: 'brands',     href: '/admin/brands.html',     icon: '🏷️', label: 'Thương hiệu' },
+    { type: 'item', page: 'brands', href: '/admin/brands.html', icon: '🏷️', label: 'Thương hiệu' },
     { type: 'section', label: 'Quản lý' },
-    { type: 'item', page: 'products',   href: '/admin/products.html',   icon: '📦', label: 'Sản phẩm' },
-    { type: 'item', page: 'orders',     href: '/admin/orders.html',     icon: '🛒', label: 'Đơn hàng' },
+    { type: 'item', page: 'products', href: '/admin/products.html', icon: '📦', label: 'Sản phẩm' },
+    { type: 'item', page: 'orders', href: '/admin/orders.html', icon: '🛒', label: 'Đơn hàng' },
+    { type: 'item', page: 'suppliers', href: '/admin/suppliers.html', icon: '🏢', label: 'Nhà cung cấp' },
 ];
 
 // ============================================================
@@ -31,10 +32,10 @@ const ADMIN_NAV = [
  *     Mặc định dùng hàm từ admin-auth.js; test có thể truyền stub vào.
  */
 function initAdminLayout({
-    title          = 'Admin',
-    icon           = '',
-    activePage     = '',
-    authGuard      = requireAdminAuth,
+    title = 'Admin',
+    icon = '',
+    activePage = '',
+    authGuard = requireAdminAuth,
     renderIdentity = renderAdminIdentity,
 } = {}) {
     _injectSidebar(activePage);
