@@ -46,7 +46,7 @@ class ProductController extends BaseApiController
     {
         try {
             $product = $this->productService->createProductForAdmin($request->validated());
-            return $this->successResponse($product, 'Tạo sản phẩm thành công', 201);
+            return $this->createdResponse($product, 'Tạo sản phẩm thành công');
         } catch (\Exception $e) {
             return $this->errorResponse('Lỗi tạo sản phẩm', $e->getMessage(), 400);
         }
@@ -87,6 +87,16 @@ class ProductController extends BaseApiController
         } catch (\Exception $e) {
             // Đảm bảo handleException truyền đúng mã lỗi 400 hoặc 500 tùy log của bạn
             return $this->handleException($e, 'Lỗi khi thực hiện xóa sản phẩm');
+        }
+    }
+
+    public function priceHistories(Request $request, $id)
+    {
+        try {
+            $histories = $this->productService->getProductPriceHistories($id, $request);
+            return $this->paginatedResponse($histories, 'Lịch sử giá sản phẩm');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Lỗi tải lịch sử giá', 500, $e->getMessage());
         }
     }
 }

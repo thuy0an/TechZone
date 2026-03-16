@@ -103,4 +103,10 @@ class ProductService extends BaseService implements ProductServiceInterface
 
         return $this->repository->getProductsByCategory($categoryId, $perPage);
     }
+
+    public function getProductPriceHistories(int $productId, $request)
+    {
+        $perPage = (int) $request->input('per_page', 15);
+        return $this->repository->getPriceHistories($productId, $perPage);
+    }
 }

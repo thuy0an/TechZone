@@ -12,4 +12,5 @@ interface ProductRepositoryInterface extends BaseRepositoryInterface
     public function hasActiveOrders(int $productId);
     public function forceDelete(int $id);
     public function getProductsByCategory(int $categoryId, int $perPage = 10);
+    public function getPriceHistories(int $productId, int $perPage = 15);
 }

@@ -39,4 +39,9 @@ class Product extends BaseModel
     {
         return $this->hasMany(OrderDetail::class, 'product_id');
     }
+
+    public function priceHistories()
+    {
+        return $this->hasMany(ProductPriceHistory::class)->orderBy('created_at', 'desc');
+    }
 }

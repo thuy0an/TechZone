@@ -13,6 +13,7 @@ use \App\Http\Controllers\Api\Admin\SupplierController;
 use App\Http\Controllers\Api\Admin\Auth\AuthController as AdminAuthController;
 use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Api\Admin\ImportNoteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -94,6 +95,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/logout', [AdminAuthController::class, 'logout']);
 
         // QUẢN LÝ SẢN PHẨM
+        Route::get('products/{id}/price-histories', [AdminProductController::class, 'priceHistories']);
         Route::apiResource('products', AdminProductController::class);
 
         Route::apiResource('categories', CategoryController::class);
@@ -108,6 +110,10 @@ Route::prefix('admin')->group(function () {
 
         // QUẢN LÝ NHÀ CUNG CẤP
         Route::apiResource('suppliers', SupplierController::class);
+
+        // NHẬP KHO
+        Route::put('import-notes/{id}/complete', [ImportNoteController::class, 'complete']);
+        Route::apiResource('import-notes', ImportNoteController::class);
     });
 });
 

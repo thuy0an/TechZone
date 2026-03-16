@@ -23,7 +23,7 @@ class OrderController extends BaseApiController
             $userId = Auth::id();
             $order = $this->orderService->checkout($userId, $request->validated());
 
-            return $this->successResponse($order, 201, 'Đặt hàng thành công!');
+            return $this->createdResponse($order, 'Đặt hàng thành công!');
         } catch (\Exception $e) {
             return $this->errorResponse('Đặt hàng thất bại', 400, $e->getMessage());
         }

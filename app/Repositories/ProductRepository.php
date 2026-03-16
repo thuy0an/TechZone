@@ -139,4 +139,14 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
             $query->where('status', 'visible');
         }
     }
+
+    public function getPriceHistories(int $productId, int $perPage = 15)
+    {
+        $product = $this->model->findOrFail($productId);
+
+        // Truy vấn lịch sử giá của sản phẩm đó, load kèm thông tin Phiếu nhập & Admin
+        return $product->priceHistories()
+            ->with('importNote.admin')
+            ->paginate($perPage);
+    }
 }
