@@ -54,6 +54,7 @@ Route::prefix('storefront')->group(function () {
 // CLIENT Routes (Alias cho storefront public)
 // ============================================
 Route::prefix('client')->group(function () {
+    Route::get('/products/{id}', [ProductController::class, 'show']);
     Route::get('/products/category/{category_id}', [ProductController::class, 'productsByCategory']);
 });
 

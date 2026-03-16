@@ -258,7 +258,7 @@ async function loadProducts() {
     try {
         const res = await adminRequest(`/products?${params}`);
         
-        const productsData = res.data; 
+        productsData = res.data;
         renderTable(productsData);
         
         renderPagination({

@@ -26,6 +26,7 @@ class ProductService extends BaseService implements ProductServiceInterface
         $filters = [
             'search' => $request->get('search'),
             'category_id' => $request->get('category_id'),
+            'brand_id' => $request->get('brand_id'),
         ];
 
         $perPage = $request->get('per_page', 12);
