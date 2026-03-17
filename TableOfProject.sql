@@ -74,6 +74,19 @@ CREATE TABLE brands (
 );
 
 -- =============================
+-- SUPPLIERS
+-- =============================
+CREATE TABLE suppliers (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL,
+  phone VARCHAR(20),
+  email VARCHAR(255),
+  address TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- =============================
 -- PRODUCTS
 -- =============================
 CREATE TABLE products (
@@ -104,12 +117,14 @@ CREATE TABLE products (
 CREATE TABLE import_notes (
   id INT PRIMARY KEY AUTO_INCREMENT,
   admin_id INT NOT NULL,
+  supplier_id INT NULL,
   import_date DATETIME,
   status ENUM('pending','completed') DEFAULT 'pending',
   total_cost DECIMAL(15,2) DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (admin_id) REFERENCES admins(id)
+  FOREIGN KEY (admin_id) REFERENCES admins(id),
+  FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
 );
 
 CREATE TABLE import_note_details (
