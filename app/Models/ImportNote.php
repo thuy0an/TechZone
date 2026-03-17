@@ -9,16 +9,17 @@ class ImportNote extends BaseModel
     use HasFactory;
 
     protected $fillable = [
-        'admin_id',       // Người tạo phiếu nhập
-        'supplier_id',    // Nhà cung cấp 
-        'import_date',    // Ngày nhập
-        'status',         // Trạng thái: pending, completed
-        'total_cost'      // Tổng tiền nhập
+        'admin_id',
+        'supplier_id',
+        'import_date',
+        'status',
+        'completed_at',
+        'total_cost'
     ];
 
-    // Ép kiểu cho ngày tháng để dễ format
     protected $casts = [
         'import_date' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     /**

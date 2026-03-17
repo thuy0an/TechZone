@@ -899,6 +899,14 @@ table.data-table tbody tr:hover { background: #f8fafc; }
     justify-content: flex-start;
 }
 
+.centered{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 15px;
+    gap: 6px;
+}
+
 /* ============================================
    PAGINATION
    ============================================ */
@@ -1189,6 +1197,50 @@ table.data-table tbody tr:hover { background: #f8fafc; }
     border-radius: 8px;
     font-weight: bold;
 }
+
+/* CSS riêng cho tính năng Inline Search */
+.search-container {
+    position: relative;
+    margin-bottom: 20px;
+}
+.search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+.search-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: background 0.2s;
+}
+.search-item:hover {
+    background: #f8fafc;
+}
+.search-item:last-child {
+    border-bottom: none;
+}
+.search-item img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 10px;
+}
+
 
 /* ---- Responsive ---- */
 @media (max-width: 768px) {

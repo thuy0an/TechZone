@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phiếu nhập kho - TechZone Admin</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="icon" href="/favicon.ico">
+    <style>
+        /* Bổ sung một class nhỏ cho nút Duyệt phiếu */
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-success:hover { background-color: #059669; }
+        .btn-success:disabled { opacity: 0.6; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+<div class="admin-layout">
+    <div id="admin-sidebar-root"></div>
+    <div class="admin-main">
+        <div id="admin-topbar-root"></div>
+
+        <main class="admin-content">
+            <div class="page-header">
+                <h1>Quản lý phiếu nhập hàng</h1>
+                <p>Tạo, chỉnh sửa phiếu nhập và theo dõi lịch sử biến động kho</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="toolbar" style="flex-direction: column; align-items: flex-start;">
+                        <div class="flex-row">
+                            <select id="filter-status" class="form-control cursor-pointer" style="width:200px;" onchange="currentPage=1; loadImportNotes()">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="pending">Bản nháp (Pending)</option>
+                                <option value="completed">Đã hoàn thành</option>
+                            </select>
+
+                            <select id="filter-supplier" class="form-control cursor-pointer" style="width:250px;" onchange="currentPage=1; loadImportNotes()">
+                                <option value="">Tất cả nhà cung cấp</option>
+                                </select>
+
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <label style="font-size: 0.8rem; color: var(--text-secondary);">Từ:</label>
+                                <input type="date" id="filter-from-date" class="form-control cursor-pointer" title="Từ ngày" onchange="currentPage=1; loadImportNotes()">
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <label style="font-size: 0.8rem; color: var(--text-secondary);">Đến:</label>
+                                <input type="date" id="filter-to-date" class="form-control cursor-pointer" title="Đến ngày" onchange="currentPage=1; loadImportNotes()">
+                            </div>
+                            
+                            <div style="flex-grow: 1;"></div>
+                            <button class="btn-add" onclick="openFormModal()">
+                                Tạo phiếu nhập
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                                </svg> 
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:100px">Mã phiếu</th>
+                                <th>Ngày nhập</th>
+                                <th>Nhà cung cấp</th>
+                                <th>Người tạo</th>
+                                <th>Tổng tiền</th>
+                                <th style="width:140px">Trạng thái</th>
+                                <th style="width:200px; text-align:center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="note-table-body">
+                            <tr><td colspan="7" class="table-loading">⏳ Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination" id="pagination-bar" style="display: none;">
+                    <div class="pagination-info" id="pagination-info"></div>
+                    <div class="pagination-btns" id="pagination-btns"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div class="modal-overlay-form" id="form-modal">
+    <div class="modal-form-box" style="max-width: 900px;"> <div class="modal-form-header">
+            <span class="modal-form-title" id="modal-title">Tạo Phiếu Nhập Kho</span>
+            <button class="modal-close-btn" onclick="closeFormModal()">✕</button>
+        </div>
+        
+        <form id="note-form" onsubmit="event.preventDefault(); saveImportNote();">
+            <input type="hidden" id="note-id">
+            
+            <div class="modal-form-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="col-left">
+                        <div class="form-group">
+                            <label>Nhà cung cấp <span style="color:var(--admin-danger)">*</span></label>
+                            <select id="note-supplier" class="form-control" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Ngày nhập hàng <span style="color:var(--admin-danger)">*</span></label>
+                            <input type="datetime-local" id="note-date" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="col-right">
+                        <div id="supplier-info-card" style="display: none; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.9rem; height: 100%;">
+                            <h4 style="margin-bottom: 12px; color: var(--admin-primary); font-size: 0.95rem; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px;">Thông tin Nhà cung cấp</h4>
+                            <div style="display: grid; grid-template-columns: 70px 1fr; gap: 8px 12px; color: var(--text-secondary); line-height: 1.5;">
+                                <strong>Tên NCC:</strong> <span id="info-sup-name" style="color: var(--text-primary); font-weight: 600;">—</span>
+                                <strong>Liên hệ:</strong> <span id="info-sup-contact">—</span>
+                                <strong>Địa chỉ:</strong> <span id="info-sup-address" style="word-break: break-word;">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr style="margin: 20px 0; border: 0; border-top: 1px solid var(--border-color);">
+
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <label style="margin: 0;">Chi tiết sản phẩm nhập <span style="color:var(--admin-danger)">*</span></label>
+                        <span style="font-size: 0.85rem; color: var(--text-secondary); font-weight: normal;">Tổng tiền: <strong style="color:var(--admin-accent); font-size: 1.1rem;">0đ</strong></span>
+                    </div>
+                    
+                    <div id="inline-product-wrapper" style="padding: 40px; background: #f8fafc; text-align: center; border: 1px dashed #cbd5e1; border-radius: 8px;">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">📦</div>
+                        <p style="color: var(--text-secondary); font-weight: 500;">Giao diện "Tìm kiếm sản phẩm inline" & "Bảng chi tiết" sẽ được code ở đây</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-form-footer">
+                <button type="button" class="btn btn-cancel" onclick="closeFormModal()">Đóng</button>
+                <button type="submit" class="btn-save" id="btn-save">Lưu bản nháp</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="complete-modal">
+    <div class="modal-box">
+        <div class="modal-icon text-success">✅</div>
+        <div class="modal-title">Duyệt Phiếu Nhập Kho</div>
+        <div class="modal-message">
+            Bạn có chắc muốn hoàn thành phiếu nhập <strong id="complete-target"></strong>?<br><br>
+            <div style="background: #fef2f2; border: 1px solid #fca5a5; padding: 12px; border-radius: 6px; color: #b91c1c; font-size: 0.85rem; text-align: left;">
+                <strong>⚠️ Lưu ý quan trọng:</strong> Hành động này sẽ tự động:
+                <ul style="margin-top: 5px; padding-left: 20px;">
+                    <li>Cộng dồn số lượng tồn kho của các sản phẩm.</li>
+                    <li>Chạy thuật toán tính lại giá vốn bình quân.</li>
+                    <li>Tự động cập nhật giá bán mới.</li>
+                </ul>
+                Không thể hoàn tác sau khi duyệt!
+            </div>
+        </div>
+        <div class="modal-actions" style="margin-top: 20px;">
+            <button class="btn btn-cancel" onclick="closeCompleteModal()">Hủy</button>
+            <button class="btn btn-success" id="confirm-complete-btn" onclick="doComplete()">Xác nhận Duyệt</button>
+        </div>
+    </div>
+</div>
+
+<script src="/js/admin/admin-token.js"></script>
+<script src="/js/admin/admin-api.js"></script>
+<script src="/js/admin/admin-auth.js"></script>
+<script src="/js/admin/admin-utils.js"></script>
+<script src="/js/admin/admin-layout.js"></script>
+<script>
+    let currentPage = 1;
+    let completeId = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        requireAdminAuth();
+        // Gọi menu sidebar (Nhớ thêm mục này vào file admin-layout.js nếu chưa có)
+        initAdminLayout({ title: 'Phiếu nhập kho', activePage: 'import-notes' });
+        
+        // Load danh sách dropdown trước khi load bảng
+        await loadSupplierDropdown();
+        loadImportNotes();
+    });
+
+    // ==========================================
+    // TẢI DATA
+    // ==========================================
+    async function loadSupplierDropdown() {
+        try {
+            // Lấy max dữ liệu cho dropdown (vd: 100)
+            const res = await adminRequest('/suppliers?per_page=100');
+            const suppliers = res.data || [];
+            
+            const filterSelect = document.getElementById('filter-supplier');
+            const formSelect = document.getElementById('note-supplier');
+            
+            let options = '';
+            suppliers.forEach(s => {
+                options += `<option value="${s.id}">${AdminString.esc(s.name)}</option>`;
+            });
+
+            // Đổ vào cả bộ lọc và form
+            filterSelect.innerHTML += options;
+            formSelect.innerHTML += options;
+        } catch (e) {
+            console.error('Lỗi tải nhà cung cấp', e);
+        }
+    }
+
+    async function loadImportNotes() {
+        const status = document.getElementById('filter-status').value;
+        const supplierId = document.getElementById('filter-supplier').value;
+        const fromDate = document.getElementById('filter-from-date').value;
+        const toDate = document.getElementById('filter-to-date').value;
+
+        const params = new URLSearchParams({ page: currentPage, per_page: 10 });
+        if (status) params.append('status', status);
+        if (supplierId) params.append('supplier_id', supplierId);
+        if (fromDate) params.append('from_date', fromDate);
+        if (toDate) params.append('to_date', toDate);
+
+        setTableLoading(true);
+
+        try {
+            const res = await adminRequest(`/import-notes?${params}`);
+            const notes = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+            
+            renderTable(notes);
+            
+            renderPagination({
+                meta: res.pagination,
+                currentPage,
+                onPageChange: (p) => { currentPage = p; loadImportNotes(); }
+            });
+        } catch (err) {
+            showTableError('Không thể tải danh sách phiếu nhập.');
+        }
+    }
+
+    function renderTable(data) {
+        const tbody = document.getElementById('note-table-body');
+        
+        if (!data || data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="table-empty">Chưa có phiếu nhập kho nào.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = data.map(n => {
+            const isCompleted = n.status === 'completed';
+            const badge = isCompleted 
+                ? `<span style="background:#dcfce7; color:#166534; padding:4px 8px; border-radius:4px; font-weight:600; font-size:0.8rem;">Đã duyệt</span>`
+                : `<span style="background:#f1f5f9; color:#475569; padding:4px 8px; border-radius:4px; font-weight:600; font-size:0.8rem; border:1px solid #cbd5e1;">Bản nháp</span>`;
+
+            return `
+            <tr>
+                <td class="td-id">#${n.id}</td>
+                <td style="font-weight: 500;">${formatDateTime(n.import_date)}</td>
+                <td class="td-name">${n.supplier ? AdminString.esc(n.supplier.name) : '—'}</td>
+                <td style="font-size: 0.9rem; color: var(--text-secondary);">${n.admin ? AdminString.esc(n.admin.name) : '—'}</td>
+                <td style="font-weight:700; color:var(--admin-accent)">${new Intl.NumberFormat('vi-VN').format(n.total_cost)}đ</td>
+                <td>${badge}</td>
+                <td>
+                    <div class="td-actions" style="justify-content: center; gap: 8px;">
+                        <button class="btn-edit" style="background:#f1f5f9; color:#333; border: 1px solid #cbd5e1;" onclick="openFormModal(${n.id}, true)">👁️ Xem</button>
+                        
+                        ${!isCompleted ? `
+                            <a href="/admin/import-note-action.html?id=${n.id}" class="btn-edit" style="text-decoration: none;">✏️ Sửa</a>
+                            <button class="btn-success" onclick="confirmComplete(${n.id}, ${n.id})">✅ Duyệt</button>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+            `;
+        }).join('');
+    }
+
+    // ==========================================
+    // CÁC HÀM MODAL & TIỆN ÍCH
+    // ==========================================
+    async function openFormModal(id = null, isViewOnly = false) {
+        if (!id) {
+            window.location.href = '/admin/import-note-action.html';
+            return;
+        }
+
+        const supplierSelect = document.getElementById('note-supplier');
+        const dateInput = document.getElementById('note-date');
+        const btnSave = document.getElementById('btn-save');
+        const wrapper = document.getElementById('inline-product-wrapper');
+        const title = document.getElementById('modal-title');
+        
+        // Element hiển thị thông tin NCC
+        const supplierInfoCard = document.getElementById('supplier-info-card');
+
+        // Reset trạng thái form
+        document.getElementById('note-form').reset();
+        document.getElementById('note-id').value = id;
+        supplierSelect.disabled = false;
+        dateInput.disabled = false;
+        btnSave.style.display = 'block';
+        supplierInfoCard.style.display = 'none'; // Ẩn card đi trong lúc loading
+        wrapper.innerHTML = '<div style="padding: 20px;">⏳ Đang tải dữ liệu...</div>';
+        
+        document.getElementById('form-modal').classList.add('show');
+
+        try {
+            const res = await adminRequest(`/import-notes/${id}`);
+            const note = res.data;
+
+            // 1. Gán giá trị cơ bản
+            supplierSelect.value = note.supplier_id;
+            
+            if (note.import_date) {
+                const dateObj = new Date(note.import_date);
+                dateObj.setMinutes(dateObj.getMinutes() - dateObj.getTimezoneOffset());
+                dateInput.value = dateObj.toISOString().slice(0, 16);
+            }
+
+            // 2. Kiểm tra trạng thái để Khóa Form (Disable)
+            const isCompleted = note.status === 'completed';
+            title.textContent = isCompleted ? `Chi Tiết Phiếu Nhập #${id}` : `Sửa Bản Nháp #${id}`;
+
+            if (isCompleted || isViewOnly) {
+                supplierSelect.disabled = true;
+                dateInput.disabled = true;
+                btnSave.style.display = 'none';
+            }
+
+            // 3. Hiển thị thông tin Card Nhà Cung Cấp
+            if (note.supplier) {
+                const s = note.supplier;
+                document.getElementById('info-sup-name').textContent = s.name || '—';
+                
+                // Gom SĐT và Email vào chung 1 dòng cho gọn
+                const phone = s.phone ? `📞 ${s.phone}` : '';
+                const email = s.email ? `✉️ ${s.email}` : '';
+                document.getElementById('info-sup-contact').innerHTML = [phone, email].filter(Boolean).join('<br>') || '—';
+                
+                document.getElementById('info-sup-address').textContent = s.address || '—';
+                
+                supplierInfoCard.style.display = 'block'; // Hiển thị card lên
+            }
+
+            // 4. Hiển thị danh sách sản phẩm chi tiết
+            renderNoteDetails(note.details, note.total_cost, isCompleted);
+
+        } catch (e) {
+            showAdminToast('Không thể lấy chi tiết phiếu nhập', 'error');
+            closeFormModal();
+        }
+    }
+
+    // Hàm render bảng chi tiết sản phẩm bên trong Modal
+    function renderNoteDetails(details, totalCost, isCompleted) {
+        const wrapper = document.getElementById('inline-product-wrapper');
+        
+        // Render tổng tiền lên góc trên
+        const totalSpan = document.querySelector('strong[style*="color:var(--admin-accent)"]');
+        if (totalSpan) {
+            totalSpan.textContent = new Intl.NumberFormat('vi-VN').format(totalCost) + 'đ';
+        }
+
+        if (!details || details.length === 0) {
+            wrapper.innerHTML = '<p style="color: gray;">Không có sản phẩm nào trong phiếu này.</p>';
+            return;
+        }
+
+        let html = `
+            <table class="data-table" style="margin-top: 0; text-align: left;">
+                <thead style="background: var(--bg-body);">
+                    <tr>
+                        <th>Mã SP</th>
+                        <th>Tên sản phẩm</th>
+                        <th style="text-align: right;">Số lượng</th>
+                        <th style="text-align: right;">Giá nhập</th>
+                        <th style="text-align: right;">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        details.forEach(item => {
+            const product = item.product || {};
+            const lineTotal = item.quantity * item.import_price;
+            html += `
+                <tr>
+                    <td class="font-medium" style="color: var(--admin-accent);">${AdminString.esc(product.code)}</td>
+                    <td>${AdminString.esc(product.name)}</td>
+                    <td style="text-align: right; font-weight: bold;">${item.quantity}</td>
+                    <td style="text-align: right;">${new Intl.NumberFormat('vi-VN').format(item.import_price)}đ</td>
+                    <td style="text-align: right; color: var(--admin-danger); font-weight: bold;">
+                        ${new Intl.NumberFormat('vi-VN').format(lineTotal)}đ
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += `</tbody></table>`;
+        wrapper.innerHTML = html;
+        wrapper.style.padding = '0';
+        wrapper.style.border = '1px solid var(--border-color)';
+    }
+
+    function closeFormModal() {
+        document.getElementById('form-modal').classList.remove('show');
+    }
+
+    // DUYỆT PHIẾU NHẬP
+    function confirmComplete(id) {
+        completeId = id;
+        document.getElementById('complete-target').textContent = `Mã #${id}`;
+        document.getElementById('complete-modal').classList.add('show');
+    }
+
+    function closeCompleteModal() {
+        completeId = null;
+        document.getElementById('complete-modal').classList.remove('show');
+    }
+
+    async function doComplete() {
+        if (!completeId) return;
+        const btn = document.getElementById('confirm-complete-btn');
+        btn.disabled = true;
+        btn.textContent = 'Đang tính toán...';
+
+        try {
+            await adminRequest(`/import-notes/${completeId}/complete`, { method: 'PUT' });
+            showAdminToast('Đã duyệt phiếu nhập và tính lại giá thành công!', 'success');
+            closeCompleteModal();
+            loadImportNotes();
+        } catch (err) {
+            showAdminToast(err.data?.message || 'Lỗi khi duyệt phiếu', 'error');
+            closeCompleteModal();
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Xác nhận Duyệt';
+        }
+    }
+
+    // Tiện ích format datetime
+    function formatDateTime(iso) {
+        if (!iso) return '—';
+        const d = new Date(iso);
+        return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + 
+               d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Utils chung
+    function setTableLoading(on) {
+        if (on) {
+            document.getElementById('note-table-body').innerHTML = `<tr><td colspan="7" class="table-loading">⏳ Đang tải...</td></tr>`;
+            document.getElementById('pagination-bar').style.display = 'none';
+        }
+    }
+
+    function showTableError(msg) {
+        document.getElementById('note-table-body').innerHTML = `<tr><td colspan="7" class="table-empty text-danger">${msg}</td></tr>`;
+        document.getElementById('pagination-bar').style.display = 'none';
+    }
+</script>
+</body>
+</html>

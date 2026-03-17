@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Phiếu Nhập Mới - TechZone Admin</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="icon" href="/favicon.ico">
+    <style>
+        /* Input table styles */
+        .input-qty, .input-price {
+            width: 100px;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            text-align: right;
+        }
+        .input-price { width: 140px; }
+    </style>
+</head>
+<body>
+<div class="admin-layout">
+    <div id="admin-sidebar-root"></div>
+    <div class="admin-main">
+        <div id="admin-topbar-root"></div>
+
+        <main class="admin-content">
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1>Tạo Phiếu Nhập Mới</h1>
+                    <p>Tìm kiếm sản phẩm và lập danh sách nhập kho</p>
+                </div>
+                <a href="/admin/import-notes.html" class="centered btn btn-cancel">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                    </svg> Trở về danh sách
+                </a>
+            </div>
+
+            <form id="create-note-form" onsubmit="event.preventDefault(); saveImportNote();">
+                <div class="card" style="margin-bottom: 20px;">
+                    <div class="card-header"><h3 style="font-size: 1.1rem;">Thông tin chung</h3></div>
+                    <div style="padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label>Nhà cung cấp <span style="color:var(--admin-danger)">*</span></label>
+                            <select id="supplier_id" class="form-control" required>
+                                <option value="">-- Chọn nhà cung cấp --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Ngày nhập hàng <span style="color:var(--admin-danger)">*</span></label>
+                            <input type="datetime-local" id="import_date" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="font-size: 1.1rem;">Chi tiết mặt hàng</h3>
+                        <div style="font-size: 1.1rem; font-weight: bold;">Tổng cộng: <span id="grand-total" style="color: var(--admin-danger);">0đ</span></div>
+                    </div>
+                    
+                    <div style="padding: 20px;">
+                        <div style="margin-bottom: 24px; padding: 16px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius);">
+                            <h4 style="margin-bottom: 12px; font-size: 0.95rem; color: var(--admin-primary);">Danh sách sản phẩm hệ thống</h4>
+                            
+                            <div class="toolbar" style="margin-bottom: 12px; gap: 10px; justify-content: flex-start;">
+                                <div class="search-box" style="width: 250px; background: white;">
+                                    <span>🔍</span>
+                                    <input type="text" id="product-search" placeholder="Tên hoặc mã SP..." oninput="debounceSearch()">
+                                </div>
+                                <select id="filter-category" class="form-control" style="width: 250px; background: white;" onchange="availableCurrentPage=1; loadAvailableProducts()">
+                                    <option value="">Tất cả danh mục</option>
+                                </select>
+                                <select id="filter-brand" class="form-control" style="width: 250px; background: white;" onchange="availableCurrentPage=1; loadAvailableProducts()">
+                                    <option value="">Tất cả thương hiệu</option>
+                                </select>
+                            </div>
+
+                            <div class="table-wrapper" style="max-height: 300px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+                                <table class="data-table" style="margin: 0;">
+                                    <thead style="position: sticky; top: 0; z-index: 10;">
+                                        <tr>
+                                            <th style="width:100px">Mã SP</th>
+                                            <th>Sản phẩm</th>
+                                            <th style="width:120px; text-align: right;">Giá nhập cũ</th>
+                                            <th style="width:100px; text-align: center;">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="available-products-body">
+                                        <tr><td colspan="4" class="table-loading">⏳ Đang tải...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="pagination" id="available-pagination-bar" style="display:none; padding: 12px 0 0 0; border-top: none;">
+                                <div class="pagination-info" id="available-pagination-info"></div>
+                                <div class="pagination-btns" id="available-pagination-btns"></div>
+                            </div>
+                        </div>
+                        
+                        <h4 style="margin-bottom: 12px; font-size: 0.95rem; color: var(--admin-primary);">Danh sách sản phẩm sẽ nhập</h4>
+
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:120px">Mã SP</th>
+                                        <th>Sản phẩm</th>
+                                        <th style="width:120px; text-align: right;">Số lượng</th>
+                                        <th style="width:160px; text-align: right;">Giá nhập (đ)</th>
+                                        <th style="width:160px; text-align: right;">Thành tiền</th>
+                                        <th style="width:80px; text-align: center;">Xóa</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="selected-products-body">
+                                    <tr><td colspan="6" class="table-empty">Chưa có sản phẩm nào được chọn.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 20px; background: #f8fafc; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; border-radius: 0 0 10px 10px;">
+                        <button type="button" class="btn btn-cancel" onclick="window.location.href='/admin/import-notes.html'">Hủy</button>
+                        <button type="submit" class="btn-edit" id="btn-submit" style="min-width: 150px;">💾 Lưu Bản Nháp</button>
+                    </div>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+
+<script src="/js/admin/admin-token.js"></script>
+<script src="/js/admin/admin-api.js"></script>
+<script src="/js/admin/admin-auth.js"></script>
+<script src="/js/admin/admin-utils.js"></script>
+<script src="/js/admin/admin-layout.js"></script>
+
+<script>
+    // State lưu trữ mảng các sản phẩm đã được chọn
+    let editId = new URLSearchParams(window.location.search).get('id');
+    let selectedProducts = [];
+    let currentAvailableProducts = []; // Lưu danh sách SP đang hiển thị ở bảng trên
+    let availableCurrentPage = 1;
+    let searchTimeout = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        requireAdminAuth();
+
+        // Đổi title nếu là Edit
+        if (editId) {
+            initAdminLayout({ title: 'Sửa Phiếu Nhập', activePage: 'import-notes' });
+            document.querySelector('.page-header h1').textContent = `Sửa Bản Nháp #${editId}`;
+        } else {
+            initAdminLayout({ title: 'Tạo Phiếu Nhập', activePage: 'import-notes' });
+        }
+        
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('import_date').value = now.toISOString().slice(0,16);
+
+        await Promise.all([
+            loadSuppliers(),
+            loadFilterOptions(),
+            loadAvailableProducts()
+        ]);
+
+        // Nếu có editId, nạp dữ liệu cũ vào
+        if (editId) {
+            await loadNoteForEdit(editId);
+        }
+    });
+
+    // Hàm Debounce search cho input
+    function debounceSearch() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            availableCurrentPage = 1;
+            loadAvailableProducts();
+        }, 400);
+    }
+
+    // ==========================================
+    // DATA FETCHING
+    // ==========================================
+    async function loadSuppliers() {
+        try {
+            const res = await adminRequest('/suppliers?per_page=100');
+            const suppliers = res.data || [];
+            const select = document.getElementById('supplier_id');
+            suppliers.forEach(s => {
+                select.innerHTML += `<option value="${s.id}">${AdminString.esc(s.name)}</option>`;
+            });
+        } catch (e) {
+            showAdminToast('Không thể tải danh sách nhà cung cấp', 'error');
+        }
+    }
+
+    async function loadFilterOptions() {
+        try {
+            const [cats, brands] = await Promise.all([
+                adminRequest('/categories?per_page=100'),
+                adminRequest('/brands?per_page=100')
+            ]);
+            
+            const catSelect = document.getElementById('filter-category');
+            cats.data.forEach(c => catSelect.innerHTML += `<option value="${c.id}">${AdminString.esc(c.name)}</option>`);
+            
+            const brandSelect = document.getElementById('filter-brand');
+            brands.data.forEach(b => brandSelect.innerHTML += `<option value="${b.id}">${AdminString.esc(b.name)}</option>`);
+        } catch (e) { console.error('Lỗi tải bộ lọc', e); }
+    }
+
+    async function loadAvailableProducts() {
+        const search = document.getElementById('product-search').value.trim();
+        const categoryId = document.getElementById('filter-category').value;
+        const brandId = document.getElementById('filter-brand').value;
+
+        const params = new URLSearchParams({ page: availableCurrentPage, per_page: 5 }); // Mỗi trang 5 SP cho gọn
+        if (search) params.append('search', search);
+        if (categoryId) params.append('category_id', categoryId);
+        if (brandId) params.append('brand_id', brandId);
+
+        const tbody = document.getElementById('available-products-body');
+        tbody.innerHTML = `<tr><td colspan="4" class="table-loading">⏳ Đang tải...</td></tr>`;
+        document.getElementById('available-pagination-bar').style.display = 'none';
+
+        try {
+            const res = await adminRequest(`/products?${params}`);
+            currentAvailableProducts = res.data;
+            
+            renderAvailableProducts();
+            
+            renderPagination({
+                meta: res.pagination,
+                currentPage: availableCurrentPage,
+                barId: 'available-pagination-bar',
+                infoId: 'available-pagination-info',
+                btnsId: 'available-pagination-btns',
+                onPageChange: (p) => { availableCurrentPage = p; loadAvailableProducts(); }
+            });
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="4" class="table-empty text-danger">Lỗi tải danh sách sản phẩm</td></tr>`;
+        }
+    }
+
+    function renderAvailableProducts() {
+        const tbody = document.getElementById('available-products-body');
+        
+        if (!currentAvailableProducts || currentAvailableProducts.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="table-empty">Không tìm thấy sản phẩm nào.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = currentAvailableProducts.map(p => {
+            // Kiểm tra xem SP này đã được thêm xuống bảng dưới chưa
+            const isAdded = selectedProducts.some(sp => sp.id === p.id);
+            const btnHtml = isAdded 
+                ? `<button type="button" class="btn-cancel" disabled style="opacity: 0.6; padding: 4px 10px; font-size: 0.8rem;">Đã thêm</button>`
+                : `<button type="button" class="btn-edit" onclick="addProductToTable(${p.id}, '${AdminString.escJs(p.code)}', '${AdminString.escJs(p.name)}', ${p.import_price || 0})" style="padding: 4px 10px; font-size: 0.8rem;">+ Thêm</button>`;
+
+            return `
+            <tr>
+                <td class="font-medium" style="color: var(--admin-accent);">${AdminString.esc(p.code)}</td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="${p.image || '/img/no-image.png'}" style="width:30px; height:30px; object-fit:cover; border-radius:4px;">
+                        <div>
+                            <div style="font-size: 0.9rem;">${AdminString.esc(p.name)}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">${p.category?.name || ''}</div>
+                        </div>
+                    </div>
+                </td>
+                <td style="text-align: right; color: var(--text-secondary);">
+                    ${p.import_price > 0 ? new Intl.NumberFormat('vi-VN').format(p.import_price) + 'đ' : '—'}
+                </td>
+                <td style="text-align: center;">${btnHtml}</td>
+            </tr>
+            `;
+        }).join('');
+    }
+
+    async function loadNoteForEdit(id) {
+        try {
+            const res = await adminRequest(`/import-notes/${id}`);
+            const note = res.data;
+
+            // 1. Fill thông tin cơ bản
+            document.getElementById('supplier_id').value = note.supplier_id;
+            if (note.import_date) {
+                const dateObj = new Date(note.import_date);
+                dateObj.setMinutes(dateObj.getMinutes() - dateObj.getTimezoneOffset());
+                document.getElementById('import_date').value = dateObj.toISOString().slice(0, 16);
+            }
+
+            // 2. Map dữ liệu vào state selectedProducts
+            if (note.details && note.details.length > 0) {
+                selectedProducts = note.details.map(d => ({
+                    id: d.product_id,
+                    code: d.product.code,
+                    name: d.product.name,
+                    quantity: d.quantity,
+                    import_price: d.import_price
+                }));
+            }
+
+            // 3. Render lại 2 bảng
+            renderSelectedTable();
+            renderAvailableProducts();
+
+        } catch (e) {
+            showAdminToast('Không thể lấy dữ liệu phiếu nhập để sửa', 'error');
+        }
+    }
+
+    // ==========================================
+    // QUẢN LÝ STATE BẢNG SẢN PHẨM CHỌN
+    // ==========================================
+    function addProductToTable(id, code, name, defaultPrice) {
+        // Thêm vào state
+        selectedProducts.push({
+            id: id,
+            code: code,
+            name: name,
+            quantity: 1, // Mặc định SL = 1
+            import_price: defaultPrice // Mặc định lấy giá nhập cũ (nếu có)
+        });
+
+        // Reset ô tìm kiếm
+        document.getElementById('product-search').value = '';
+
+        renderSelectedTable();
+        renderAvailableProducts();
+    }
+
+    function removeProduct(id) {
+        selectedProducts = selectedProducts.filter(p => p.id !== id);
+        renderSelectedTable();
+        renderAvailableProducts();
+    }
+
+    function updateProductData(id, field, value) {
+        const product = selectedProducts.find(p => p.id === id);
+        if (product) {
+            // Ép kiểu an toàn
+            let numVal = parseFloat(value) || 0;
+            if (numVal < 0) numVal = 0;
+            
+            product[field] = numVal;
+            renderSelectedTable(); // Render lại để cập nhật Thành tiền và Tổng tiền
+        }
+    }
+
+    function renderSelectedTable() {
+        const tbody = document.getElementById('selected-products-body');
+        const grandTotalEl = document.getElementById('grand-total');
+
+        if (selectedProducts.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="table-empty">Chưa có sản phẩm nào được chọn.</td></tr>`;
+            grandTotalEl.textContent = '0đ';
+            return;
+        }
+
+        let grandTotal = 0;
+
+        tbody.innerHTML = selectedProducts.map(p => {
+            const lineTotal = p.quantity * p.import_price;
+            grandTotal += lineTotal;
+
+            return `
+            <tr>
+                <td class="font-medium" style="color: var(--admin-accent);">${p.code}</td>
+                <td>${p.name}</td>
+                <td style="text-align: right;">
+                    <input type="number" class="input-qty" min="1" value="${p.quantity}" onchange="updateProductData(${p.id}, 'quantity', this.value)">
+                </td>
+                <td style="text-align: right;">
+                    <input type="number" class="input-price" min="0" step="1000" value="${p.import_price}" onchange="updateProductData(${p.id}, 'import_price', this.value)">
+                </td>
+                <td style="text-align: right; font-weight: bold; color: var(--admin-danger);">
+                    ${new Intl.NumberFormat('vi-VN').format(lineTotal)}đ
+                </td>
+                <td style="text-align: center;">
+                    <button type="button" class="btn-delete text-danger" onclick="removeProduct(${p.id})" title="Xóa khỏi phiếu">✕</button>
+                </td>
+            </tr>
+            `;
+        }).join('');
+
+        grandTotalEl.textContent = new Intl.NumberFormat('vi-VN').format(grandTotal) + 'đ';
+    }
+
+    // ==========================================
+    // SUBMIT FORM (GỌI API TẠO PHIẾU)
+    // ==========================================
+    async function saveImportNote() {
+        if (selectedProducts.length === 0) {
+            showAdminToast('Vui lòng chọn ít nhất 1 sản phẩm để nhập kho!', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('btn-submit');
+        btn.disabled = true;
+        btn.textContent = '⏳ Đang lưu...';
+
+        // Build Payload chuẩn khớp với Request
+        const payload = {
+            supplier_id: document.getElementById('supplier_id').value,
+            import_date: document.getElementById('import_date').value,
+            details: selectedProducts.map(p => ({
+                product_id: p.id,
+                quantity: p.quantity,
+                import_price: p.import_price
+            }))
+        };
+
+        try {
+            const method = editId ? 'PUT' : 'POST';
+            const endpoint = editId ? `/import-notes/${editId}` : '/import-notes';
+
+            await adminRequest(endpoint, {
+                method: method,
+                body: JSON.stringify(payload)
+            });
+
+            showAdminToast('Tạo phiếu nhập Draft thành công!', 'success');
+            
+            // Chuyển hướng về trang danh sách sau 1 giây
+            setTimeout(() => {
+                window.location.href = '/admin/import-notes.html';
+            }, 1000);
+        } catch (err) {
+            showAdminToast(err.data?.message || 'Lỗi khi tạo phiếu nhập', 'error');
+            btn.disabled = false;
+            btn.textContent = '💾 Lưu Bản Nháp';
+        }
+    }
+</script>
+</body>
+</html>

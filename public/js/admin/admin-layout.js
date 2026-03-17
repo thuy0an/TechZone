@@ -22,6 +22,7 @@ const ADMIN_NAV = [
     { type: 'item', page: 'products', href: '/admin/products.html', icon: '📦', label: 'Sản phẩm' },
     { type: 'item', page: 'orders', href: '/admin/orders.html', icon: '🛒', label: 'Đơn hàng' },
     { type: 'item', page: 'suppliers', href: '/admin/suppliers.html', icon: '🏢', label: 'Nhà cung cấp' },
+    { type: 'item', page: 'import-notes', href: '/admin/import-notes.html', icon: '📥', label: 'Phiếu nhập hàng' },
 ];
 
 // ============================================================

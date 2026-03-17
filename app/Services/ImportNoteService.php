@@ -108,7 +108,10 @@ class ImportNoteService extends BaseService implements ImportNoteServiceInterfac
 
         DB::beginTransaction();
         try {
-            $note->update(['status' => 'completed']);
+            $note->update([
+                'status' => 'completed',
+                'completed_at' => now()
+            ]);
 
             // Lấy danh sách chi tiết
             foreach ($note->details as $detail) {

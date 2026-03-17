@@ -42,7 +42,7 @@ class ImportNoteController extends BaseApiController
         try {
             $adminId = Auth::id(); // Lấy ID của Admin đang đăng nhập
             $note = $this->importNoteService->createDraft($adminId, $request->validated());
-            return $this->successResponse($note, 'Tạo phiếu nhập Draft thành công', 201);
+            return $this->createdResponse($note, 'Tạo phiếu nhập Draft thành công');
         } catch (\Exception $e) {
             return $this->errorResponse('Lỗi tạo phiếu nhập', 400, $e->getMessage());
         }
