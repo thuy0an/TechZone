@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lich su gia - TechZone Admin</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="icon" href="/favicon.ico">
+</head>
+<body>
+<div class="admin-layout">
+    <div id="admin-sidebar-root"></div>
+    <div class="admin-main">
+        <div id="admin-topbar-root"></div>
+
+        <main class="admin-content">
+            <div class="page-header">
+                <h1>Lich su gia</h1>
+                <p>Theo doi bien dong gia theo lo hang</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="history-toolbar">
+                        <div class="form-group" style="margin: 0;">
+                            <label for="history-product" class="history-label">Chon san pham</label>
+                            <select id="history-product" class="form-control cursor-pointer"></select>
+                        </div>
+                        <button class="btn-add" onclick="loadPriceHistories(1)">Tai du lieu</button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:120px">Ma lo</th>
+                                <th style="width:160px">Ngay doi gia</th>
+                                <th>Gia von BQ</th>
+                                <th>% Loi nhuan</th>
+                                <th>Gia ban</th>
+                                <th>Admin</th>
+                            </tr>
+                        </thead>
+                        <tbody id="price-history-body">
+                            <tr><td colspan="6" class="table-loading">Chon san pham de xem lich su gia</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination" id="price-history-pagination" style="display:none">
+                    <div class="pagination-info" id="price-history-info"></div>
+                    <div class="pagination-btns" id="price-history-btns"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="/js/admin/admin-token.js"></script>
+<script src="/js/admin/admin-api.js"></script>
+<script src="/js/admin/admin-auth.js"></script>
+<script src="/js/admin/admin-layout.js"></script>
+<script src="/js/admin/admin-utils.js"></script>
+<script>
+initAdminLayout({ title: 'Lich su gia', icon: '$', activePage: 'price-histories' });
+
+let currentProductId = null;
+let currentPage = 1;
+
+function formatCurrency(value) {
+    const amount = Number(value || 0);
+    return `${new Intl.NumberFormat('vi-VN').format(amount)}đ`;
+}
+
+function formatMargin(value) {
+    const margin = Number(value || 0);
+    return `${(margin * 100).toFixed(2)}%`;
+}
+
+function getQueryProductId() {
+    const params = new URLSearchParams(window.location.search);
+    const value = params.get('product_id');
+    return value ? Number(value) : null;
+}
+
+async function loadProductsForSelect() {
+    const select = document.getElementById('history-product');
+    select.innerHTML = '<option value="">Dang tai...</option>';
+
+    try {
+        const res = await adminRequest('/products?per_page=200');
+        const items = res.data || [];
+
+        const options = ['<option value="">Chon san pham</option>']
+            .concat(items.map(item => `<option value="${item.id}">${item.code} - ${item.name}</option>`));
+
+        select.innerHTML = options.join('');
+        const preselect = getQueryProductId();
+        if (preselect) {
+            select.value = String(preselect);
+            currentProductId = preselect;
+            loadPriceHistories(1);
+        }
+    } catch (err) {
+        select.innerHTML = '<option value="">Khong tai duoc san pham</option>';
+    }
+}
+
+async function loadPriceHistories(page = 1) {
+    const select = document.getElementById('history-product');
+    const productId = Number(select.value || currentProductId || 0);
+
+    if (!productId) {
+        document.getElementById('price-history-body').innerHTML =
+            '<tr><td colspan="6" class="table-loading">Vui long chon san pham</td></tr>';
+        return;
+    }
+
+    currentProductId = productId;
+    currentPage = page;
+    const tbody = document.getElementById('price-history-body');
+    tbody.innerHTML = '<tr><td colspan="6" class="table-loading">Dang tai...</td></tr>';
+
+    try {
+        const res = await getProductPriceHistories(productId, {
+            page,
+            per_page: 10,
+        });
+
+        const rows = (res.data || []).map(item => {
+            const noteId = item.import_note_id ?? '-';
+            const noteDate = item.import_note?.import_date || item.created_at;
+            const adminName = item.import_note?.admin?.name || '-';
+
+            return `
+                <tr>
+                    <td>${noteId}</td>
+                    <td>${AdminString.date(noteDate)}</td>
+                    <td style="font-weight:700">${formatCurrency(item.import_price)}</td>
+                    <td>${formatMargin(item.profit_margin)}</td>
+                    <td style="color:var(--admin-accent); font-weight:700">${formatCurrency(item.selling_price)}</td>
+                    <td>${adminName}</td>
+                </tr>
+            `;
+        }).join('');
+
+        tbody.innerHTML = rows || '<tr><td colspan="6" class="table-loading">Chua co lich su gia.</td></tr>';
+
+        renderPagination({
+            meta: res.pagination,
+            currentPage: currentPage,
+            barId: 'price-history-pagination',
+            infoId: 'price-history-info',
+            btnsId: 'price-history-btns',
+            onPageChange: (p) => loadPriceHistories(p),
+        });
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6" class="table-loading" style="color:var(--admin-danger)">Khong the tai lich su gia.</td></tr>';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadProductsForSelect();
+    document.getElementById('history-product').addEventListener('change', () => loadPriceHistories(1));
+});
++</script>
+</body>
+</html>

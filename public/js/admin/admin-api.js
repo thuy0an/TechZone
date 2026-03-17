@@ -63,3 +63,21 @@ async function adminRequestFormData(endpoint, formData) {
 
     return json;
 }
+
+/**
+ * Lấy lịch sử giá theo sản phẩm
+ * @param {number} productId
+ * @param {object} params
+ * @returns {Promise<object>}
+ */
+async function getProductPriceHistories(productId, params = {}) {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+            query.append(key, value);
+        }
+    });
+
+    const suffix = query.toString() ? `?${query.toString()}` : '';
+    return await adminRequest(`/products/${productId}/price-histories${suffix}`);
+}

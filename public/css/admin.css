@@ -229,6 +229,148 @@ a { text-decoration: none; color: inherit; }
 }
 
 /* ============================================
+   Price History UI
+   ============================================ */
+.modal-box-lg {
+    max-width: 1600px;
+    width: 92vw;
+    min-width: 900px;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+}
+
+.modal-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.modal-close-btn {
+    border: none;
+    background: #f8fafc;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.modal-close-btn:hover {
+    background: #e2e8f0;
+    color: var(--text-primary);
+}
+
+.history-toolbar {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.history-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.btn-history {
+    background: #e0f2fe;
+    border: 1px solid #bae6fd;
+    color: #0369a1;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-history:hover {
+    background: #bae6fd;
+}
+
+.view-product-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.view-product-media img {
+    width: 100%;
+    height: 170px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #f8fafc;
+}
+
+.view-product-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.view-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.view-item {
+    flex: 1;
+    min-width: 150px;
+}
+
+.view-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-secondary);
+}
+
+.view-value {
+    font-size: 0.92rem;
+    font-weight: 600;
+    margin-top: 4px;
+    color: var(--text-primary);
+}
+
+.view-history-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+.view-history {
+    margin-top: 16px;
+    display: none;
+}
+
+.view-history.show { display: block; }
+
+@media (max-width: 900px) {
+    .view-product-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .view-product-media img {
+        height: 220px;
+    }
+}
+
+/* ============================================
    ADMIN LAYOUT (Dashboard, inner pages)
    ============================================ */
 .admin-layout {
@@ -786,7 +928,7 @@ table.data-table tbody tr:hover { background: #f8fafc; }
     align-items: center;
 }
 
-.btn-edit, .btn-delete {
+.btn-view, .btn-edit, .btn-delete {
     padding: 6px 14px;
     border-radius: 6px;
     font-size: 0.8rem;
@@ -796,6 +938,14 @@ table.data-table tbody tr:hover { background: #f8fafc; }
     transition: var(--transition);
     white-space: nowrap;
 }
+
+.btn-view {
+    background: #f1f5f9;
+    color: #0f172a;
+    border: 1px solid #cbd5f5;
+}
+
+.btn-view:hover { background: #e2e8f0; }
 
 .btn-edit {
     background: #eff6ff;
