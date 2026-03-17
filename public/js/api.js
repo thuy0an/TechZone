@@ -140,6 +140,14 @@ async function getStorefrontCategories() {
 }
 
 /**
+ * Lấy danh sách thương hiệu cho storefront
+ * @returns {Promise<object>}
+ */
+async function getStorefrontBrands() {
+    return await apiRequest('/storefront/brands');
+}
+
+/**
  * Lấy sản phẩm theo danh mục có phân trang
  * @param {number} categoryId - ID danh mục
  * @param {number} page - Trang hiện tại (mặc định: 1)
@@ -157,6 +165,48 @@ async function getProductsByCategory(categoryId, page = 1, limit = 10) {
  */
 async function getStorefrontProductDetail(id) {
     return await apiRequest(`/storefront/products/${id}`);
+}
+
+/**
+ * Tìm kiếm sản phẩm cơ bản (theo tên)
+ * @param {string} keyword
+ * @param {number} page
+ * @param {number} perPage
+ * @returns {Promise<object>}
+ */
+async function searchStorefrontProductsBasic(keyword, page = 1, perPage = 12) {
+    const params = new URLSearchParams({
+        keyword,
+        page: String(page),
+        per_page: String(perPage),
+    });
+    return await apiRequest(`/storefront/products/search/basic?${params.toString()}`);
+}
+
+/**
+ * Tìm kiếm sản phẩm nâng cao
+ * @param {object} filters
+ * @param {number} page
+ * @param {number} perPage
+ * @returns {Promise<object>}
+ */
+async function searchStorefrontProductsAdvanced(filters = {}, page = 1, perPage = 12) {
+    const params = new URLSearchParams({
+        page: String(page),
+        per_page: String(perPage),
+    });
+
+    if (filters.keyword) params.set('keyword', filters.keyword);
+    if (filters.category_id) params.set('category_id', String(filters.category_id));
+    if (filters.brand_id) params.set('brand_id', String(filters.brand_id));
+    if (filters.min_price !== '' && filters.min_price !== null && filters.min_price !== undefined) {
+        params.set('min_price', String(filters.min_price));
+    }
+    if (filters.max_price !== '' && filters.max_price !== null && filters.max_price !== undefined) {
+        params.set('max_price', String(filters.max_price));
+    }
+
+    return await apiRequest(`/storefront/products/search/advanced?${params.toString()}`);
 }
 
 // ============================================

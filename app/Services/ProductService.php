@@ -39,6 +39,29 @@ class ProductService extends BaseService implements ProductServiceInterface
         return $this->repository->getVisibleProductById($id);
     }
 
+    public function searchBasicForStorefront($request)
+    {
+        $keyword = trim((string) $request->get('keyword', ''));
+        $perPage = (int) $request->get('per_page', 12);
+
+        return $this->repository->searchStorefrontProductsBasic($keyword, $perPage);
+    }
+
+    public function searchAdvancedForStorefront($request)
+    {
+        $filters = [
+            'keyword' => trim((string) $request->get('keyword', '')),
+            'category_id' => $request->get('category_id'),
+            'brand_id' => $request->get('brand_id'),
+            'min_price' => $request->get('min_price'),
+            'max_price' => $request->get('max_price'),
+        ];
+
+        $perPage = (int) $request->get('per_page', 12);
+
+        return $this->repository->searchStorefrontProductsAdvanced($filters, $perPage);
+    }
+
     public function getAdminProductsList($request)
     {
         $filters = [

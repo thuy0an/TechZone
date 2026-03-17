@@ -31,30 +31,44 @@
                         <select id="category-select" class="category-filter-select" title="Chọn danh mục sản phẩm">
                             <option value="">Đang tải danh mục...</option>
                         </select>
+
+                        <div class="sidebar-filter-group">
+                            <label for="brand-select">Thương hiệu</label>
+                            <select id="brand-select" class="sidebar-filter-select">
+                                <option value="">Tất cả thương hiệu</option>
+                            </select>
+                        </div>
+
+                        <div class="sidebar-filter-group">
+                            <label>Khoảng giá (VND)</label>
+                            <div class="price-range-inputs">
+                                <input id="min-price-input" class="sidebar-filter-input" type="number" min="0" placeholder="Từ">
+                                <input id="max-price-input" class="sidebar-filter-input" type="number" min="0" placeholder="Đến">
+                            </div>
+                        </div>
+
+                        <div class="sidebar-filter-group">
+                            <label for="product-sort-select">Sắp xếp</label>
+                            <select id="product-sort-select" class="sidebar-filter-select">
+                                <option value="default">Mặc định</option>
+                                <option value="name_asc">Tên A-Z</option>
+                                <option value="name_desc">Tên Z-A</option>
+                                <option value="price_asc">Giá thấp đến cao</option>
+                                <option value="price_desc">Giá cao đến thấp</option>
+                            </select>
+                        </div>
                     </aside>
 
                     <section class="products-main section-alt" id="category-products-section">
                         <div class="products-toolbar">
                             <div class="toolbar-search">
-                                <label for="product-search-input">Tìm nhanh trong trang</label>
+                                <label for="product-search-input">Tìm theo tên sản phẩm</label>
                                 <input id="product-search-input" type="text" placeholder="Nhập tên sản phẩm..." autocomplete="off">
-                            </div>
-
-                            <div class="toolbar-sort">
-                                <label for="product-sort-select">Sắp xếp</label>
-                                <select id="product-sort-select">
-                                    <option value="default">Mặc định</option>
-                                    <option value="name_asc">Tên A-Z</option>
-                                    <option value="name_desc">Tên Z-A</option>
-                                    <option value="price_asc">Giá thấp đến cao</option>
-                                    <option value="price_desc">Giá cao đến thấp</option>
-                                </select>
                             </div>
                         </div>
 
                         <div class="products-topline">
                             <h2 class="section-title" id="category-products-title">Tất cả sản phẩm</h2>
-                            <p class="products-meta" id="products-meta">Đang tải dữ liệu...</p>
                         </div>
 
                         <div id="category-products" class="products-grid">

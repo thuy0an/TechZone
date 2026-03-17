@@ -6,6 +6,8 @@ interface ProductServiceInterface extends BaseServiceInterface
 {
     public function getListForStorefront($request);
     public function getDetailForStorefront($id);
+    public function searchBasicForStorefront($request);
+    public function searchAdvancedForStorefront($request);
 
     public function getAdminProductsList($request);
     public function createProductForAdmin(array $data);

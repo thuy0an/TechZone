@@ -19,7 +19,7 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
         $query = $this->model->with(['category', 'brand']);
         $this->applyVisibleFilter($query);
 
-        if (isset($filters['search'])) {
+        if (isset($filters['search']) && $filters['search'] !== '') {
             $query->where('name', 'like', '%' . $filters['search'] . '%');
         }
 
@@ -29,6 +29,42 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
 
         if (isset($filters['brand_id'])) {
             $query->where('brand_id', $filters['brand_id']);
+        }
+
+        return $query->paginate($perPage);
+    }
+
+    public function searchStorefrontProductsBasic(string $keyword, int $perPage = 12)
+    {
+        $query = $this->model->with(['category', 'brand']);
+        $this->applyVisibleFilter($query);
+
+        $query->where('name', 'like', '%' . $keyword . '%');
+
+        return $query->paginate($perPage);
+    }
+
+    public function searchStorefrontProductsAdvanced(array $filters = [], int $perPage = 12)
+    {
+        $query = $this->model->with(['category', 'brand']);
+        $this->applyVisibleFilter($query);
+
+        if (!empty($filters['keyword'])) {
+            $query->where('name', 'like', '%' . $filters['keyword'] . '%');
+        }
+
+        if (!empty($filters['category_id'])) {
+            $query->where('category_id', $filters['category_id']);
+        }
+
+        if (!empty($filters['brand_id'])) {
+            $query->where('brand_id', $filters['brand_id']);
+        }
+
+        if (isset($filters['min_price'], $filters['max_price'])
+            && $filters['min_price'] !== ''
+            && $filters['max_price'] !== '') {
+            $query->whereBetween('selling_price', [$filters['min_price'], $filters['max_price']]);
         }
 
         return $query->paginate($perPage);

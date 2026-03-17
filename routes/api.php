@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Storefront\Auth\AuthController;
 use App\Http\Controllers\Api\Storefront\ProductController;
+use App\Http\Controllers\Api\Storefront\BrandController as StorefrontBrandController;
 use App\Http\Controllers\Api\Storefront\CartController;
 use App\Http\Controllers\Api\Storefront\OrderController;
 use App\Http\Controllers\Api\Storefront\AddressController;
@@ -41,9 +42,12 @@ Route::get('/test', function () {
 Route::prefix('storefront')->group(function () {
     // HIỂN THỊ SẢN PHẨM 
     Route::get('/products', [ProductController::class, 'index']); // Danh sách SP
+    Route::get('/products/search/basic', [ProductController::class, 'searchBasic']); // Tìm kiếm cơ bản
+    Route::get('/products/search/advanced', [ProductController::class, 'searchAdvanced']); // Tìm kiếm nâng cao
     Route::get('/products/category/{category_id}', [ProductController::class, 'productsByCategory']); // SP theo danh mục
     Route::get('/products/{id}', [ProductController::class, 'show']); // Chi tiết SP
     Route::get('/categories', [ProductController::class, 'categories']); // Danh sách danh mục
+    Route::get('/brands', [StorefrontBrandController::class, 'index']); // Danh sách thương hiệu
 
     // ĐĂNG NHẬP,ĐĂNG KÝ
     Route::post('/register', [AuthController::class, 'register']);

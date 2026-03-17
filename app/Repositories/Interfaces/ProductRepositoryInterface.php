@@ -5,6 +5,8 @@ namespace App\Repositories\Interfaces;
 interface ProductRepositoryInterface extends BaseRepositoryInterface
 {
     public function getStorefrontProducts($fillters = [], $perPage = 12);
+    public function searchStorefrontProductsBasic(string $keyword, int $perPage = 12);
+    public function searchStorefrontProductsAdvanced(array $filters = [], int $perPage = 12);
     public function getVisibleProductById($id);
 
     public function getAdminProducts(array $filters = [], int $perPage = 15);

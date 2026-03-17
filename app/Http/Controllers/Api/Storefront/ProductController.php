@@ -84,4 +84,46 @@ class ProductController extends BaseApiController
             return $this->handleException($e, 'Lỗi khi lấy sản phẩm theo danh mục');
         }
     }
+
+    public function searchBasic(Request $request)
+    {
+        try {
+            $request->validate([
+                'keyword' => ['required', 'string', 'min:1'],
+                'page' => ['nullable', 'integer', 'min:1'],
+            ]);
+
+            $products = $this->productService->searchBasicForStorefront($request);
+
+            return $this->paginatedResponse(
+                $products,
+                'Tìm kiếm sản phẩm thành công'
+            );
+        } catch (\Exception $e) {
+            return $this->handleException($e, 'Lỗi khi tìm kiếm sản phẩm');
+        }
+    }
+
+    public function searchAdvanced(Request $request)
+    {
+        try {
+            $request->validate([
+                'keyword' => ['nullable', 'string'],
+                'category_id' => ['nullable', 'integer'],
+                'brand_id' => ['nullable', 'integer'],
+                'min_price' => ['nullable', 'numeric', 'min:0'],
+                'max_price' => ['nullable', 'numeric', 'min:0'],
+                'page' => ['nullable', 'integer', 'min:1'],
+            ]);
+
+            $products = $this->productService->searchAdvancedForStorefront($request);
+
+            return $this->paginatedResponse(
+                $products,
+                'Tìm kiếm nâng cao thành công'
+            );
+        } catch (\Exception $e) {
+            return $this->handleException($e, 'Lỗi khi tìm kiếm nâng cao');
+        }
+    }
 }
