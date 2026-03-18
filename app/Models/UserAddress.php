@@ -13,7 +13,13 @@ class UserAddress extends BaseModel
         'receiver_name',
         'receiver_phone',
         'address',
-        'is_default'
+        'is_default',
+        'province_id',
+        'district_id',
+        'ward_code',
+        'province_name',
+        'district_name',
+        'ward_name',
     ];
 
     protected $casts = [

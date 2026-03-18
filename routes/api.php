@@ -54,6 +54,20 @@ Route::prefix('storefront')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 });
 
+
+// ============================================
+// PUBLIC Routes lấy dữ liệu bên thứ 3
+// ============================================
+Route::get('/public-config', function () {
+    return response()->json([
+        'status' => 'success',
+        'data' => [
+            'ghn_api_url' => config('services.ghn.url'),
+            'ghn_token'   => config('services.ghn.token'),
+        ]
+    ]);
+});
+
 // ============================================
 // CLIENT Routes (Alias cho storefront public)
 // ============================================

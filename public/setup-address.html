@@ -41,9 +41,31 @@
                         <input type="tel" id="receiver_phone" class="form-control" placeholder="VD: 0901234567" required>
                     </div>
 
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Tỉnh / Thành phố <span style="color: #ef4444;">*</span></label>
+                            <select id="province" class="form-control" required onchange="loadDistricts()">
+                                <option value="">Chọn Tỉnh thành</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Quận / Huyện <span style="color: #ef4444;">*</span></label>
+                            <select id="district" class="form-control" required onchange="loadWards()" disabled>
+                                <option value="">Chọn Quận huyện</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Phường / Xã <span style="color: #ef4444;">*</span></label>
+                        <select id="ward" class="form-control" required disabled>
+                            <option value="">Chọn Phường xã</option>
+                        </select>
+                    </div>
+
                     <div class="form-group">
                         <label for="address">Địa chỉ chi tiết <span style="color: #ef4444;">*</span></label>
-                        <input type="text" id="address" class="form-control" placeholder="Số nhà, tên đường, phường/xã, quận/huyện..." required>
+                        <input type="text" id="address" class="form-control" placeholder="Số nhà, hẻm, tên đường..." required>
                     </div>
 
                     <div style="display: flex; gap: 15px; margin-top: 30px;">
@@ -60,56 +82,149 @@
         </div>
     </main>
 
-    <script src="/js/api.js"></script>
-    <script src="/js/auth.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Chặn người dùng nếu chưa đăng nhập mà lọt vào trang này
-            if (!isLoggedIn()) {
-                window.location.href = '/login.html';
-                return;
-            }
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script>
 
-            // Tự động điền tên người dùng vào ô Tên người nhận
-            const user = getCurrentUser();
-            if (user && user.name) {
-                document.getElementById('receiver_name').value = user.name;
-            }
+//----- CẤU HÌNH API GHN-----
+let GHN_TOKEN = '';
+let GHN_API_URL = '';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!isLoggedIn()) {
+        window.location.href = '/login.html';
+        return;
+    }
+
+    const user = getCurrentUser();
+    if (user && user.name) {
+        document.getElementById('receiver_name').value = user.name;
+    }
+
+    // TẢI CẤU HÌNH TỪ SERVER 
+            await loadAppConfig();
+
+    // SAU KHI CÓ TOKEN THÌ MỚI GỌI API GHN
+    if (GHN_TOKEN) {
+        loadProvinces();
+    }
+});
+
+async function loadAppConfig() {
+    try {
+        const result = await apiRequest('/public-config')
+        
+        if (result.data) {
+            GHN_TOKEN = result.data.ghn_token;
+            GHN_API_URL = result.data.ghn_api_url;
+        }
+    } catch (error) {
+        console.error('Không thể tải cấu hình hệ thống:', error);
+    }
+}
+
+// --- CÁC HÀM GỌI API TỈNH/QUẬN/PHƯỜNG,XÃ ---
+async function loadProvinces() {
+    try {
+        const res = await fetch(`${GHN_API_URL}/province`, {
+            headers: { 'Token': GHN_TOKEN, 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        const select = document.getElementById('province');
+        data.data.forEach(p => p.ProvinceID < 270 ? select.innerHTML += `<option value="${p.ProvinceID}">${p.ProvinceName}</option>`
+        : '');
+    } catch (error) { console.error('Lỗi tải Tỉnh:', error); }
+}
+
+async function loadDistricts() {
+    const provinceId = document.getElementById('province').value;
+    const distSelect = document.getElementById('district');
+    const wardSelect = document.getElementById('ward');
+    
+    distSelect.innerHTML = '<option value="">Chọn Quận huyện</option>';
+    wardSelect.innerHTML = '<option value="">Chọn Phường xã</option>';
+    wardSelect.disabled = true;
+
+    if (!provinceId) { distSelect.disabled = true; return; }
+
+    try {
+        const res = await fetch(`${GHN_API_URL}/district`, {
+            method: 'POST',
+            headers: { 'token': GHN_TOKEN, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ province_id: parseInt(provinceId) })
+        });
+        const data = await res.json();
+        data.data.forEach(d => distSelect.innerHTML += `<option value="${d.DistrictID}">${d.DistrictName}</option>`);
+        distSelect.disabled = false;
+    } catch (error) { console.error('Lỗi tải Quận:', error); }
+}
+
+async function loadWards() {
+    const districtId = document.getElementById('district').value;
+    const wardSelect = document.getElementById('ward');
+    wardSelect.innerHTML = '<option value="">Chọn Phường xã</option>';
+
+    if (!districtId) { wardSelect.disabled = true; return; }
+
+    try {
+        const res = await fetch(`${GHN_API_URL}/ward?district_id=${districtId}`, {
+            headers: { 'token': GHN_TOKEN }
+        });
+        const data = await res.json();
+        data.data.forEach(w => wardSelect.innerHTML += `<option value="${w.WardCode}">${w.WardName}</option>`);
+        wardSelect.disabled = false;
+    } catch (error) { console.error('Lỗi tải Phường:', error); }
+}
+
+async function handleSaveAddress() {
+    const receiver_name = document.getElementById('receiver_name').value.trim();
+    const receiver_phone = document.getElementById('receiver_phone').value.trim();
+    const address = document.getElementById('address').value.trim();
+    
+    const provEl = document.getElementById('province');
+    const distEl = document.getElementById('district');
+    const wardEl = document.getElementById('ward');
+
+    const province_id = provEl.value;
+    const district_id = distEl.value;
+    const ward_code = wardEl.value;
+    const province_name = provEl.options[provEl.selectedIndex].text;
+    const district_name = distEl.options[distEl.selectedIndex].text;
+    const ward_name = wardEl.options[wardEl.selectedIndex].text;
+
+    const btn = document.getElementById('btn-save-address');
+    const alertBox = document.getElementById('address-alert');
+
+    alertBox.classList.remove('show');
+    btn.disabled = true;
+    btn.textContent = 'Đang lưu...';
+
+    try {
+        const payload = {
+            receiver_name, receiver_phone, address,
+            province_id, district_id, ward_code,
+            province_name, district_name, ward_name
+        };
+
+        await apiRequest('/storefront/addresses', {
+            method: 'POST',
+            body: JSON.stringify(payload)
         });
 
-        async function handleSaveAddress() {
-            const receiver_name = document.getElementById('receiver_name').value.trim();
-            const receiver_phone = document.getElementById('receiver_phone').value.trim();
-            const address = document.getElementById('address').value.trim();
-            const btn = document.getElementById('btn-save-address');
-            const alertBox = document.getElementById('address-alert');
+        alert('Lưu địa chỉ thành công! Bắt đầu mua sắm thôi.');
+        window.location.href = '/';
+    } catch (err) {
+        alertBox.textContent = err.data?.message || 'Lỗi khi lưu địa chỉ. Vui lòng kiểm tra lại thông tin.';
+        alertBox.classList.add('show');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Lưu địa chỉ';
+    }
+}
 
-            alertBox.classList.remove('show');
-            btn.disabled = true;
-            btn.textContent = 'Đang lưu...';
-
-            try {
-                // apiRequest sẽ tự động gửi kèm Token
-                await apiRequest('/storefront/addresses', {
-                    method: 'POST',
-                    body: JSON.stringify({ receiver_name, receiver_phone, address })
-                });
-
-                alert('Lưu địa chỉ thành công! Bắt đầu mua sắm thôi.');
-                window.location.href = '/';
-            } catch (err) {
-                alertBox.textContent = err.data?.message || 'Lỗi khi lưu địa chỉ. Vui lòng kiểm tra lại thông tin.';
-                alertBox.classList.add('show');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Lưu địa chỉ';
-            }
-        }
-
-        function skipAddress() {
-            // Chuyển thẳng về trang chủ nếu người dùng chọn Bỏ qua
-            window.location.href = '/';
-        }
-    </script>
+function skipAddress() {
+    window.location.href = '/';
+}
+</script>
 </body>
 </html>

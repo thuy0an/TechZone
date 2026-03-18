@@ -27,6 +27,9 @@ class OrderController extends BaseApiController
                 'payment_method' => $request->query('payment_method'),
                 'start_date' => $request->query('start_date'),
                 'end_date'   => $request->query('end_date'),
+                'province_id'    => $request->query('province_id'),
+                'district_id'    => $request->query('district_id'),
+                'ward_code'      => $request->query('ward_code'),
             ];
 
             $perPage = $request->input('per_page', 15);

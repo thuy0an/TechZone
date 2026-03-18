@@ -17,7 +17,13 @@ class Order extends BaseModel
         'receiver_name',
         'receiver_phone',
         'payment_method',
-        'total_amount'
+        'total_amount',
+        'province_id',
+        'district_id',
+        'ward_code',
+        'province_name',
+        'district_name',
+        'ward_name',
     ];
 
     public function details()

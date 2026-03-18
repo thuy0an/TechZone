@@ -42,6 +42,18 @@ class AdminOrderRepository extends BaseRepository implements AdminOrderRepositor
             $query->where('payment_method', $filters['payment_method']);
         }
 
+        if (!empty($filters['province_id'])) {
+            $query->where('province_id', $filters['province_id']);
+        }
+
+        if (!empty($filters['district_id'])) {
+            $query->where('district_id', $filters['district_id']);
+        }
+
+        if (!empty($filters['ward_code'])) {
+            $query->where('ward_code', $filters['ward_code']);
+        }
+
         return $query->orderBy('created_at', 'desc')->paginate($perPage);
     }
 }

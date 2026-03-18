@@ -34,5 +34,9 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'ghn' => [
+        'url'   => env('GHN_API_URL', 'https://dev-online-gateway.ghn.vn/shiip/public-api/master-data'),
+        'token' => env('GHN_TOKEN'),
+    ],
 
 ];

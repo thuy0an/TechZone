@@ -40,7 +40,7 @@ class AddressController extends BaseApiController
             $userId = Auth::id();
             $address = $this->addressService->createUserAddress($userId, $validated);
 
-            return $this->successResponse($address,  'Thêm địa chỉ thành công', 201);
+            return $this->createdResponse($address,  'Thêm địa chỉ thành công');
         } catch (\Exception $e) {
             return $this->errorResponse('Thêm địa chỉ thất bại', $e->getMessage(), 400);
         }

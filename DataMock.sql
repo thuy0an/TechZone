@@ -12,12 +12,14 @@ INSERT INTO users (name, email, password, phone, is_locked, created_at, updated_
 ('Ngô Thanh Hà', 'khach4@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0904444444', 1, NOW(), NOW()),
 ('Võ Nhật Nam', 'khach5@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0905555555', 0, NOW(), NOW());
 
-INSERT INTO user_addresses (user_id, receiver_name, receiver_phone, address, is_default, created_at, updated_at) VALUES
-(1, 'Lê Minh Khách', '0901111111', '12 Lê Lợi, Q1, TP.HCM', 1, NOW(), NOW()),
-(2, 'Trần Thị Lan', '0902222222', '45 Nguyễn Trãi, Q5, TP.HCM', 1, NOW(), NOW()),
-(3, 'Phạm Quốc Huy', '0903333333', '78 Hùng Vương, Đà Nẵng', 1, NOW(), NOW()),
-(4, 'Ngô Thanh Hà', '0904444444', '22 Cầu Giấy, Hà Nội', 1, NOW(), NOW()),
-(5, 'Võ Nhật Nam', '0905555555', '90 Lý Thường Kiệt, TP.HCM', 1, NOW(), NOW());
+INSERT INTO `user_addresses` 
+(`user_id`, `receiver_name`, `receiver_phone`, `address`, `province_id`, `district_id`, `ward_code`, `province_name`, `district_name`, `ward_name`, `is_default`, `created_at`, `updated_at`) 
+VALUES
+(1, 'Lê Minh Khách', '0901111111', '12 Lê Lợi', 202, 1442, '20109', 'Hồ Chí Minh', 'Quận 1', 'Phường Bến Nghé', 1, NOW(), NOW()),
+(2, 'Trần Thị Lan', '0902222222', '45 Nguyễn Trãi', 202, 1446, '20314', 'Hồ Chí Minh', 'Quận 5', 'Phường 14', 1, NOW(), NOW()),
+(3, 'Phạm Quốc Huy', '0903333333', '78 Hùng Vương', 203, 1520, '3010', 'Đà Nẵng', 'Quận Hải Châu', 'Phường Thạch Thang', 1, NOW(), NOW()),
+(4, 'Ngô Thanh Hà', '0904444444', '22 Cầu Giấy', 201, 1482, '1A01', 'Hà Nội', 'Quận Ba Đình', 'Phường Điện Biên', 1, NOW(), NOW()),
+(5, 'Võ Nhật Nam', '0905555555', '90 Lý Thường Kiệt', 202, 1451, '20211', 'Hồ Chí Minh', 'Quận 10', 'Phường 14', 1, NOW(), NOW());
 
 INSERT INTO categories (name, created_at, updated_at) VALUES
 ('Điện thoại', NOW(), NOW()),
@@ -104,17 +106,21 @@ INSERT INTO promotion_product (promotion_id, product_id) VALUES
 
 
 
-INSERT INTO orders 
-(user_id, promotion_id, order_date, status, shipping_address, receiver_name, receiver_phone, payment_method, total_amount, created_at, updated_at)
+INSERT INTO `orders` 
+(`user_id`, `promotion_id`, `order_code`, `order_date`, `status`, `shipping_address`, `receiver_name`, `receiver_phone`, `receiver_email`, `province_id`, `district_id`, `ward_code`, `province_name`, `district_name`, `ward_name`, `payment_method`, `total_amount`, `created_at`, `updated_at`)
 VALUES
-(1,NULL,NOW(),'delivered','12 Lê Lợi, Q1','Lê Minh Khách','0901111111','cash',23000000,NOW(),NOW()),
-(2,1,NOW(),'confirmed','45 Nguyễn Trãi, Q5','Trần Thị Lan','0902222222','online',22176000,NOW(),NOW()),
-(3,2,NOW(),'new','78 Hùng Vương','Phạm Quốc Huy','0903333333','bank_transfer',35500000,NOW(),NOW());
+(1, NULL, 'ORD-001', NOW(), 'completed', '12 Lê Lợi', 'Lê Minh Khách', '0901111111', 'khach@gmail.com', 202, 1442, '20109', 'Hồ Chí Minh', 'Quận 1', 'Phường Bến Nghé', 'cash', 23000000, NOW(), NOW()),
+(2, 1, 'ORD-002', NOW(), 'shipping', '45 Nguyễn Trãi', 'Trần Thị Lan', '0902222222', 'lan@gmail.com', 202, 1446, '20314', 'Hồ Chí Minh', 'Quận 5', 'Phường 14', 'online', 22176000, NOW(), NOW()),
+(3, 2, 'ORD-003', NOW(), 'new', '78 Hùng Vương', 'Phạm Quốc Huy', '0903333333', 'huy@gmail.com', 201, 1482, '1A01', 'Hà Nội', 'Quận Ba Đình', 'Phường Điện Biên', 'bank_transfer', 35500000, NOW(), NOW()),
+(1, NULL, 'ORD-004', NOW(), 'confirmed', '102 Nguyễn Văn Linh', 'Nguyễn Văn A', '0904444444', 'nva@gmail.com', 203, 1520, '3010', 'Đà Nẵng', 'Quận Hải Châu', 'Phường Thạch Thang', 'online', 15000000, NOW(), NOW());
 
-INSERT INTO order_details (order_id, product_id, quantity, unit_price, discount_applied) VALUES
-(1,1,1,23000000,0),
-(2,5,1,24640000,2464000),
-(3,2,1,36000000,500000);
+INSERT INTO `order_details` 
+(`order_id`, `product_id`, `quantity`, `unit_price`, `discount_applied`) 
+VALUES
+(1, 1, 1, 23000000, 0),
+(2, 5, 1, 24640000, 2464000),
+(3, 2, 1, 36000000, 500000),
+(4, 11, 1, 15000000, 0);
 
 INSERT INTO `import_notes` (`id`,`admin_id`,`import_date`,`status`,`completed_at`,`total_cost`,`paid_amount`,`created_at`,`updated_at`,`supplier_id`) VALUES 
 (1,5,'2026-03-20 09:30:00','completed',NULL,200000000.00,0.00,'2026-03-16 18:23:25','2026-03-16 18:25:29',3),
