@@ -117,6 +117,97 @@
     </div>
 </div>
 
+<div class="modal-overlay-form" id="history-modal">
+    <div class="modal-form-box" style="max-width: 900px;">
+        <div class="modal-form-header">
+            <span class="modal-form-title">Lịch sử giao dịch: <strong id="hist-supplier-name" style="color: var(--admin-accent);"></strong></span>
+            <button class="modal-close-btn" onclick="closeHistoryModal()">✕</button>
+        </div>
+        
+        <div class="modal-form-body">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
+                <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Số Phiếu Nhập</div>
+                    <div id="hist-total-tx" style="font-size: 1.2rem; font-weight: bold; color: var(--text-primary);">0</div>
+                </div>
+                <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                    <div style="font-size: 0.8rem; color: #166534;">Tổng tiền nhập</div>
+                    <div id="hist-total-import" style="font-size: 1.2rem; font-weight: bold; color: #15803d;">0đ</div>
+                </div>
+                <div style="background: #eff6ff; padding: 15px; border-radius: 8px; border: 1px solid #bfdbfe;">
+                    <div style="font-size: 0.8rem; color: #1d4ed8;">Đã thanh toán</div>
+                    <div id="hist-total-paid" style="font-size: 1.2rem; font-weight: bold; color: #2563eb;">0đ</div>
+                </div>
+                <div style="background: #fef2f2; padding: 15px; border-radius: 8px; border: 1px solid #fecaca;">
+                    <div style="font-size: 0.8rem; color: #b91c1c;">Còn nợ</div>
+                    <div id="hist-total-debt" style="font-size: 1.2rem; font-weight: bold; color: #dc2626;">0đ</div>
+                </div>
+            </div>
+
+            <div class="toolbar flex-row" style="margin-bottom: 15px; justify-content: flex-start; gap: 10px;">
+                <label style="font-size: 0.8rem; color: var(--text-secondary);">Từ:</label>
+                <input type="date" id="hist-start-date" class="form-control" style="width: 200px;" onchange="histCurrentPage=1; loadTransactionHistory()" title="Từ ngày">
+                <span style="display: flex; align-items: center; color: var(--text-secondary); font-weight: bold;">-</span>
+                <label style="font-size: 0.8rem; color: var(--text-secondary);">Đến:</label>
+                <input type="date" id="hist-end-date" class="form-control" style="width: 200px;" onchange="histCurrentPage=1; loadTransactionHistory()" title="Đến ngày">
+                <button class="btn btn-cancel" onclick="resetHistoryFilters()" style="padding: 8px 12px;">✕ Bỏ lọc</button>
+            </div>
+
+            <div class="table-wrapper" style="max-height: 350px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px;">
+                <table class="data-table" style="margin: 0;">
+                    <thead style="position: sticky; top: 0; z-index: 10;">
+                        <tr>
+                            <th style="width: 100px;">Mã Phiếu</th>
+                            <th>Ngày nhập</th>
+                            <th style="text-align: right;">Tổng tiền phiếu</th>
+                            <th style="text-align: right;">Đã thanh toán</th>
+                            <th style="width: 120px; text-align: center;">Trạng thái</th>
+                            <th style="width: 100px; text-align: center;">Thao tác</th> </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <tr><td colspan="6" class="table-loading">⏳ Đang tải...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="pagination-container" id="hist-pagination-bar" style="display: none; padding-top: 15px;">
+                <div class="pagination-info" id="hist-pagination-info"></div>
+                <div class="pagination-btns" id="hist-pagination-btns"></div>
+            </div>
+        </div>
+        
+        <div class="modal-form-footer">
+            <button class="btn btn-cancel" onclick="closeHistoryModal()">Đóng</button>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal-overlay" id="payment-modal" style="z-index: 2000;"> <div class="modal-box">
+        <div class="modal-title">Ghi nhận thanh toán</div>
+        <div class="modal-message" style="text-align: left; margin-top: 15px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span>Tổng tiền phiếu:</span> <strong id="pay-total-cost">0đ</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span>Đã thanh toán:</span> <strong id="pay-paid" style="color: #166534;">0đ</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px;">
+                <span>Còn nợ:</span> <strong id="pay-debt" style="color: #dc2626;">0đ</strong>
+            </div>
+            
+            <div class="form-group">
+                <label>Số tiền trả đợt này <span style="color:var(--admin-danger)">*</span></label>
+                <input type="number" id="pay-amount" class="form-control" placeholder="Nhập số tiền...">
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-cancel" onclick="closePaymentModal()">Hủy</button>
+            <button class="btn btn-success" onclick="submitPayment()">Lưu thanh toán</button>
+        </div>
+    </div>
+</div>
+
 <script src="/js/admin/admin-token.js"></script>
 <script src="/js/admin/admin-api.js"></script>
 <script src="/js/admin/admin-auth.js"></script>
@@ -129,7 +220,17 @@ let deleteId = null;
 document.addEventListener('DOMContentLoaded', () => {
     requireAdminAuth();
     initAdminLayout({ title: 'Nhà cung cấp', activePage: 'suppliers' });
-    loadSuppliers();
+    loadSuppliers().then(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const historyId = urlParams.get('show_history');
+        const supName = urlParams.get('sup_name');
+
+        if (historyId) {
+            openHistoryModal(historyId, supName || 'Nhà cung cấp');
+            
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    });
 });
 
 async function loadSuppliers() {
@@ -182,6 +283,7 @@ function renderTable(data) {
                 <td>${AdminString.date(item.created_at)}</td>
                 <td>
                     <div class="td-actions" style="justify-content: center;">
+                        <button class="btn-edit" style="background:#f1f5f9; color:#333; border: 1px solid #cbd5e1;" onclick="openHistoryModal(${item.id}, '${AdminString.escJs(item.name || '')}')">📜 Lịch sử giao dịch</button>
                         <button class="btn-edit" onclick="openFormModal(${item.id})">✏️ Sửa</button>
                         <button class="btn-delete" onclick="confirmDelete(${item.id}, '${AdminString.escJs(item.name || '')}')">🗑️ Xóa</button>
                     </div>
@@ -288,26 +390,191 @@ function closeDeleteModal() {
 }
 
 async function doDelete() {
-        if (!deleteId) return;
-        
-        const btn = document.getElementById('confirm-delete-btn');
-        btn.disabled = true; 
-        btn.textContent = 'Đang xử lý...';
-        
-        try {
-            await adminRequest(`/suppliers/${deleteId}`, { method: 'DELETE' });
-            showAdminToast('Đã xóa thành công!');
-            closeDeleteModal();
-            loadSuppliers();
-        } catch (err) {
-            showAdminToast(err.data?.message || 'Lỗi khi xóa nhà cung cấp', 'error');
-            closeDeleteModal();
-        } finally {
-            // Trả lại trạng thái cho nút xóa sau khi chạy xong
-            btn.disabled = false;
-            btn.textContent = 'Xóa';
-        }
+    if (!deleteId) return;
+    
+    const btn = document.getElementById('confirm-delete-btn');
+    btn.disabled = true; 
+    btn.textContent = 'Đang xử lý...';
+    
+    try {
+        await adminRequest(`/suppliers/${deleteId}`, { method: 'DELETE' });
+        showAdminToast('Đã xóa thành công!');
+        closeDeleteModal();
+        loadSuppliers();
+    } catch (err) {
+        showAdminToast(err.data?.message || 'Lỗi khi xóa nhà cung cấp', 'error');
+        closeDeleteModal();
+    } finally {
+        // Trả lại trạng thái cho nút xóa sau khi chạy xong
+        btn.disabled = false;
+        btn.textContent = 'Xóa';
     }
+}
+
+// ==========================================
+// TÍNH NĂNG XEM LỊCH SỬ GIAO DỊCH 
+// ==========================================
+let histCurrentPage = 1;
+let histSupplierId = null;
+
+function openHistoryModal(id, name) {
+    histSupplierId = id;
+    histCurrentPage = 1;
+    document.getElementById('hist-supplier-name').textContent = name;
+    
+    // Reset lại bộ lọc ngày tháng
+    document.getElementById('hist-start-date').value = '';
+    document.getElementById('hist-end-date').value = '';
+    
+    document.getElementById('history-modal').classList.add('show');
+    loadTransactionHistory();
+}
+
+function closeHistoryModal() {
+    document.getElementById('history-modal').classList.remove('show');
+    histSupplierId = null;
+}
+
+function resetHistoryFilters() {
+    document.getElementById('hist-start-date').value = '';
+    document.getElementById('hist-end-date').value = '';
+    histCurrentPage = 1;
+    loadTransactionHistory();
+}
+
+async function loadTransactionHistory() {
+    if (!histSupplierId) return;
+
+    const startDate = document.getElementById('hist-start-date').value;
+    const endDate = document.getElementById('hist-end-date').value;
+    const params = new URLSearchParams({ page: histCurrentPage, per_page: 5 });
+    
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+
+    const tbody = document.getElementById('history-table-body');
+    tbody.innerHTML = `<tr><td colspan="5" class="table-loading">⏳ Đang lấy dữ liệu...</td></tr>`;
+    document.getElementById('hist-pagination-bar').style.display = 'none';
+
+    try {
+        const res = await adminRequest(`/suppliers/${histSupplierId}/transaction-history?${params}`);
+        const apiData = res.data;
+
+        // Cập nhật 4 thẻ Summary Thống kê
+        const summary = apiData.summary || { total_transactions: 0, total_imported: 0, total_paid: 0, total_debt: 0 };
+        document.getElementById('hist-total-tx').textContent = summary.total_transactions;
+        document.getElementById('hist-total-import').textContent = new Intl.NumberFormat('vi-VN').format(summary.total_imported) + 'đ';
+        document.getElementById('hist-total-paid').textContent = new Intl.NumberFormat('vi-VN').format(summary.total_paid) + 'đ';
+        document.getElementById('hist-total-debt').textContent = new Intl.NumberFormat('vi-VN').format(summary.total_debt) + 'đ';
+
+        // Cập nhật Bảng danh sách phiếu nhập
+        const txList = apiData.transactions?.data || apiData.transactions || [];
+        
+        if (txList.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="table-empty py-4">Chưa có giao dịch nhập kho nào trong thời gian này.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = txList.map(tx => {
+            const isCompleted = tx.status === 'completed';
+            const badge = isCompleted 
+                ? `<span style="background:#dcfce7; color:#166534; padding:4px 8px; border-radius:4px; font-weight:600; font-size:0.8rem;">Đã duyệt</span>`
+                : `<span style="background:#f1f5f9; color:#475569; padding:4px 8px; border-radius:4px; font-weight:600; font-size:0.8rem; border:1px solid #cbd5e1;">Bản nháp</span>`;
+            
+            const totalCost = parseFloat(tx.total_cost || 0);
+            const paidAmount = parseFloat(tx.paid_amount || 0);
+            
+            const isDebt = isCompleted && paidAmount < totalCost;
+            const actionBtn = isDebt 
+                ? `<button class="btn btn-success" style="width:120px; padding: 5px 5px;" onclick="openPaymentModal(${tx.id}, ${totalCost}, ${paidAmount})">💸 Thanh toán</button>` 
+                : '';
+
+            return `
+                <tr>
+                    <td class="font-medium" style="color: var(--admin-accent);">#${tx.id}</td>
+                    <td>${AdminString.date(tx.import_date)}</td>
+                    <td style="text-align: right; font-weight: bold; color: var(--text-primary);">${new Intl.NumberFormat('vi-VN').format(totalCost)}đ</td>
+                    <td style="text-align: right; color: #166534;">${new Intl.NumberFormat('vi-VN').format(paidAmount)}đ</td>
+                    <td style="text-align: center;">${badge}</td>
+                    <td style="text-align: center;">${actionBtn}</td>
+                </tr>
+            `;
+        }).join('');
+
+        renderPagination({
+            meta: apiData.transactions?.pagination || apiData.transactions,
+            currentPage: histCurrentPage,
+            barId: 'hist-pagination-bar',
+            infoId: 'hist-pagination-info',
+            btnsId: 'hist-pagination-btns',
+            onPageChange: (p) => { histCurrentPage = p; loadTransactionHistory(); }
+        });
+
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" class="table-empty text-danger">Lỗi khi tải lịch sử.</td></tr>`;
+        showAdminToast('Không thể tải lịch sử giao dịch', 'error');
+    }
+}
+
+// ==========================================
+// LOGIC THANH TOÁN (Trực tiếp trên Modal)
+// ==========================================
+let currentPaymentId = null;
+let maxPayable = 0;
+
+function openPaymentModal(id, total, paid) {
+    currentPaymentId = id;
+    const debt = total - paid;
+    maxPayable = debt;
+
+    document.getElementById('pay-total-cost').textContent = new Intl.NumberFormat('vi-VN').format(total) + 'đ';
+    document.getElementById('pay-paid').textContent = new Intl.NumberFormat('vi-VN').format(paid) + 'đ';
+    document.getElementById('pay-debt').textContent = new Intl.NumberFormat('vi-VN').format(debt) + 'đ';
+    
+    const input = document.getElementById('pay-amount');
+    input.value = '';
+    input.max = debt;
+    input.placeholder = `Tối đa: ${new Intl.NumberFormat('vi-VN').format(debt)}đ`;
+
+    document.getElementById('payment-modal').classList.add('show');
+}
+
+function closePaymentModal() {
+    document.getElementById('payment-modal').classList.remove('show');
+    currentPaymentId = null;
+}
+
+async function submitPayment() {
+    const amount = parseFloat(document.getElementById('pay-amount').value);
+
+    if (!amount || amount <= 0) {
+        showAdminToast('Vui lòng nhập số tiền hợp lệ', 'error'); return;
+    }
+    if (amount > maxPayable) {
+        showAdminToast(`Số tiền vượt quá dư nợ (${new Intl.NumberFormat('vi-VN').format(maxPayable)}đ)`, 'error'); return;
+    }
+
+    const btn = document.querySelector('#payment-modal .btn-primary');
+    btn.disabled = true;
+    btn.textContent = '⏳ Đang xử lý...';
+
+    try {
+        await adminRequest(`/import-notes/${currentPaymentId}/pay`, {
+            method: 'POST',
+            body: JSON.stringify({ amount: amount })
+        });
+
+        showAdminToast('Ghi nhận thanh toán thành công!', 'success');
+        closePaymentModal();
+        
+        loadTransactionHistory(); 
+    } catch (err) {
+        showAdminToast(err.data?.message || 'Lỗi khi thanh toán', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Lưu thanh toán';
+    }
+}
 
 </script>
 </body>

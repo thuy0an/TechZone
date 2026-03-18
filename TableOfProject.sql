@@ -121,6 +121,7 @@ CREATE TABLE import_notes (
   import_date DATETIME,
   status ENUM('pending','completed') DEFAULT 'pending',
   total_cost DECIMAL(15,2) DEFAULT 0,
+  paid_amount DECIMAL(15,2) DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (admin_id) REFERENCES admins(id),

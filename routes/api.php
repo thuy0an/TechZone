@@ -115,10 +115,12 @@ Route::prefix('admin')->group(function () {
 
         // QUẢN LÝ NHÀ CUNG CẤP
         Route::apiResource('suppliers', SupplierController::class);
+        Route::get('suppliers/{id}/transaction-history', [SupplierController::class, 'transactionHistory']);
 
         // NHẬP KHO
         Route::put('import-notes/{id}/complete', [ImportNoteController::class, 'complete']);
         Route::apiResource('import-notes', ImportNoteController::class);
+        Route::post('import-notes/{id}/pay', [\App\Http\Controllers\Api\Admin\ImportNoteController::class, 'pay']);
     });
 });
 

@@ -39,4 +39,33 @@ class ImportNoteRepository extends BaseRepository implements ImportNoteRepositor
     {
         return $this->model->with(['supplier', 'admin', 'details.product'])->findOrFail($id);
     }
+
+    public function getSupplierTransactionSummary(int $supplierId, array $filters = [])
+    {
+        $query = $this->model->where('supplier_id', $supplierId);
+
+        if (!empty($filters['start_date'])) {
+            $query->whereDate('import_date', '>=', $filters['start_date']);
+        }
+        if (!empty($filters['end_date'])) {
+            $query->whereDate('import_date', '<=', $filters['end_date']);
+        }
+
+        // Tính tổng số phiếu và tổng tiền nhập
+        $totalTransactions = $query->count();
+        $totalImported = $query->sum('total_cost');
+
+        // TÍNH TỔNG TIỀN ĐÃ TRẢ (Trực tiếp từ DB)
+        $totalPaid = $query->sum('paid_amount');
+
+        // TÍNH CÔNG NỢ (Tổng nhập - Tổng trả)
+        $totalDebt = $totalImported - $totalPaid;
+
+        return [
+            'total_transactions' => $totalTransactions,
+            'total_imported'     => (float) $totalImported,
+            'total_paid'         => (float) $totalPaid,
+            'total_debt'         => (float) $totalDebt,
+        ];
+    }
 }

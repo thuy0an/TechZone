@@ -66,4 +66,15 @@ class SupplierController extends BaseApiController
             return $this->errorResponse($e->getMessage(), 400);
         }
     }
+
+    public function transactionHistory(Request $request, $id)
+    {
+        try {
+            $data = $this->supplierService->getTransactionHistory($id, $request);
+
+            return $this->successResponse($data, 'Lịch sử giao dịch nhà cung cấp');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Lỗi lấy lịch sử', 400, $e->getMessage());
+        }
+    }
 }

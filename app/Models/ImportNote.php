@@ -14,7 +14,8 @@ class ImportNote extends BaseModel
         'import_date',
         'status',
         'completed_at',
-        'total_cost'
+        'total_cost',
+        'paid_amount'
     ];
 
     protected $casts = [

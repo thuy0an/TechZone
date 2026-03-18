@@ -158,4 +158,24 @@ class ImportNoteService extends BaseService implements ImportNoteServiceInterfac
             throw $e;
         }
     }
+
+    public function recordPayment(int $id, float $amount)
+    {
+        $note = $this->repository->findById($id);
+
+        if ($note->status !== 'completed') {
+            throw new \Exception('Chỉ có thể thanh toán cho phiếu nhập đã duyệt.');
+        }
+
+        $remainingDebt = $note->total_cost - $note->paid_amount;
+        
+        if ($amount <= 0 || $amount > $remainingDebt) {
+            throw new \Exception('Số tiền thanh toán không hợp lệ. Số nợ còn lại là: ' . $remainingDebt);
+        }
+
+        // Cộng dồn tiền đã trả
+        return $this->repository->update($id, [
+            'paid_amount' => $note->paid_amount + $amount
+        ]);
+    }
 }

@@ -68,4 +68,18 @@ class ImportNoteController extends BaseApiController
             return $this->errorResponse('Lỗi hoàn thành phiếu nhập', 400, $e->getMessage());
         }
     }
+
+    public function pay(Request $request, $id)
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:1'
+        ]);
+
+        try {
+            $note = $this->importNoteService->recordPayment($id, $request->input('amount'));
+            return $this->successResponse($note, 'Ghi nhận thanh toán thành công!');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Lỗi thanh toán', 400, $e->getMessage());
+        }
+    }
 }

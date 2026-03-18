@@ -584,6 +584,9 @@ async function loadSelectionData() {
     // Đổ vào Toolbar lọc
     document.getElementById('filter-category').innerHTML += catOptions;
     document.getElementById('filter-brand').innerHTML += brandOptions;
+
+    makeSelectSearchable('filter-category');
+    makeSelectSearchable('filter-brand');
 }
 
 function openAddModal() {
@@ -679,6 +682,98 @@ async function doDelete() {
         btn.disabled = false; 
         btn.textContent = 'Xóa';
     }
+}
+
+function makeSelectSearchable(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    // Ẩn select gốc đi
+    select.style.display = 'none';
+
+    // Tạo thẻ div bao bọc bên ngoài
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'relative';
+    wrapper.style.width = select.style.width || '100%';
+    wrapper.className = 'searchable-wrapper';
+
+    // Tạo ô Input để người dùng gõ tìm kiếm
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = select.className; 
+    input.style.width = '100%';
+    input.placeholder = select.options[0]?.text || 'Tìm kiếm...'; 
+    input.autocomplete = 'off';
+
+    // Tạo khung chứa kết quả tìm kiếm (Dropdown)
+    const dropdown = document.createElement('div');
+    dropdown.className = 'searchable-dropdown';
+
+    // Nhét tất cả vào DOM
+    select.parentNode.insertBefore(wrapper, select);
+    wrapper.appendChild(input);
+    wrapper.appendChild(dropdown);
+    wrapper.appendChild(select); 
+
+    // Hàm lọc và vẽ danh sách option
+    const renderOptions = (filterText = '') => {
+        dropdown.innerHTML = '';
+        let hasMatch = false;
+
+        Array.from(select.options).forEach(option => {
+            const text = option.text;
+            if (text.toLowerCase().includes(filterText.toLowerCase())) {
+                hasMatch = true;
+                const item = document.createElement('div');
+                item.className = 'searchable-item';
+                item.textContent = text;
+                
+                // Làm nổi bật nút "Tất cả danh mục / thương hiệu"
+                if (option.value === '') {
+                    item.style.fontWeight = 'bold';
+                    item.style.color = 'var(--admin-accent)';
+                    item.style.borderBottom = '1px solid #e2e8f0';
+                }
+
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    input.value = option.value === '' ? '' : text; 
+                    select.value = option.value; 
+                    dropdown.classList.remove('show');
+                    
+                    select.dispatchEvent(new Event('change')); 
+                };
+                dropdown.appendChild(item);
+            }
+        });
+
+        if (!hasMatch) {
+            dropdown.innerHTML = '<div style="padding: 10px; color: gray; text-align: center; font-size: 0.85rem;">Không tìm thấy</div>';
+        }
+    };
+
+    input.addEventListener('focus', () => {
+        renderOptions(input.value);
+        dropdown.classList.add('show');
+    });
+
+    input.addEventListener('input', (e) => {
+        renderOptions(e.target.value);
+        dropdown.classList.add('show');
+        
+        if (e.target.value.trim() === '') {
+            select.value = '';
+            select.dispatchEvent(new Event('change'));
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!wrapper.contains(e.target)) {
+            dropdown.classList.remove('show');
+            const selectedOption = select.options[select.selectedIndex];
+            input.value = (selectedOption && selectedOption.value !== '') ? selectedOption.text : '';
+        }
+    });
 }
 
 </script>

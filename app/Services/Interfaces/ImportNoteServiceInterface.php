@@ -9,4 +9,5 @@ interface ImportNoteServiceInterface extends BaseServiceInterface
     public function createDraft(int $adminId, array $data);
     public function updateDraft(int $id, array $data);
     public function completeNote(int $id);
+    public function recordPayment(int $id, float $amount);
 }
