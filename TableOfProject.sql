@@ -232,3 +232,14 @@ CREATE TABLE order_details (
   FOREIGN KEY (order_id) REFERENCES orders(id),
   FOREIGN KEY (product_id) REFERENCES products(id)
 );
+
+CREATE TABLE `import_note_payments` (
+  `id` BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  `import_note_id` BIGINT UNSIGNED NOT NULL,
+  `admin_id` BIGINT UNSIGNED NOT NULL,
+  `amount` DECIMAL(15,2) NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT NULL,
+  `updated_at` TIMESTAMP NULL DEFAULT NULL,
+  FOREIGN KEY (`import_note_id`) REFERENCES `import_notes`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`admin_id`) REFERENCES `admins`(`id`)
+);

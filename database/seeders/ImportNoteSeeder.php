@@ -37,5 +37,22 @@ class ImportNoteSeeder extends Seeder
             ['import_note_id' => 7, 'product_id' => 11, 'quantity' => 10, 'import_price' => 14000000.00],
             ['import_note_id' => 7, 'product_id' => 1,  'quantity' => 10, 'import_price' => 20000000.00],
         ]);
+
+        DB::table('import_note_payments')->insert([
+            [
+                'import_note_id' => 7,
+                'admin_id' => 5,
+                'amount' => 20000000.00,
+                'created_at' => '2026-03-18 09:11:03',
+                'updated_at' => '2026-03-18 09:11:03'
+            ],
+            [
+                'import_note_id' => 7,
+                'admin_id' => 5,
+                'amount' => 100000000.00,
+                'created_at' => '2026-03-18 09:17:56',
+                'updated_at' => '2026-03-18 09:17:56'
+            ]
+        ]);
     }
 }

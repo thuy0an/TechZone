@@ -136,3 +136,7 @@ INSERT INTO `import_note_details` (`id`, `import_note_id`, `product_id`, `quanti
 (16, 7, 12, 10, 17000000.00),
 (17, 7, 11, 10, 14000000.00),
 (18, 7, 1, 10, 20000000.00);
+
+INSERT INTO `import_note_payments` (`id`, `import_note_id`, `admin_id`, `amount`, `created_at`, `updated_at`) VALUES 
+(1, 7, 5, 20000000.00, '2026-03-18 09:11:03', '2026-03-18 09:11:03'),
+(2, 7, 5, 100000000.00, '2026-03-18 09:17:56', '2026-03-18 09:17:56');
