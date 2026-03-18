@@ -59,6 +59,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             if (isLoggedIn()) {
                 window.location.href = '/';
+                return;
+            }
+
+            const alertBox = document.getElementById('login-alert');
+            const pendingRedirect = sessionStorage.getItem('post_login_redirect');
+            if (pendingRedirect && alertBox) {
+                alertBox.textContent = 'Vui lòng đăng nhập để sử dụng giỏ hàng.';
+                alertBox.style.display = 'block';
             }
         });
 
@@ -76,7 +84,9 @@
             try {
                 await loginCustomer(email, password);
                 
-                await checkAddressAndRedirect();
+                const redirectTo = sessionStorage.getItem('post_login_redirect') || '/';
+                sessionStorage.removeItem('post_login_redirect');
+                await checkAddressAndRedirect(redirectTo);
 
                 alert('Đăng nhập thành công!');
                 

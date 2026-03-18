@@ -103,7 +103,9 @@
 
                 alert('Chúc mừng! Bạn đã đăng ký tài khoản và thông tin giao hàng thành công.');
 
-                await checkAddressAndRedirect();
+                const redirectTo = sessionStorage.getItem('post_login_redirect') || '/';
+                sessionStorage.removeItem('post_login_redirect');
+                await checkAddressAndRedirect(redirectTo);
             } catch (err) {
                 // Nhận lỗi 422 (Unprocessable Entity) hoặc 409 (Conflict) từ Backend
                 alertBox.textContent = err.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.';

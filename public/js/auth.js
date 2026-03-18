@@ -94,7 +94,7 @@ async function logoutCustomer() {
     }
 }
 
-async function checkAddressAndRedirect() {
+async function checkAddressAndRedirect(redirectTo = '/') {
     try {
         // Gọi API lấy danh sách địa chỉ của user hiện tại
         const response = await apiRequest('/storefront/addresses', { method: 'GET' });
@@ -103,10 +103,10 @@ async function checkAddressAndRedirect() {
         if (response.data && response.data.length === 0) {
             window.location.href = '/setup-address.html';
         } else {
-            window.location.href = '/';
+            window.location.href = redirectTo || '/';
         }
     } catch (error) {
         console.error('Lỗi khi kiểm tra địa chỉ:', error);
-        window.location.href = '/';
+        window.location.href = redirectTo || '/';
     }
 }

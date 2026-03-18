@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Api\Storefront;
 
 use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\AddToCartRequest;
+use App\Http\Requests\UpdateCartRequest;
 use App\Services\Interfaces\CartServiceInterface;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class CartController extends BaseApiController
 {
@@ -17,10 +18,10 @@ class CartController extends BaseApiController
     }
 
     // Xem giỏ hàng
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $userId = Auth::id(); // Lấy ID của user đang đăng nhập
+            $userId = $request->user('sanctum')->id; // Lấy ID của user đang đăng nhập
             $cart = $this->cartService->getCart($userId);
 
             return $this->successResponse($cart, 'Lấy thông tin giỏ hàng thành công');
@@ -33,7 +34,7 @@ class CartController extends BaseApiController
     public function add(AddToCartRequest $request)
     {
         try {
-            $userId = Auth::id();
+            $userId = $request->user('sanctum')->id;
 
             $cartItem = $this->cartService->addToCart(
                 $userId,
@@ -47,11 +48,29 @@ class CartController extends BaseApiController
         }
     }
 
-    // Xóa sản phẩm khỏi giỏ
-    public function delete($cartItemId)
+    // Cập nhật số lượng sản phẩm trong giỏ
+    public function update(UpdateCartRequest $request)
     {
         try {
-            $userId = Auth::id();
+            $userId = $request->user('sanctum')->id;
+
+            $cart = $this->cartService->updateCartItem(
+                $userId,
+                $request->product_id,
+                $request->quantity
+            );
+
+            return $this->successResponse($cart, 'Cập nhật giỏ hàng thành công');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
+    // Xóa sản phẩm khỏi giỏ
+    public function delete(Request $request, $cartItemId)
+    {
+        try {
+            $userId = $request->user('sanctum')->id;
             $this->cartService->removeCartItem($userId, $cartItemId);
 
             return $this->successResponse([], 'Đã xóa sản phẩm khỏi giỏ hàng');

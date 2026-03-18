@@ -66,12 +66,15 @@ Route::prefix('client')->group(function () {
 // STOREFRONT Routes
 // Nhóm cần đăng nhập
 // ============================================
-Route::prefix('storefront')->middleware('auth:sanctum')->group(function () {
+Route::prefix('storefront')->middleware('require.client.login')->group(function () {
     // GIỎ HÀNG
     Route::get('/cart', [CartController::class, 'index']); // xem giỏ hàng
     Route::post('/cart/add', [CartController::class, 'add']); // thêm vào giỏ
-    Route::delete('/cart/delete/{cartItemId}', [CartController::class, 'delete']); // xóa khỏi giỏ`
+    Route::post('/cart/update', [CartController::class, 'update']); // cập nhật giỏ hàng
+    Route::delete('/cart/delete/{cartItemId}', [CartController::class, 'delete']); // xóa khỏi giỏ
+});
 
+Route::prefix('storefront')->middleware('auth:sanctum')->group(function () {
     // ĐẶT HÀNG (CHECKOUT)
     Route::post('/checkout', [OrderController::class, 'checkout']); // chốt đơn
     Route::get('/orders', [OrderController::class, 'myOrders']); // lịch sử đơn hàng
@@ -82,6 +85,17 @@ Route::prefix('storefront')->middleware('auth:sanctum')->group(function () {
 
     // ĐĂNG XUẤT
     Route::post('/logout', [AuthController::class, 'logout']);
+});
+
+// ============================================
+// CLIENT Routes
+// Nhóm giỏ hàng yêu cầu đăng nhập
+// ============================================
+Route::prefix('client')->middleware('require.client.login')->group(function () {
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::post('/cart/add', [CartController::class, 'add']);
+    Route::post('/cart/update', [CartController::class, 'update']);
+    Route::delete('/cart/delete/{cartItemId}', [CartController::class, 'delete']);
 });
 
 

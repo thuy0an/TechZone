@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gio hang - TechZone</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div id="storefront-header-root"></div>
+
+    <main class="section">
+        <div class="container cart-page">
+            <div class="cart-header">
+                <div>
+                    <h1>Gio hang</h1>
+                    <p>Quan ly san pham truoc khi thanh toan</p>
+                </div>
+                <a href="/products.html" class="btn btn-secondary">Tiep tuc mua sam</a>
+            </div>
+
+            <div id="cart-status" class="cart-status"></div>
+
+            <div class="cart-grid">
+                <div id="cart-items" class="cart-items"></div>
+
+                <aside class="cart-summary">
+                    <h3>Tong ket don hang</h3>
+                    <div class="summary-row">
+                        <span>Tam tinh</span>
+                        <span id="cart-subtotal">0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Phi van chuyen</span>
+                        <span>Mien phi</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Tong cong</span>
+                        <span id="cart-total">0</span>
+                    </div>
+                    <button class="btn btn-primary" id="checkout-btn" type="button">Tien hanh thanh toan</button>
+                    <p class="summary-note">Gia se duoc luu tai thoi diem ban them vao gio hang.</p>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <div id="storefront-footer-root"></div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/app-layout.js"></script>
+    <script src="/js/cart.js"></script>
+</body>
+</html>

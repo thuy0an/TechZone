@@ -34,7 +34,54 @@ class CartService extends BaseService implements CartServiceInterface
         }
 
         $cart = $this->repository->getCartByUserId($userId);
-        return $this->repository->updateOrCreateItem($cart->id, $productId, $quantity, $product->selling_price);
+        $currentPrice = (float) $product->import_price * (1 + ((float) $product->profit_margin / 100));
+        return $this->repository->updateOrCreateItem($cart->id, $productId, $quantity, $currentPrice);
+    }
+
+    public function updateCartItem($userId, $productId, $quantity)
+    {
+        $product = $this->productRepository->findById($productId);
+
+        if (!$product) {
+            throw new \Exception('Sản phẩm không tồn tại trong hệ thống.');
+        }
+
+        $cart = $this->repository->getCartByUserId($userId);
+        $existingItem = $this->repository->getCartItem($cart->id, $productId);
+
+        $currentPrice = (float) $product->import_price * (1 + ((float) $product->profit_margin / 100));
+        $currentQuantity = $existingItem ? (int) $existingItem->quantity : 0;
+        $delta = (int) $quantity;
+
+        if ($delta === 0) {
+            if ($existingItem) {
+                $this->repository->deleteCartItem($existingItem);
+            }
+            return $this->repository->getCartByUserId($userId);
+        }
+
+        $nextQuantity = $currentQuantity + $delta;
+
+        if ($nextQuantity > (int) $product->stock_quantity) {
+            throw new \Exception('Vượt quá số lượng tồn kho');
+        }
+
+        if (!$existingItem && $nextQuantity <= 0) {
+            return $this->repository->getCartByUserId($userId);
+        }
+
+        if ($existingItem && $nextQuantity <= 0) {
+            $this->repository->deleteCartItem($existingItem);
+            return $this->repository->getCartByUserId($userId);
+        }
+
+        if ($existingItem) {
+            $this->repository->updateCartItemQuantity($existingItem, $nextQuantity, $currentPrice);
+            return $this->repository->getCartByUserId($userId);
+        }
+
+        $this->repository->updateOrCreateItem($cart->id, $productId, $nextQuantity, $currentPrice);
+        return $this->repository->getCartByUserId($userId);
     }
 
     public function removeCartItem($userId, $cartItemId)

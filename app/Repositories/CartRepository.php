@@ -35,4 +35,26 @@ class CartRepository extends BaseRepository implements CartRepositoryInterface
             'price_at_addition' => $currentPrice
         ]);
     }
+
+    public function getCartItem($cartId, $productId)
+    {
+        return CartItem::where('cart_id', $cartId)
+            ->where('product_id', $productId)
+            ->first();
+    }
+
+    public function updateCartItemQuantity($item, $quantity, $currentPrice)
+    {
+        $item->update([
+            'quantity' => $quantity,
+            'price_at_addition' => $currentPrice,
+        ]);
+
+        return $item;
+    }
+
+    public function deleteCartItem($item)
+    {
+        return $item->delete();
+    }
 }
