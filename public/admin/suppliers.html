@@ -412,7 +412,7 @@ async function doDelete() {
 }
 
 // ==========================================
-// TÍNH NĂNG XEM LỊCH SỬ GIAO DỊCH 
+// TÍNH NĂNG XEM LỊCH SỬ NHẬP HÀNG TỪ NHÀ CUNG CẤP
 // ==========================================
 let histCurrentPage = 1;
 let histSupplierId = null;
@@ -485,18 +485,26 @@ async function loadTransactionHistory() {
             const paidAmount = parseFloat(tx.paid_amount || 0);
             
             const isDebt = isCompleted && paidAmount < totalCost;
-            const actionBtn = isDebt 
-                ? `<button class="btn btn-success" style="width:120px; padding: 5px 5px;" onclick="openPaymentModal(${tx.id}, ${totalCost}, ${paidAmount})">💸 Thanh toán</button>` 
+
+            const payBtn = isDebt 
+                ? `<button class="btn btn-edit" style="width:150px; padding: 8px 12px; margin-top: 5px;font-size:0.9rem" onclick="openPaymentModal(${tx.id}, ${totalCost}, ${paidAmount})">💸 Thanh toán</button>` 
                 : '';
+                
+            const viewBtn = `<a href="/admin/import-notes.html?view_note_id=${tx.id}" class="btn btn-view" style="width:150px; padding: 8px 12px; margin-top: 5px;font-size:0.9rem">👁️ Xem phiếu này</a>`;
 
             return `
-                <tr>
+                <tr>    
                     <td class="font-medium" style="color: var(--admin-accent);">#${tx.id}</td>
                     <td>${AdminString.date(tx.import_date)}</td>
                     <td style="text-align: right; font-weight: bold; color: var(--text-primary);">${new Intl.NumberFormat('vi-VN').format(totalCost)}đ</td>
                     <td style="text-align: right; color: #166534;">${new Intl.NumberFormat('vi-VN').format(paidAmount)}đ</td>
                     <td style="text-align: center;">${badge}</td>
-                    <td style="text-align: center;">${actionBtn}</td>
+                    <td style="text-align: center; vertical-align: middle;">
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            ${viewBtn}
+                            ${payBtn}
+                        </div>
+                    </td>
                 </tr>
             `;
         }).join('');
@@ -554,7 +562,7 @@ async function submitPayment() {
         showAdminToast(`Số tiền vượt quá dư nợ (${new Intl.NumberFormat('vi-VN').format(maxPayable)}đ)`, 'error'); return;
     }
 
-    const btn = document.querySelector('#payment-modal .btn-primary');
+    const btn = document.querySelector('#payment-modal .btn-success');
     btn.disabled = true;
     btn.textContent = '⏳ Đang xử lý...';
 

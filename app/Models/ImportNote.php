@@ -46,4 +46,9 @@ class ImportNote extends BaseModel
     {
         return $this->hasMany(ImportNoteDetail::class, 'import_note_id');
     }
+
+    public function payments()
+    {
+        return $this->hasMany(ImportNotePayment::class, 'import_note_id');
+    }
 }
