@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khách hàng - TechZone Admin</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="icon" href="/favicon.ico">
+</head>
+
+<body>
+    <div class="admin-layout">
+        <div id="admin-sidebar-root"></div>
+        <div class="admin-main">
+            <div id="admin-topbar-root"></div>
+
+            <main class="admin-content">
+                <div class="page-header">
+                    <h1>Quản lý Khách hàng</h1>
+                    <p>Xem danh sách và quản lý quyền truy cập của khách hàng hệ thống</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="toolbar">
+                            <div class="search-box" style="width:400px;">
+                                <span>🔍</span>
+                                <input type="text" id="search-input" placeholder="Tìm tên, email hoặc SĐT...">
+                            </div>
+                            <button class="btn-add" onclick="openAddModal()">＋ Thêm khách hàng</button>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:80px">ID</th>
+                                    <th>Họ tên</th>
+                                    <th>Email</th>
+                                    <th>Số điện thoại</th>
+                                    <th style="width:150px">Trạng thái</th>
+                                    <th style="width:180px; text-align:center">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-table-body">
+                                <tr>
+                                    <td colspan="6" class="table-loading">⏳ Đang tải dữ liệu...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination" id="pagination-bar" style="display:none">
+                        <div class="pagination-info" id="pagination-info"></div>
+                        <div class="pagination-btns" id="pagination-btns"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div class="modal-overlay-form" id="form-modal">
+        <div class="modal-form-box" style="max-width: 500px;">
+            <div class="modal-form-header">
+                <span class="modal-form-title">Thêm khách hàng mới</span>
+                <button class="modal-close-btn" onclick="closeFormModal()">✕</button>
+            </div>
+            <form id="user-form" onsubmit="event.preventDefault(); saveUser();">
+                <div class="modal-form-body">
+                    <div class="form-group">
+                        <label>Họ tên <span style="color:var(--admin-danger)">*</span></label>
+                        <input type="text" id="u-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email <span style="color:var(--admin-danger)">*</span></label>
+                        <input type="email" id="u-email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Số điện thoại <span style="color:var(--admin-danger)">*</span></label>
+                        <input type="text" id="u-phone" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Địa chỉ giao hàng <span style="color:var(--admin-danger)">*</span></label>
+                        <textarea id="u-address" class="form-control" rows="2" required></textarea>
+                    </div>
+                    <div
+                        style="background: #ebf8ff; padding: 10px; border-radius: 6px; font-size: 0.85rem; border: 1px solid #bee3f8;">
+                        ℹ️ Mật khẩu mặc định: <strong>TechZone@2026</strong>
+                    </div>
+                </div>
+                <div class="modal-form-footer">
+                    <button type="button" class="btn btn-cancel" onclick="closeFormModal()">Hủy</button>
+                    <button type="submit" class="btn-save" id="save-btn">Lưu thông tin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/admin/admin-token.js"></script>
+    <script src="/js/admin/admin-api.js"></script>
+    <script src="/js/admin/admin-auth.js"></script>
+    <script src="/js/admin/admin-layout.js"></script>
+    <script src="/js/admin/admin-utils.js"></script>
+    <script src="/js/admin/admin-users.js"></script>
+</body>
+
+</html>
