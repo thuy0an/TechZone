@@ -152,11 +152,13 @@ Route::prefix('admin')->group(function () {
 
         // QUẢN LÝ KHÁCH HÀNG
         Route::prefix('users')->group(function () {
-        Route::get('/', [UserController::class, 'index']);           
-        Route::post('/', [UserController::class, 'store']);          
-        Route::put('/{id}/lock', [UserController::class, 'toggleLock']);
-});
-
+            Route::get('/', [UserController::class, 'index']);
+            Route::post('/', [UserController::class, 'store']);
+            Route::put('/{id}/lock', [UserController::class, 'toggleLock']);
+        });
+        // BÁO CÁO THỐNG KÊ
+        Route::get('reports/historical-stock', [\App\Http\Controllers\Api\Admin\ReportController::class, 'historicalStock']);
+        Route::get('reports/import-export', [\App\Http\Controllers\Api\Admin\ReportController::class, 'importExportReport']);
     });
 });
 

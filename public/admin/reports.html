@@ -185,7 +185,7 @@ async function loadProductsForSelects() {
 // 1. TRA CỨU TỒN KHO LỊCH SỬ (THẺ KHO)
 // ==========================================
 async function fetchHistoricalStock() {
-    const productId = document.getElementById('hist-product').value;
+    const productId = document.getElementById('hist-product-id').value;
     const targetDate = document.getElementById('hist-date').value;
     const btn = document.getElementById('btn-hist');
 
@@ -224,7 +224,7 @@ async function fetchHistoricalStock() {
 // 2. BÁO CÁO NHẬP XUẤT THEO GIAI ĐOẠN
 // ==========================================
 async function fetchImportExport() {
-    const productId = document.getElementById('period-product').value;
+    const productId = document.getElementById('period-product-id').value;
     const startDate = document.getElementById('period-start').value;
     const endDate = document.getElementById('period-end').value;
     const btn = document.getElementById('btn-period');
