@@ -56,7 +56,7 @@ CREATE TABLE user_addresses (
   `ward_code` VARCHAR(20) NULL,
   `province_name` VARCHAR(255) NULL,
   `district_name` VARCHAR(255) NULL,
-  `ward_name` VARCHAR(255) NULL,
+  `ward_name` VARCHAR(255) NULL
 );
 
 -- =============================
