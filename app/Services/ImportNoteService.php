@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use App\Models\ImportNoteDetail;
+use App\Models\ImportNotePayment;
 use App\Models\Product;
 use App\Models\ProductPriceHistory; // Đảm bảo bạn đã có model này
 use App\Repositories\Interfaces\ImportNoteRepositoryInterface;
 use App\Services\Interfaces\ImportNoteServiceInterface;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -168,14 +170,26 @@ class ImportNoteService extends BaseService implements ImportNoteServiceInterfac
         }
 
         $remainingDebt = $note->total_cost - $note->paid_amount;
-        
+
         if ($amount <= 0 || $amount > $remainingDebt) {
             throw new \Exception('Số tiền thanh toán không hợp lệ. Số nợ còn lại là: ' . $remainingDebt);
         }
 
-        // Cộng dồn tiền đã trả
-        return $this->repository->update($id, [
-            'paid_amount' => $note->paid_amount + $amount
-        ]);
+        return DB::transaction(function () use ($note, $amount) {
+            // Lưu vào bảng lịch sử thanh toán
+            ImportNotePayment::create([
+                'import_note_id' => $note->id,
+                'admin_id'       => Auth::id(), // ID của admin đang thao tác
+                'amount'         => $amount
+            ]);
+
+            // Cập nhật tổng tiền đã trả ở phiếu nhập
+            $newPaidAmount = $note->paid_amount + $amount;
+            $updatedNote = $this->repository->update($note->id, [
+                'paid_amount' => $newPaidAmount
+            ]);
+
+            return $updatedNote;
+        });
     }
 }

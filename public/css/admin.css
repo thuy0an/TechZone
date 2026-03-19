@@ -422,6 +422,17 @@ a { text-decoration: none; color: inherit; }
     flex: 1;
     padding: 16px 0;
     overflow-y: auto;
+
+    &::-webkit-scrollbar {
+        width: 0px;
+        background: transparent;
+    }
+
+    /* Ẩn thanh cuộn trên Firefox */
+    scrollbar-width: none;
+    
+    /* Ẩn trên IE và Edge cũ */
+    -ms-overflow-style: none;
 }
 
 .sidebar-section-title {

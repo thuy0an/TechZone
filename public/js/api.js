@@ -13,7 +13,7 @@ const API_BASE_URL = '/api';
  * @returns {Promise<any>} Response data
  */
 async function apiRequest(endpoint, options = {}) {
-    const url = `${API_BASE_URL}${endpoint}`;
+    const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
 
     const headers = {
         'Content-Type': 'application/json',

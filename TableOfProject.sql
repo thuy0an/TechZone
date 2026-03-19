@@ -49,7 +49,14 @@ CREATE TABLE user_addresses (
   is_default BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  -- Các cột lưu vết địa chỉ hành chính (GHN)
+  `province_id` INT NULL,
+  `district_id` INT NULL,
+  `ward_code` VARCHAR(20) NULL,
+  `province_name` VARCHAR(255) NULL,
+  `district_name` VARCHAR(255) NULL,
+  `ward_name` VARCHAR(255) NULL
 );
 
 -- =============================
@@ -205,21 +212,30 @@ CREATE TABLE cart_items (
 -- =============================
 -- ORDERS
 -- =============================
-CREATE TABLE orders (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  user_id INT NOT NULL,
-  promotion_id INT NULL,
-  order_date DATETIME,
-  status ENUM('new','confirmed','delivered','cancelled') DEFAULT 'new',
-  shipping_address TEXT NOT NULL,
-  receiver_name VARCHAR(255),
-  receiver_phone VARCHAR(20),
-  payment_method ENUM('cash','bank_transfer','online') NOT NULL,
-  total_amount DECIMAL(15,2) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (promotion_id) REFERENCES promotions(id)
+CREATE TABLE `orders` (
+  `id` INT PRIMARY KEY AUTO_INCREMENT,
+  `user_id` INT NOT NULL,
+  `promotion_id` INT NULL,
+  `order_code` VARCHAR(50) UNIQUE NOT NULL, -- Mã đơn hàng hiển thị (VD: ORD-20260318-001)
+  `order_date` DATETIME,
+  `status` ENUM('new','confirmed','shipping','delivered','completed','cancelled','failed') DEFAULT 'new',
+  `shipping_address` TEXT NOT NULL,
+  `receiver_name` VARCHAR(255),
+  `receiver_phone` VARCHAR(20),
+  `receiver_email` VARCHAR(255),
+  
+  -- Các cột lưu vết địa chỉ hành chính (GHN)
+  `province_id` INT NULL,
+  `district_id` INT NULL,
+  `ward_code` VARCHAR(20) NULL,
+  `province_name` VARCHAR(255) NULL,
+  `district_name` VARCHAR(255) NULL,
+  `ward_name` VARCHAR(255) NULL,
+  
+  `payment_method` ENUM('cash','bank_transfer','online') NOT NULL,
+  `total_amount` DECIMAL(15,2) NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE TABLE order_details (
@@ -231,4 +247,15 @@ CREATE TABLE order_details (
   discount_applied DECIMAL(15,2) DEFAULT 0,
   FOREIGN KEY (order_id) REFERENCES orders(id),
   FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
+CREATE TABLE `import_note_payments` (
+  `id` BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  `import_note_id` BIGINT UNSIGNED NOT NULL,
+  `admin_id` BIGINT UNSIGNED NOT NULL,
+  `amount` DECIMAL(15,2) NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT NULL,
+  `updated_at` TIMESTAMP NULL DEFAULT NULL,
+  FOREIGN KEY (`import_note_id`) REFERENCES `import_notes`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`admin_id`) REFERENCES `admins`(`id`)
 );

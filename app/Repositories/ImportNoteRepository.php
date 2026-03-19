@@ -37,7 +37,7 @@ class ImportNoteRepository extends BaseRepository implements ImportNoteRepositor
 
     public function getDetailById(int $id)
     {
-        return $this->model->with(['supplier', 'admin', 'details.product'])->findOrFail($id);
+        return $this->model->with(['supplier', 'admin', 'details.product', 'payments.admin'])->findOrFail($id);
     }
 
     public function getSupplierTransactionSummary(int $supplierId, array $filters = [])

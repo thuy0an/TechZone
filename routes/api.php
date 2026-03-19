@@ -16,7 +16,6 @@ use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Api\Admin\ImportNoteController;
 use App\Http\Controllers\Api\Admin\UserController;
-
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -53,6 +52,20 @@ Route::prefix('storefront')->group(function () {
     // ĐĂNG NHẬP,ĐĂNG KÝ
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+});
+
+
+// ============================================
+// PUBLIC Routes lấy dữ liệu bên thứ 3
+// ============================================
+Route::get('/public-config', function () {
+    return response()->json([
+        'status' => 'success',
+        'data' => [
+            'ghn_api_url' => config('services.ghn.url'),
+            'ghn_token'   => config('services.ghn.token'),
+        ]
+    ]);
 });
 
 // ============================================

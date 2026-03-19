@@ -21,13 +21,12 @@
 
             <div class="card">
                 <div class="card-header">
-                    <div class="toolbar" style="gap: 12px;">
-                        <div class="search-box" style="width: 400px">
-                            <span>🔍</span>
-                            <input type="text" id="search-input" placeholder="Tìm theo mã đơn hoặc tên khách, SĐT...">
-                        </div>
-
-                        <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="toolbar" style="flex-direction: column; align-items: flex-start; gap:8px">
+                        <div class="flex-row">
+                            <div class="search-box" style="width: 400px">
+                                <span>🔍</span>
+                                <input type="text" id="search-input" placeholder="Tìm theo mã đơn hoặc tên khách, SĐT...">
+                            </div>
                             <div style="display: flex; align-items: center; gap: 5px;">
                                 <label style="font-size: 0.8rem; color: var(--text-secondary);">Từ:</label>
                                 <input type="date" id="filter-start-date" class="form-control" style="width:200px;" onchange="loadOrders()">
@@ -43,16 +42,29 @@
                                 <option value="online">💳 Online (VNPay/Momo)</option>
                             </select>
                         </div>
+                        <div class="flex-row">
+                            <select id="filter-province" class="form-control" style="width: 250px;" onchange="loadDistricts(); currentPage=1; loadOrders();">
+                                <option value="">Tất cả Tỉnh / Thành phố</option>
+                            </select>
+                            
+                            <select id="filter-district" class="form-control" style="width: 250px;" onchange="loadWards(); currentPage=1; loadOrders();" disabled>
+                                <option value="">Tất cả Quận / Huyện</option>
+                            </select>
+                            
+                            <select id="filter-ward" class="form-control" style="width: 250px;" onchange="currentPage=1; loadOrders();" disabled>
+                                <option value="">Tất cả Phường / Xã</option>
+                            </select>
 
-                        <select id="filter-status" class="form-control" style="width:250px;" onchange="currentPage=1; loadOrders()">
-                            <option value="">Tất cả trạng thái</option>
-                            <option value="pending">Chờ xử lý</option>
-                            <option value="confirmed">Đã xác nhận</option>
-                            <option value="shipping">Đang giao hàng</option>
-                            <option value="delivered">Đã giao hàng</option>
-                            <option value="completed">Hoàn thành</option>
-                            <option value="cancelled">Đã hủy</option>
-                        </select>
+                            <select id="filter-status" class="form-control" style="width:250px;" onchange="currentPage=1; loadOrders()">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="pending">Chờ xử lý</option>
+                                <option value="confirmed">Đã xác nhận</option>
+                                <option value="shipping">Đang giao hàng</option>
+                                <option value="delivered">Đã giao hàng</option>
+                                <option value="completed">Hoàn thành</option>
+                                <option value="cancelled">Đã hủy</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -147,9 +159,20 @@ initAdminLayout({ title: 'Đơn hàng', icon: '🛒', activePage: 'orders' });
 let currentPage = 1;
 let searchTimeout = null;
 let currentOrder = null;
+// -----API GHN-----
+let GHN_TOKEN = '';
+let GHN_API_URL = '';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     loadOrders();
+
+    // 1. TẢI CẤU HÌNH TỪ SERVER TRƯỚC
+    await loadAppConfig();
+
+    // 2. SAU KHI CÓ TOKEN THÌ MỚI GỌI API GHN
+    if (GHN_TOKEN) {
+        loadProvinces();
+    }
     
     // Debounce tìm kiếm
     document.getElementById('search-input').addEventListener('input', () => {
@@ -161,12 +184,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+async function loadAppConfig() {
+    try {
+        const res = await fetch('/api/public-config');
+        const result = await res.json();
+        
+        if (result.data) {
+            GHN_TOKEN = result.data.ghn_token;
+            GHN_API_URL = result.data.ghn_api_url;
+        }
+    } catch (error) {
+        console.error('Không thể tải cấu hình hệ thống:', error);
+    }
+}
+
 async function loadOrders() {
     const search = document.getElementById('search-input').value.trim();
     const status = document.getElementById('filter-status').value;
     const payment_method = document.getElementById('filter-payment').value; 
     const startDate = document.getElementById('filter-start-date').value;
     const endDate = document.getElementById('filter-end-date').value;
+    const provinceId = document.getElementById('filter-province').value;
+    const districtId = document.getElementById('filter-district').value;
+    const wardCode = document.getElementById('filter-ward').value;
 
     const params = new URLSearchParams({ page: currentPage, per_page: 10 });
     
@@ -175,6 +215,9 @@ async function loadOrders() {
     if (payment_method) params.append('payment_method', payment_method);
     if (startDate) params.append('start_date', startDate);
     if (endDate) params.append('end_date', endDate);
+    if (provinceId) params.append('province_id', provinceId);
+    if (districtId) params.append('district_id', districtId);
+    if (wardCode) params.append('ward_code', wardCode);
 
     setTableLoading(true);
 
@@ -253,7 +296,7 @@ async function openOrderModal(id) {
         document.getElementById('view-order-code').textContent = `#${currentOrder.id}`;
         document.getElementById('view-receiver').textContent = currentOrder.receiver_name;
         document.getElementById('view-phone').textContent = currentOrder.receiver_phone;
-        document.getElementById('view-address').textContent = currentOrder.shipping_address;
+        document.getElementById('view-address').textContent = `${currentOrder.shipping_address}, ${currentOrder.ward_name}, ${currentOrder.district_name}, ${currentOrder.province_name}`;
 
         // --- RENDER CHI TIẾT SẢN PHẨM ---
         const detailsTbody = document.getElementById('view-order-details');
@@ -387,6 +430,84 @@ async function updateOrderStatus() {
         setSaveLoading(false);
     }
 }
+
+// --- API ĐỊA CHỈ ---
+
+// Tải danh sách Tỉnh
+async function loadProvinces() {
+    try {
+        const res = await fetch(`${GHN_API_URL}/province`, {
+            headers: { 'Token': GHN_TOKEN ,
+        'Content-Type': 'application/json'}
+        });
+        const data = await res.json();
+        
+        const provinceSelect = document.getElementById('filter-province');
+        data.data.forEach(p => {
+            p.ProvinceID < 270 ?
+            provinceSelect.innerHTML += `<option value="${p.ProvinceID}">${p.ProvinceName}</option>`:
+            '';
+        });
+    } catch (error) { console.error('Lỗi tải Tỉnh:', error); }
+}
+
+// Tải danh sách Quận/Huyện dựa vào Tỉnh
+async function loadDistricts() {
+    const provinceId = document.getElementById('filter-province').value;
+    const districtSelect = document.getElementById('filter-district');
+    const wardSelect = document.getElementById('filter-ward');
+    
+    // Reset
+    districtSelect.innerHTML = '<option value="">Tất cả Quận / Huyện</option>';
+    wardSelect.innerHTML = '<option value="">Tất cả Phường / Xã</option>';
+    wardSelect.disabled = true;
+
+    if (!provinceId) {
+        districtSelect.disabled = true;
+        return;
+    }
+
+    try {
+        const res = await fetch(`${GHN_API_URL}/district`, {
+            method: 'POST',
+            headers: { 'token': GHN_TOKEN, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ province_id: parseInt(provinceId) })
+        });
+        const data = await res.json();
+        
+        data.data.forEach(d => {
+            districtSelect.innerHTML += `<option value="${d.DistrictID}">${d.DistrictName}</option>`;
+        });
+        districtSelect.disabled = false;
+    } catch (error) { console.error('Lỗi tải Quận:', error); }
+}
+
+// Tải danh sách Phường/Xã dựa vào Quận
+async function loadWards() {
+    const districtId = document.getElementById('filter-district').value;
+    const wardSelect = document.getElementById('filter-ward');
+    
+    wardSelect.innerHTML = '<option value="">Tất cả Phường / Xã</option>';
+
+    if (!districtId) {
+        wardSelect.disabled = true;
+        return;
+    }
+
+    try {
+        const res = await fetch(`${GHN_API_URL}/ward?district_id=${districtId}`, {
+            headers: { 'token': GHN_TOKEN }
+        });
+        const data = await res.json();
+        
+        data.data.forEach(w => {
+            wardSelect.innerHTML += `<option value="${w.WardCode}">${w.WardName}</option>`;
+        });
+        wardSelect.disabled = false;
+    } catch (error) { console.error('Lỗi tải Phường:', error); }
+}
+
+// --- UTILS ---
 
 function setTableLoading(on) {
     if (on) {

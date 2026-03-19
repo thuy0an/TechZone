@@ -12,12 +12,19 @@ class Order extends BaseModel
         'user_id',
         'promotion_id',
         'order_date',
+        'order_code',
         'status',
         'shipping_address',
         'receiver_name',
         'receiver_phone',
         'payment_method',
-        'total_amount'
+        'total_amount',
+        'province_id',
+        'district_id',
+        'ward_code',
+        'province_name',
+        'district_name',
+        'ward_name',
     ];
 
     public function details()

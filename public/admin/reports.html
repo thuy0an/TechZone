@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo & Thống kê - TechZone Admin</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="icon" href="/favicon.ico">
+    <style>
+        .card {
+            overflow: visible !important;
+        }
+
+        .card-body {
+            overflow: visible !important;
+        }
+
+        .toolbar {
+            overflow: visible !important;
+        }
+    </style>
+</head>
+<body>
+<div class="admin-layout">
+    <div id="admin-sidebar-root"></div>
+    <div class="admin-main">
+        <div id="admin-topbar-root"></div>
+
+        <main class="admin-content">
+            <div class="page-header">
+                <h1>Báo cáo & Thống kê Kho hàng</h1>
+                <p>Theo dõi luân chuyển hàng hóa, đối soát thẻ kho và kiểm toán tồn kho lịch sử.</p>
+            </div>
+
+            <div class="card" style="margin-bottom: 28px; border-top: 4px solid var(--admin-accent);">
+                <div class="card-header" style="background: #f8fafc;">
+                    <h3 class="card-title">⏱️ Tra cứu tồn kho tại một thời điểm (Kiểm toán)</h3>
+                </div>
+                <div class="card-body">
+                    <div class="toolbar flex-row" style="margin-bottom: 24px; align-items: flex-end; background: white; padding: 15px; border-radius: 8px; border: 1px dashed var(--border);">
+                        <div class="form-group" style="margin: 0; flex: 1; max-width: 350px;">
+                            <label>Chọn sản phẩm <span style="color:var(--admin-danger)">*</span></label>
+                            <div style="position: relative;" id="hist-search-container">
+                                <input type="text" id="hist-product-search" class="form-control" 
+                                    placeholder="Gõ tên hoặc mã SP..." autocomplete="off">
+                                <input type="hidden" id="hist-product-id">
+                                <div class="searchable-dropdown" id="hist-results"></div>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin: 0; flex: 1; max-width: 250px;">
+                            <label>Thời điểm tra cứu (Target Date) <span style="color:var(--admin-danger)">*</span></label>
+                            <input type="datetime-local" id="hist-date" class="form-control">
+                        </div>
+                        <button class="btn btn-add" onclick="fetchHistoricalStock()" id="btn-hist">
+                            🔍 Đối soát tồn kho
+                        </button>
+                    </div>
+
+                    <div class="stats-grid" id="hist-result" style="display: none; margin-bottom: 0;">
+                        <div class="stat-card" style="background: #fffbeb; border-color: #fde68a;">
+                            <div class="stat-icon amber">📦</div>
+                            <div>
+                                <div class="stat-value" id="hist-initial">0</div>
+                                <div class="stat-label">Tồn kho ban đầu</div>
+                            </div>
+                        </div>
+                        <div class="stat-card" style="background: #eff6ff; border-color: #bfdbfe;">
+                            <div class="stat-icon blue">📥</div>
+                            <div>
+                                <div class="stat-value" id="hist-in" style="color: #1d4ed8;">0</div>
+                                <div class="stat-label">Tổng nhập đến T</div>
+                            </div>
+                        </div>
+                        <div class="stat-card" style="background: #fef2f2; border-color: #fecaca;">
+                            <div class="stat-icon purple" style="background: #fee2e2; color: #b91c1c;">📤</div>
+                            <div>
+                                <div class="stat-value" id="hist-out" style="color: #b91c1c;">0</div>
+                                <div class="stat-label">Tổng xuất đến T</div>
+                            </div>
+                        </div>
+                        <div class="stat-card" style="background: #f0fdf4; border-color: #bbf7d0; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15);">
+                            <div class="stat-icon green">✅</div>
+                            <div>
+                                <div class="stat-value" id="hist-final" style="color: #15803d; font-size: 2.2rem;">0</div>
+                                <div class="stat-label" style="font-weight: 600; color: #166534;">TỒN KHO THỰC TẾ</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="border-top: 4px solid #8b5cf6;">
+                <div class="card-header" style="background: #f8fafc;">
+                    <h3 class="card-title">📊 Báo cáo Nhập - Xuất theo giai đoạn</h3>
+                </div>
+                <div class="card-body">
+                    <div class="toolbar flex-row" style="margin-bottom: 24px; align-items: flex-end; background: white; padding: 15px; border-radius: 8px; border: 1px dashed var(--border);">
+                        <div class="form-group" style="margin: 0; flex: 1; max-width: 350px;">
+                            <label>Chọn sản phẩm <span style="color:var(--admin-danger)">*</span></label>
+                            <div style="position: relative;" id="hist-search-container">
+                                <input type="text" id="period-product-search" class="form-control" 
+                                    placeholder="Gõ tên hoặc mã SP..." autocomplete="off">
+                                <input type="hidden" id="period-product-id">
+                                <div class="searchable-dropdown" id="period-results"></div>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label>Từ ngày <span style="color:var(--admin-danger)">*</span></label>
+                            <input type="date" id="period-start" class="form-control" style="width: 180px;">
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label>Đến ngày <span style="color:var(--admin-danger)">*</span></label>
+                            <input type="date" id="period-end" class="form-control" style="width: 180px;">
+                        </div>
+                        <button class="btn btn-add" style="background: #8b5cf6;" onclick="fetchImportExport()" id="btn-period">
+                            📈 Xem lưu chuyển
+                        </button>
+                    </div>
+
+                    <div class="stats-grid" id="period-result" style="display: none; grid-template-columns: 1fr 1fr; max-width: 800px; margin: 0 auto;">
+                        <div class="stat-card" style="padding: 30px; justify-content: center;">
+                            <div class="stat-icon blue" style="width: 64px; height: 64px; font-size: 2rem;">📥</div>
+                            <div>
+                                <div class="stat-label" style="font-size: 1rem;">Tổng SL Nhập vào</div>
+                                <div class="stat-value" id="period-in" style="color: #1d4ed8; font-size: 2.5rem;">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card" style="padding: 30px; justify-content: center;">
+                            <div class="stat-icon purple" style="background: #fee2e2; color: #b91c1c; width: 64px; height: 64px; font-size: 2rem;">📤</div>
+                            <div>
+                                <div class="stat-label" style="font-size: 1rem;">Tổng SL Xuất ra</div>
+                                <div class="stat-value" id="period-out" style="color: #b91c1c; font-size: 2.5rem;">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<div class="toast" id="admin-toast"></div>
+
+<script src="/js/admin/admin-token.js"></script>
+<script src="/js/admin/admin-api.js"></script>
+<script src="/js/admin/admin-auth.js"></script>
+<script src="/js/admin/admin-layout.js"></script>
+<script src="/js/admin/admin-utils.js"></script>
+<script>
+initAdminLayout({ 
+    title: 'Báo cáo & Thống kê', 
+    icon: '📈', 
+    activePage: 'reports' 
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('hist-date').value = now.toISOString().slice(0,16);
+
+    loadProductsForSelects();
+});
+
+// Hàm gọi API lấy danh sách sản phẩm đổ vào 2 thẻ Select
+async function loadProductsForSelects() {
+    try {
+        const res = await adminRequest('/products?per_page=1000');
+        const products = res.data.data || res.data;
+        
+        const selects = document.querySelectorAll('.product-select');
+        let optionsHtml = '<option value="">-- Chọn sản phẩm cần tra cứu --</option>';
+        
+        products.forEach(p => {
+            optionsHtml += `<option value="${p.id}">[${p.code}] ${p.name}</option>`;
+        });
+
+        selects.forEach(select => select.innerHTML = optionsHtml);
+    } catch (err) {
+        showAdminToast('Lỗi tải danh sách sản phẩm', 'error');
+    }
+}
+
+// ==========================================
+// 1. TRA CỨU TỒN KHO LỊCH SỬ (THẺ KHO)
+// ==========================================
+async function fetchHistoricalStock() {
+    const productId = document.getElementById('hist-product').value;
+    const targetDate = document.getElementById('hist-date').value;
+    const btn = document.getElementById('btn-hist');
+
+    if (!productId || !targetDate) {
+        showAdminToast('Vui lòng chọn sản phẩm và thời điểm', 'error');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Đang tính...';
+
+    try {
+        // Gọi Endpoint 1
+        const res = await adminRequest(`/reports/historical-stock?product_id=${productId}&target_date=${targetDate.replace('T', ' ')}:59`);
+        const data = res.data;
+
+        // Đổ dữ liệu vào DOM
+        document.getElementById('hist-initial').textContent = new Intl.NumberFormat('vi-VN').format(data.initial_quantity);
+        document.getElementById('hist-in').textContent = '+' + new Intl.NumberFormat('vi-VN').format(data.total_in);
+        document.getElementById('hist-out').textContent = '-' + new Intl.NumberFormat('vi-VN').format(data.total_out);
+        document.getElementById('hist-final').textContent = new Intl.NumberFormat('vi-VN').format(data.historical_stock);
+
+        // Hiển thị khung kết quả
+        document.getElementById('hist-result').style.display = 'grid';
+        showAdminToast('Truy xuất dữ liệu thành công', 'success');
+
+    } catch (err) {
+        showAdminToast(err.data?.message || 'Lỗi truy xuất tồn kho', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '🔍 Đối soát tồn kho';
+    }
+}
+
+// ==========================================
+// 2. BÁO CÁO NHẬP XUẤT THEO GIAI ĐOẠN
+// ==========================================
+async function fetchImportExport() {
+    const productId = document.getElementById('period-product').value;
+    const startDate = document.getElementById('period-start').value;
+    const endDate = document.getElementById('period-end').value;
+    const btn = document.getElementById('btn-period');
+
+    if (!productId || !startDate || !endDate) {
+        showAdminToast('Vui lòng điền đủ thông tin', 'error');
+        return;
+    }
+
+    if (startDate > endDate) {
+        showAdminToast('Ngày kết thúc phải lớn hơn ngày bắt đầu', 'error');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Đang tính...';
+
+    try {
+        const query = `product_id=${productId}&start_date=${startDate} 00:00:00&end_date=${endDate} 23:59:59`;
+        const res = await adminRequest(`/reports/import-export?${query}`);
+        const data = res.data;
+
+        // Đổ dữ liệu vào DOM
+        document.getElementById('period-in').textContent = new Intl.NumberFormat('vi-VN').format(data.total_in);
+        document.getElementById('period-out').textContent = new Intl.NumberFormat('vi-VN').format(data.total_out);
+
+        // Hiển thị khung kết quả
+        document.getElementById('period-result').style.display = 'grid';
+        showAdminToast('Trích xuất báo cáo thành công', 'success');
+
+    } catch (err) {
+        showAdminToast(err.data?.message || 'Lỗi truy xuất báo cáo', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '📈 Xem lưu chuyển';
+    }
+}
+
+
+// ==========================================
+// 3. UTILS SEARCHABLE DROPDOWN
+// ==========================================
+
+let allProducts = [];
+
+async function loadProductsForSelects() {
+    try {
+        const res = await adminRequest('/products?per_page=1000');
+        allProducts = res.data.data || res.data;
+        
+        // Khởi tạo cho cả 2 bộ lọc
+        initSearchableSelect('hist-product-search', 'hist-results', 'hist-product-id');
+        initSearchableSelect('period-product-search', 'period-results', 'period-product-id');
+    } catch (err) {
+        showAdminToast('Lỗi tải danh sách sản phẩm', 'error');
+    }
+}
+
+function initSearchableSelect(inputId, resultsId, hiddenId) {
+    const input = document.getElementById(inputId);
+    const resultsDiv = document.getElementById(resultsId);
+    const hiddenInput = document.getElementById(hiddenId);
+
+    input.addEventListener('focus', () => renderDropdown(input.value, resultsDiv, input, hiddenInput));
+    input.addEventListener('input', (e) => renderDropdown(e.target.value, resultsDiv, input, hiddenInput));
+
+    // Đóng khi click ra ngoài
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest(`#${inputId}-search` === e.target.id ? `#${inputId}` : `#${resultsId}`)) {
+             if (e.target !== input) resultsDiv.classList.remove('show');
+        }
+    });
+}
+
+function renderDropdown(query, container, inputEl, hiddenEl) {
+    const term = query.toLowerCase().trim();
+    const filtered = allProducts.filter(p => 
+        p.name.toLowerCase().includes(term) || p.code.toLowerCase().includes(term)
+    );
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<div class="searchable-item">Không tìm thấy sản phẩm</div>`;
+    } else {
+        // Tận dụng class .searchable-item bạn đã có
+        container.innerHTML = filtered.map(p => `
+            <div class="searchable-item" data-id="${p.id}" data-code="${AdminString.esc(p.code)}" data-name="${AdminString.esc(p.name)}">
+                <strong>[${AdminString.esc(p.code)}]</strong> ${AdminString.esc(p.name)}
+            </div>
+        `).join('');
+    }
+
+    container.classList.add('show');
+
+    // Xử lý khi chọn
+    container.querySelectorAll('.searchable-item').forEach(item => {
+        item.onclick = () => {
+            if (!item.dataset.id) return;
+            inputEl.value = `[${item.dataset.code}] ${item.dataset.name}`;
+            hiddenEl.value = item.dataset.id;
+            container.classList.remove('show');
+        };
+    });
+}
+</script>
+</body>
+</html>

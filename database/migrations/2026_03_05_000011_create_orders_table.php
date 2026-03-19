@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('promotion_id')->nullable()->constrained('promotions')->nullOnDelete();
             $table->dateTime('order_date')->nullable();
-            $table->enum('status', ['new', 'confirmed', 'delivered', 'cancelled'])->default('new');
+            $table->enum('status', ['new', 'completed', 'confirmed', 'shipping', 'delivered', 'failed', 'cancelled'])->default('new');
             $table->text('shipping_address');
             $table->string('receiver_name')->nullable();
             $table->string('receiver_phone', 20)->nullable();
