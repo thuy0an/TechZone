@@ -18,6 +18,47 @@
         .toolbar {
             overflow: visible !important;
         }
+        .report-tabs          { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:24px; margin-top: 20px }
+        .report-tab-btn       { padding:15px 25px; border:1.5px solid var(--border);
+                                border-radius:var(--radius); background:#fff;
+                                font-size:.9rem; font-weight:600; cursor:pointer;
+                                color:var(--text-secondary); transition:var(--transition); }
+        .report-tab-btn:hover { border-color:var(--admin-accent); color:var(--admin-accent); }
+        .report-tab-btn.active{ background:var(--admin-accent); border-color:var(--admin-accent);
+                                color:#fff; }
+        .report-tab-panel     { display:none; }
+        .report-tab-panel.active { display:block; }
+        
+        /* Tab nhỏ bên trong card (Best Sellers) */
+        .inner-tabs           { display:flex; gap:6px; margin-bottom:16px; }
+        .inner-tab-btn        { padding:6px 16px; border:1.5px solid var(--border);
+                                border-radius:8px; background:#f8fafc; font-size:.825rem;
+                                font-weight:600; cursor:pointer; color:var(--text-secondary);
+                                transition:var(--transition); }
+        .inner-tab-btn.active { background:var(--admin-accent); border-color:var(--admin-accent);
+                                color:#fff; }
+        .inner-panel          { display:none; }
+        .inner-panel.active   { display:block; }
+        
+        /* Màu số dương/âm */
+        .text-success { color:var(--admin-success); font-weight:600; }
+        .text-danger  { color:var(--admin-danger);  font-weight:600; }
+        .text-muted   { color:var(--text-secondary); }
+        
+        .chart-wrap   { position:relative; }
+        .chart-wrap canvas { max-height:340px; }
+        
+        /* Filter bar tái sử dụng */
+        .filter-bar   { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;
+                        margin-bottom:20px; }
+        .filter-bar .form-group { margin-bottom:0; }
+        .filter-bar select,
+        .filter-bar input[type="date"] { padding:9px 12px; border:1.5px solid var(--border);
+                                        border-radius:var(--radius); font-size:.875rem;
+                                        background:#fff; color:var(--text-primary); outline:none;
+                                        transition:var(--transition); }
+        .filter-bar select:focus,
+        .filter-bar input[type="date"]:focus { border-color:var(--admin-accent); }
     </style>
 </head>
 <body>
@@ -135,6 +176,335 @@
                     </div>
                 </div>
             </div>
+                        <!-- ② Tab Navigation -->
+            <div class="report-tabs" id="reportTabNav">
+                <button class="report-tab-btn active" onclick="switchTab('finance')">💰 Tài Chính</button>
+                <button class="report-tab-btn"        onclick="switchTab('products')">📦 Sản Phẩm</button>
+                <button class="report-tab-btn"        onclick="switchTab('operations')">⚙️ Vận Hành</button>
+            </div>
+            
+            <!-- ================================================================
+                TAB 1 – TÀI CHÍNH
+                ================================================================ -->
+            <div class="report-tab-panel active" id="tab-finance">
+            
+            <!-- Doanh thu & Lợi nhuận -->
+            <div class="card" style="margin-bottom:24px">
+                <div class="card-header">
+                <span class="card-title">📈 Doanh Thu &amp; Lợi Nhuận Gộp</span>
+                </div>
+                <div class="card-body">
+            
+                <!-- Summary stats -->
+                <div class="stats-grid" id="rp-stats" style="margin-bottom:16px">
+                    <div class="stat-card">
+                    <div class="stat-icon blue">📊</div>
+                    <div><div class="stat-value" id="rp-total-revenue">—</div>
+                        <div class="stat-label">Tổng Doanh Thu</div></div>
+                    </div>
+                    <div class="stat-card">
+                    <div class="stat-icon amber">💸</div>
+                    <div><div class="stat-value" id="rp-total-cost">—</div>
+                        <div class="stat-label">Tổng Giá Vốn</div></div>
+                    </div>
+                    <div class="stat-card">
+                    <div class="stat-icon green">💰</div>
+                    <div><div class="stat-value" id="rp-gross-profit">—</div>
+                        <div class="stat-label">Lợi Nhuận Gộp</div></div>
+                    </div>
+                </div>
+            
+                <!-- Filters -->
+                <div class="filter-bar">
+                    <div class="form-group">
+                    <label>Chu kỳ</label>
+                    <select id="rp-period">
+                        <option value="daily">Theo ngày</option>
+                        <option value="monthly" selected>Theo tháng</option>
+                    </select>
+                    </div>
+                    <div class="form-group">
+                    <label>Từ ngày</label>
+                    <input type="date" id="rp-start">
+                    </div>
+                    <div class="form-group">
+                    <label>Đến ngày</label>
+                    <input type="date" id="rp-end">
+                    </div>
+                    <button class="btn btn-add" onclick="loadRevenueProfit()">🔍 Xem báo cáo</button>
+                </div>
+            
+                <div class="chart-wrap">
+                    <canvas id="chart-revenue-profit"></canvas>
+                </div>
+                </div>
+            </div>
+            
+            <!-- Dòng tiền -->
+            <div class="card" style="margin-bottom:24px">
+                <div class="card-header">
+                <span class="card-title">💵 Dòng Tiền (Cash Flow)</span>
+                </div>
+                <div class="card-body">
+            
+                <div class="stats-grid" style="margin-bottom:16px">
+                    <div class="stat-card">
+                    <div class="stat-icon green">⬆️</div>
+                    <div><div class="stat-value" id="cf-inflow">—</div>
+                        <div class="stat-label">Tổng Thu Vào</div></div>
+                    </div>
+                    <div class="stat-card">
+                    <div class="stat-icon amber">⬇️</div>
+                    <div><div class="stat-value" id="cf-outflow">—</div>
+                        <div class="stat-label">Tổng Chi Ra</div></div>
+                    </div>
+                    <div class="stat-card">
+                    <div class="stat-icon blue">⚖️</div>
+                    <div><div class="stat-value" id="cf-net">—</div>
+                        <div class="stat-label">Dòng Tiền Ròng</div></div>
+                    </div>
+                </div>
+            
+                <div class="filter-bar">
+                    <div class="form-group">
+                    <label>Chu kỳ</label>
+                    <select id="cf-period">
+                        <option value="daily">Theo ngày</option>
+                        <option value="monthly" selected>Theo tháng</option>
+                    </select>
+                    </div>
+                    <div class="form-group">
+                    <label>Từ ngày</label>
+                    <input type="date" id="cf-start">
+                    </div>
+                    <div class="form-group">
+                    <label>Đến ngày</label>
+                    <input type="date" id="cf-end">
+                    </div>
+                    <button class="btn btn-add" onclick="loadCashFlow()">🔍 Xem báo cáo</button>
+                </div>
+            
+                <div class="chart-wrap">
+                    <canvas id="chart-cash-flow"></canvas>
+                </div>
+                </div>
+            </div>
+            
+            <!-- Công nợ nhà cung cấp -->
+            <div class="card">
+                <div class="card-header">
+                <span class="card-title">🏢 Công Nợ Nhà Cung Cấp</span>
+                <button class="btn btn-add" onclick="loadSupplierPayable()">↻ Làm mới</button>
+                </div>
+                <div class="card-body" style="padding:0">
+                <div id="sp-summary" style="padding:16px 24px;border-bottom:1px solid var(--border);display:flex;gap:32px">
+                    <span>Số NCC còn nợ: <strong id="sp-count">—</strong></span>
+                    <span>Tổng nợ: <strong class="text-danger" id="sp-grand-debt">—</strong></span>
+                </div>
+                <div style="overflow-x:auto">
+                    <table class="data-table" id="sp-table">
+                    <thead>
+                        <tr>
+                        <th>#</th>
+                        <th>Nhà cung cấp</th>
+                        <th>SĐT</th>
+                        <th>Số phiếu</th>
+                        <th>Tổng tiền hàng</th>
+                        <th>Đã thanh toán</th>
+                        <th class="text-danger">Còn nợ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sp-tbody">
+                        <tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:32px">
+                        Nhấn "Làm mới" để tải dữ liệu
+                        </td></tr>
+                    </tbody>
+                    </table>
+                </div>
+                </div>
+            </div>
+            
+            </div><!-- /tab-finance -->
+            
+            
+            <!-- ================================================================
+                TAB 2 – SẢN PHẨM
+                ================================================================ -->
+            <div class="report-tab-panel" id="tab-products">
+            
+            <!-- Best Sellers -->
+            <div class="card" style="margin-bottom:24px">
+                <div class="card-header">
+                <span class="card-title">🏆 Top Sản Phẩm Bán Chạy</span>
+                </div>
+                <div class="card-body">
+                <div class="filter-bar" style="margin-bottom:16px">
+                    <div class="form-group">
+                    <label>Số lượng hiển thị</label>
+                    <select id="bs-limit">
+                        <option value="10" selected>Top 10</option>
+                        <option value="20">Top 20</option>
+                        <option value="50">Top 50</option>
+                    </select>
+                    </div>
+                    <div class="form-group">
+                    <label>Từ ngày</label>
+                    <input type="date" id="bs-start">
+                    </div>
+                    <div class="form-group">
+                    <label>Đến ngày</label>
+                    <input type="date" id="bs-end">
+                    </div>
+                    <button class="btn btn-add" onclick="loadBestSellers()">🔍 Tải báo cáo</button>
+                </div>
+            
+                <!-- Inner tabs -->
+                <div class="inner-tabs">
+                    <button class="inner-tab-btn active" onclick="switchInnerTab('bs-qty')">📦 Theo Số Lượng</button>
+                    <button class="inner-tab-btn"        onclick="switchInnerTab('bs-rev')">💰 Theo Doanh Thu</button>
+                </div>
+            
+                <div class="inner-panel active" id="bs-qty">
+                    <div style="overflow-x:auto">
+                    <table class="data-table">
+                        <thead><tr><th>#</th><th>Mã SP</th><th>Tên sản phẩm</th><th>Số lượng bán</th><th>Doanh thu</th></tr></thead>
+                        <tbody id="bs-qty-tbody">
+                        <tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:32px">Chưa có dữ liệu</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            
+                <div class="inner-panel" id="bs-rev">
+                    <div style="overflow-x:auto">
+                    <table class="data-table">
+                        <thead><tr><th>#</th><th>Mã SP</th><th>Tên sản phẩm</th><th>Doanh thu</th><th>Số lượng bán</th></tr></thead>
+                        <tbody id="bs-rev-tbody">
+                        <tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:32px">Chưa có dữ liệu</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+                </div>
+            </div>
+            
+            <!-- Hàng chậm luân chuyển -->
+            <div class="card">
+                <div class="card-header">
+                <span class="card-title">🐌 Hàng Chậm Luân Chuyển</span>
+                </div>
+                <div class="card-body">
+                <div class="filter-bar" style="margin-bottom:16px">
+                    <div class="form-group">
+                    <label>Không bán trong</label>
+                    <select id="sm-days">
+                        <option value="30">30 ngày</option>
+                        <option value="60" selected>60 ngày</option>
+                        <option value="90">90 ngày</option>
+                    </select>
+                    </div>
+                    <button class="btn btn-add" onclick="loadSlowMoving()">🔍 Tra cứu</button>
+                </div>
+            
+                <div id="sm-summary" style="display:none;margin-bottom:16px" class="stats-grid">
+                    <div class="stat-card">
+                    <div class="stat-icon amber">📦</div>
+                    <div><div class="stat-value" id="sm-count">0</div>
+                        <div class="stat-label">Sản phẩm chậm</div></div>
+                    </div>
+                    <div class="stat-card">
+                    <div class="stat-icon purple">💰</div>
+                    <div><div class="stat-value" id="sm-value">0</div>
+                        <div class="stat-label">Giá trị tồn đọng</div></div>
+                    </div>
+                </div>
+            
+                <div style="overflow-x:auto">
+                    <table class="data-table">
+                    <thead>
+                        <tr><th>#</th><th>Mã SP</th><th>Tên sản phẩm</th><th>Tồn kho</th><th>Giá nhập</th><th>Giá trị tồn</th></tr>
+                    </thead>
+                    <tbody id="sm-tbody">
+                        <tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:32px">Chọn khoảng thời gian và nhấn Tra cứu</td></tr>
+                    </tbody>
+                    </table>
+                </div>
+                </div>
+            </div>
+            
+            </div><!-- /tab-products -->
+            
+            
+            <!-- ================================================================
+                TAB 3 – VẬN HÀNH
+                ================================================================ -->
+            <div class="report-tab-panel" id="tab-operations">
+            
+            <!-- Trạng thái đơn hàng -->
+            <div class="card" style="margin-bottom:24px">
+                <div class="card-header">
+                <span class="card-title">🥧 Tỷ Lệ Trạng Thái Đơn Hàng</span>
+                </div>
+                <div class="card-body">
+                <div class="filter-bar" style="margin-bottom:16px">
+                    <div class="form-group"><label>Từ ngày</label><input type="date" id="os-start"></div>
+                    <div class="form-group"><label>Đến ngày</label><input type="date" id="os-end"></div>
+                    <button class="btn btn-add" onclick="loadOrderStatus()">🔍 Xem báo cáo</button>
+                </div>
+            
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+                    <div class="chart-wrap" style="max-width:320px;margin:0 auto">
+                    <canvas id="chart-order-status"></canvas>
+                    </div>
+                    <div style="overflow-x:auto">
+                    <table class="data-table" id="os-table">
+                        <thead><tr><th>Trạng thái</th><th>Số đơn</th><th>Tỷ lệ</th></tr></thead>
+                        <tbody id="os-tbody">
+                        <tr><td colspan="3" style="text-align:center;color:var(--text-secondary);padding:32px">Chưa có dữ liệu</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+                </div>
+            </div>
+            
+            <!-- Doanh thu theo khu vực -->
+            <div class="card">
+                <div class="card-header">
+                <span class="card-title">🗺️ Phân Bổ Doanh Thu Theo Khu Vực</span>
+                </div>
+                <div class="card-body">
+                <div class="filter-bar" style="margin-bottom:16px">
+                    <div class="form-group"><label>Từ ngày</label><input type="date" id="sr-start"></div>
+                    <div class="form-group"><label>Đến ngày</label><input type="date" id="sr-end"></div>
+                    <div class="form-group">
+                    <label>Số tỉnh/thành</label>
+                    <select id="sr-limit">
+                        <option value="10">Top 10</option>
+                        <option value="15" selected>Top 15</option>
+                        <option value="63">Tất cả</option>
+                    </select>
+                    </div>
+                    <button class="btn btn-add" onclick="loadSalesByRegion()">🔍 Xem báo cáo</button>
+                </div>
+            
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+                    <div class="chart-wrap">
+                    <canvas id="chart-region" style="max-height:400px"></canvas>
+                    </div>
+                    <div style="overflow-x:auto">
+                    <table class="data-table">
+                        <thead><tr><th>#</th><th>Tỉnh/Thành</th><th>Số đơn</th><th>Doanh thu</th><th>Tỷ lệ</th></tr></thead>
+                        <tbody id="sr-tbody">
+                        <tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:32px">Chưa có dữ liệu</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+                </div>
+            </div>
+            
+            </div>
 
         </main>
     </div>
@@ -147,6 +517,7 @@
 <script src="/js/admin/admin-auth.js"></script>
 <script src="/js/admin/admin-layout.js"></script>
 <script src="/js/admin/admin-utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script>
 initAdminLayout({ 
     title: 'Báo cáo & Thống kê', 
@@ -328,6 +699,377 @@ function renderDropdown(query, container, inputEl, hiddenEl) {
         };
     });
 }
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+const vnd = v => new Intl.NumberFormat('vi-VN').format(Math.round(v)) + '₫';
+ 
+/** Khởi tạo ngày mặc định: start = 6 tháng trước, end = hôm nay */
+function defaultDates(startId, endId) {
+  const today = new Date();
+  const past  = new Date(); past.setMonth(past.getMonth() - 6);
+  document.getElementById(endId).value   = today.toISOString().slice(0,10);
+  document.getElementById(startId).value = past.toISOString().slice(0,10);
+}
+ 
+/** Màu cho từng trạng thái đơn hàng */
+const STATUS_COLOR = {
+  completed:  '#10b981', cancelled: '#ef4444',
+  pending:    '#f59e0b', confirmed: '#3b82f6',
+  shipping:   '#8b5cf6', failed:    '#64748b',
+  delivered:  '#06b6d4',
+};
+ 
+const STATUS_LABEL = {
+  completed: 'Hoàn thành', cancelled: 'Đã hủy',
+  new:   'Mới',  confirmed: 'Đã xác nhận',
+  shipping:  'Đang giao',   failed:    'Thất bại',
+  delivered: 'Đã giao',
+};
+ 
+/** Palette màu cho biểu đồ nhiều cột */
+const PALETTE = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444',
+                 '#06b6d4','#84cc16','#f97316','#ec4899','#14b8a6'];
+ 
+// ─── Tabs ─────────────────────────────────────────────────────────────────
+function switchTab(id) {
+  document.querySelectorAll('.report-tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.report-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  document.querySelectorAll('.report-tab-btn').forEach(b => {
+    if (b.textContent.toLowerCase().includes(
+      id === 'finance' ? 'tài' : id === 'products' ? 'sản' : 'vận')) {
+      b.classList.add('active');
+    }
+  });
+}
+ 
+function switchInnerTab(id) {
+  document.querySelectorAll('.inner-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.inner-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+ 
+// ─── Chart instances (destroy trước khi vẽ lại) ───────────────────────────
+const _charts = {};
+function getChart(id, type, data, options = {}) {
+  if (_charts[id]) _charts[id].destroy();
+  const ctx = document.getElementById(id).getContext('2d');
+  _charts[id] = new Chart(ctx, { type, data, options });
+  return _charts[id];
+}
+ 
+// ═══════════════════════════════════════════════════════════════════════════
+// DOANH THU & LỢI NHUẬN GỘP
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadRevenueProfit() {
+  const period = document.getElementById('rp-period').value;
+  const start  = document.getElementById('rp-start').value;
+  const end    = document.getElementById('rp-end').value;
+  if (!start || !end) return showAdminToast('Vui lòng chọn khoảng thời gian', 'error');
+ 
+  try {
+    const res = await adminRequest(
+      `/reports/revenue-profit?period=${period}&start_date=${start}&end_date=${end}`);
+    const d   = res.data;
+ 
+    document.getElementById('rp-total-revenue').textContent = vnd(d.total_revenue);
+    document.getElementById('rp-total-cost').textContent    = vnd(d.total_cost);
+    document.getElementById('rp-gross-profit').textContent  = vnd(d.total_gross_profit);
+ 
+    const labels = d.chart_data.map(r => r.label);
+    getChart('chart-revenue-profit', 'bar', {
+      labels,
+      datasets: [
+        { label: 'Doanh thu',    data: d.chart_data.map(r => r.revenue),
+          backgroundColor: '#3b82f6', borderRadius: 6 },
+        { label: 'Giá vốn',     data: d.chart_data.map(r => r.cost),
+          backgroundColor: '#f59e0b', borderRadius: 6 },
+        { label: 'Lợi nhuận gộp', data: d.chart_data.map(r => r.gross_profit),
+          backgroundColor: '#10b981', borderRadius: 6 },
+      ],
+    }, {
+      responsive: true,
+      plugins: { legend: { position: 'top' },
+                 tooltip: { callbacks: { label: ctx => vnd(ctx.parsed.y) } } },
+      scales: { y: { ticks: { callback: v => vnd(v) } } },
+    });
+  } catch (e) {
+    showAdminToast(e.message || 'Lỗi tải dữ liệu', 'error');
+  }
+}
+ 
+// ═══════════════════════════════════════════════════════════════════════════
+// DÒNG TIỀN
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadCashFlow() {
+  const period = document.getElementById('cf-period').value;
+  const start  = document.getElementById('cf-start').value;
+  const end    = document.getElementById('cf-end').value;
+  if (!start || !end) return showAdminToast('Vui lòng chọn khoảng thời gian', 'error');
+ 
+  try {
+    const res = await adminRequest(
+      `/reports/cash-flow?period=${period}&start_date=${start}&end_date=${end}`);
+    const d   = res.data;
+ 
+    document.getElementById('cf-inflow').textContent  = vnd(d.total_inflow);
+    document.getElementById('cf-outflow').textContent = vnd(d.total_outflow);
+    const netEl = document.getElementById('cf-net');
+    netEl.textContent = vnd(d.net_cash_flow);
+    netEl.className   = 'stat-value ' + (d.net_cash_flow >= 0 ? 'text-success' : 'text-danger');
+ 
+    const labels = d.chart_data.map(r => r.label);
+    getChart('chart-cash-flow', 'bar', {
+      labels,
+      datasets: [
+        { label: 'Thu vào', data: d.chart_data.map(r => r.inflow),
+          backgroundColor: '#10b981', borderRadius: 6 },
+        { label: 'Chi ra',  data: d.chart_data.map(r => r.outflow),
+          backgroundColor: '#ef4444', borderRadius: 6 },
+        { label: 'Ròng',    data: d.chart_data.map(r => r.net),
+          type: 'line', borderColor: '#3b82f6', backgroundColor: 'transparent',
+          tension: 0.3, pointRadius: 4 },
+      ],
+    }, {
+      responsive: true,
+      plugins: { legend: { position: 'top' },
+                 tooltip: { callbacks: { label: ctx => vnd(ctx.parsed.y) } } },
+      scales: { y: { ticks: { callback: v => vnd(v) } } },
+    });
+  } catch (e) {
+    showAdminToast(e.message || 'Lỗi tải dữ liệu', 'error');
+  }
+}
+ 
+// ═══════════════════════════════════════════════════════════════════════════
+// BEST SELLERS
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadBestSellers() {
+  const limit = document.getElementById('bs-limit').value;
+  const start = document.getElementById('bs-start').value;
+  const end   = document.getElementById('bs-end').value;
+ 
+  const buildRow = (r, i, primary, secondary) =>
+    `<tr>
+      <td>${i+1}</td>
+      <td><code>${escHtml(r.code)}</code></td>
+      <td>${escHtml(r.name)}</td>
+      <td>${primary}</td>
+      <td>${secondary}</td>
+    </tr>`;
+ 
+  try {
+    // Load theo số lượng
+    let url = `/reports/best-sellers?sort_by=quantity&limit=${limit}`;
+    if (start) url += `&start_date=${start}`;
+    if (end)   url += `&end_date=${end}`;
+    const r1 = await adminRequest(url);
+    document.getElementById('bs-qty-tbody').innerHTML =
+      r1.data.items.length
+        ? r1.data.items.map((r,i) =>
+            buildRow(r, i,
+              `<strong>${r.total_qty.toLocaleString('vi-VN')}</strong>`,
+              vnd(r.total_revenue)
+            )).join('')
+        : '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-secondary)">Không có dữ liệu</td></tr>';
+ 
+    // Load theo doanh thu
+    const url2 = url.replace('sort_by=quantity','sort_by=revenue');
+    const r2   = await adminRequest(url2);
+    document.getElementById('bs-rev-tbody').innerHTML =
+      r2.data.items.length
+        ? r2.data.items.map((r,i) =>
+            buildRow(r, i,
+              vnd(r.total_revenue),
+              `${r.total_qty.toLocaleString('vi-VN')}`
+            )).join('')
+        : '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-secondary)">Không có dữ liệu</td></tr>';
+ 
+    showAdminToast('Đã tải top sản phẩm bán chạy', 'success');
+  } catch (e) {
+    showAdminToast(e.message || 'Lỗi tải dữ liệu', 'error');
+  }
+}
+ 
+// ═══════════════════════════════════════════════════════════════════════════
+// HÀNG CHẬM LUÂN CHUYỂN
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadSlowMoving() {
+  const days = document.getElementById('sm-days').value;
+  try {
+    const res = await adminRequest(`/reports/slow-moving-stock?days=${days}`);
+    const d   = res.data;
+ 
+    document.getElementById('sm-count').textContent = d.total_products.toLocaleString('vi-VN');
+    document.getElementById('sm-value').textContent = vnd(d.total_value);
+    document.getElementById('sm-summary').style.display = 'grid';
+ 
+    document.getElementById('sm-tbody').innerHTML = d.items.length
+      ? d.items.map((r, i) => `
+          <tr>
+            <td>${i+1}</td>
+            <td><code>${escHtml(r.code)}</code></td>
+            <td>${escHtml(r.name)}</td>
+            <td><span class="badge warning">${r.stock_quantity.toLocaleString('vi-VN')}</span></td>
+            <td>${vnd(r.import_price)}</td>
+            <td class="text-danger">${vnd(r.stock_value)}</td>
+          </tr>`).join('')
+      : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--admin-success)">✅ Không có hàng chậm luân chuyển trong khoảng thời gian này</td></tr>';
+  } catch (e) {
+    showAdminToast(e.message || 'Lỗi tải dữ liệu', 'error');
+  }
+}
+ 
+// ═══════════════════════════════════════════════════════════════════════════
+// TRẠNG THÁI ĐƠN HÀNG
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadOrderStatus() {
+  const start = document.getElementById('os-start').value;
+  const end   = document.getElementById('os-end').value;
+ 
+  let url = '/reports/order-status';
+  const params = [];
+  if (start) params.push(`start_date=${start}`);
+  if (end)   params.push(`end_date=${end}`);
+  if (params.length) url += '?' + params.join('&');
+ 
+  try {
+    const res = await adminRequest(url);
+    const d   = res.data;
+ 
+    const labels = d.items.map(r => STATUS_LABEL[r.status] || r.status);
+    const values = d.items.map(r => r.total);
+    const colors = d.items.map(r => STATUS_COLOR[r.status] || '#94a3b8');
+ 
+    getChart('chart-order-status', 'doughnut', {
+      labels,
+      datasets: [{ data: values, backgroundColor: colors, borderWidth: 2 }],
+    }, {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' },
+        tooltip: { callbacks: { label: ctx =>
+          `${ctx.label}: ${ctx.parsed} đơn (${d.items[ctx.dataIndex].percentage}%)`
+        }},
+      },
+      cutout: '55%',
+    });
+ 
+    document.getElementById('os-tbody').innerHTML = d.items
+      .map(r => `
+        <tr>
+          <td>
+            <span class="badge" style="background:${STATUS_COLOR[r.status]||'#94a3b8'};min-width:auto;padding:4px 10px">
+              ${STATUS_LABEL[r.status] || r.status}
+            </span>
+          </td>
+          <td><strong>${r.total.toLocaleString('vi-VN')}</strong></td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="flex:1;background:#f1f5f9;border-radius:4px;height:6px">
+                <div style="width:${r.percentage}%;background:${STATUS_COLOR[r.status]||'#94a3b8'};height:6px;border-radius:4px"></div>
+              </div>
+              <span style="font-size:.8rem;color:var(--text-secondary);min-width:40px">${r.percentage}%</span>
+            </div>
+          </td>
+        </tr>`).join('');
+  } catch (e) {
+    showAdminToast(e.message || 'Lỗi tải dữ liệu', 'error');
+  }
+}
+ 
+// ═══════════════════════════════════════════════════════════════════════════
+// DOANH THU THEO KHU VỰC
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadSalesByRegion() {
+  const start = document.getElementById('sr-start').value;
+  const end   = document.getElementById('sr-end').value;
+  const limit = document.getElementById('sr-limit').value;
+ 
+  const params = [`limit=${limit}`];
+  if (start) params.push(`start_date=${start}`);
+  if (end)   params.push(`end_date=${end}`);
+ 
+  try {
+    const res = await adminRequest(`/reports/sales-by-region?${params.join('&')}`);
+    const d   = res.data;
+ 
+    getChart('chart-region', 'bar', {
+      labels: d.items.map(r => r.province_name),
+      datasets: [{
+        label: 'Doanh thu',
+        data: d.items.map(r => r.revenue),
+        backgroundColor: d.items.map((_, i) => PALETTE[i % PALETTE.length]),
+        borderRadius: 5,
+      }],
+    }, {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => vnd(ctx.parsed.x) } },
+      },
+      scales: { x: { ticks: { callback: v => vnd(v) } } },
+    });
+ 
+    document.getElementById('sr-tbody').innerHTML = d.items.map((r, i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td><strong>${escHtml(r.province_name)}</strong></td>
+        <td>${r.order_count.toLocaleString('vi-VN')}</td>
+        <td>${vnd(r.revenue)}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="flex:1;background:#f1f5f9;border-radius:4px;height:6px">
+              <div style="width:${r.percentage}%;background:${PALETTE[i%PALETTE.length]};height:6px;border-radius:4px"></div>
+            </div>
+            <span style="font-size:.8rem;color:var(--text-secondary);min-width:36px">${r.percentage}%</span>
+          </div>
+        </td>
+      </tr>`).join('');
+  } catch (e) {
+    showAdminToast(e.message || 'Lỗi tải dữ liệu', 'error');
+  }
+}
+ 
+// ═══════════════════════════════════════════════════════════════════════════
+// CÔNG NỢ NHÀ CUNG CẤP
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadSupplierPayable() {
+  try {
+    const res = await adminRequest('/reports/supplier-payable');
+    const d   = res.data;
+ 
+    document.getElementById('sp-count').textContent     = d.total_suppliers;
+    document.getElementById('sp-grand-debt').textContent = vnd(d.grand_debt);
+ 
+    document.getElementById('sp-tbody').innerHTML = d.items.length
+      ? d.items.map((r, i) => `
+          <tr>
+            <td>${i+1}</td>
+            <td><strong>${escHtml(r.supplier_name)}</strong></td>
+            <td>${escHtml(r.supplier_phone || '—')}</td>
+            <td>${r.note_count}</td>
+            <td>${vnd(r.total_cost)}</td>
+            <td class="text-success">${vnd(r.total_paid)}</td>
+            <td class="text-danger"><strong>${vnd(r.remaining_debt)}</strong></td>
+          </tr>`).join('')
+      : '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--admin-success)">✅ Không còn công nợ với nhà cung cấp</td></tr>';
+  } catch (e) {
+    showAdminToast(e.message || 'Lỗi tải dữ liệu', 'error');
+  }
+}
+ 
+// ─── Auto-init: set ngày mặc định & tải công nợ ngay khi trang load ───────
+(function init() {
+  defaultDates('rp-start', 'rp-end');
+  defaultDates('cf-start', 'cf-end');
+  defaultDates('sr-start', 'sr-end');
+  defaultDates('os-start', 'os-end');
+  defaultDates('bs-start', 'bs-end');
+  loadSupplierPayable();  // Tab tài chính – tải ngay
+})();
 </script>
 </body>
 </html>

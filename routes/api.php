@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\Admin\Auth\AuthController as AdminAuthController;
 use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Api\Admin\ImportNoteController;
+use App\Http\Controllers\Api\Admin\ReportController;
 use App\Http\Controllers\Api\Admin\UserController;
 /*
 |--------------------------------------------------------------------------
@@ -157,8 +158,15 @@ Route::prefix('admin')->group(function () {
             Route::put('/{id}/lock', [UserController::class, 'toggleLock']);
         });
         // BÁO CÁO THỐNG KÊ
-        Route::get('reports/historical-stock', [\App\Http\Controllers\Api\Admin\ReportController::class, 'historicalStock']);
-        Route::get('reports/import-export', [\App\Http\Controllers\Api\Admin\ReportController::class, 'importExportReport']);
+        Route::get('reports/historical-stock', [ReportController::class, 'historicalStock']);
+        Route::get('reports/import-export', [ReportController::class, 'importExportReport']);
+        Route::get('reports/revenue-profit',    [ReportController::class, 'revenueProfit']);
+        Route::get('reports/cash-flow',         [ReportController::class, 'cashFlow']);
+        Route::get('reports/best-sellers',      [ReportController::class, 'bestSellers']);
+        Route::get('reports/slow-moving-stock', [ReportController::class, 'slowMovingStock']);
+        Route::get('reports/order-status',      [ReportController::class, 'orderStatusAnalytics']);
+        Route::get('reports/sales-by-region',   [ReportController::class, 'salesByRegion']);
+        Route::get('reports/supplier-payable',  [ReportController::class, 'supplierPayable']);
     });
 });
 
