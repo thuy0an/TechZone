@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\Admin\Auth\AuthController as AdminAuthController;
 use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Api\Admin\ImportNoteController;
+use App\Http\Controllers\Api\Admin\ReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -149,6 +150,10 @@ Route::prefix('admin')->group(function () {
         Route::put('import-notes/{id}/complete', [ImportNoteController::class, 'complete']);
         Route::apiResource('import-notes', ImportNoteController::class);
         Route::post('import-notes/{id}/pay', [\App\Http\Controllers\Api\Admin\ImportNoteController::class, 'pay']);
+
+        // BÁO CÁO
+        Route::get('reports/historical-stock', [ReportController::class, 'historicalStock']);
+        Route::get('reports/import-export', [ReportController::class, 'importExportReport']);
     });
 });
 

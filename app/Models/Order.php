@@ -12,6 +12,7 @@ class Order extends BaseModel
         'user_id',
         'promotion_id',
         'order_date',
+        'order_code',
         'status',
         'shipping_address',
         'receiver_name',
