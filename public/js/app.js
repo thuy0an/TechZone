@@ -21,6 +21,8 @@ const state = {
     detailQuantity: 1,
     currentDetailProduct: null,
     relatedCarouselTimers: {},
+    relatedCache: new Map(),
+    relatedCacheTtlMs: 15 * 60 * 1000,
 };
 
 const CATEGORY_ICONS = {
@@ -700,6 +702,41 @@ function formatPrice(price) {
     }).format(price || 0);
 }
 
+function getRelatedCacheKey(categoryId, brandId) {
+    return `related:${categoryId || 'none'}:${brandId || 'none'}`;
+}
+
+function getCachedRelatedProducts(key) {
+    const entry = state.relatedCache.get(key);
+    if (!entry) return null;
+    if (Date.now() > entry.expiresAt) {
+        state.relatedCache.delete(key);
+        return null;
+    }
+    return entry.items;
+}
+
+function setCachedRelatedProducts(key, items) {
+    state.relatedCache.set(key, {
+        items,
+        expiresAt: Date.now() + state.relatedCacheTtlMs,
+    });
+}
+
+function renderRelatedSkeletonCards(count = 6) {
+    return Array.from({ length: count }, () => {
+        return `
+            <div class="related-card skeleton-card" aria-hidden="true">
+                <div class="skeleton-thumb"></div>
+                <div class="related-info">
+                    <span class="skeleton-line w-70"></span>
+                    <span class="skeleton-line w-40"></span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
 function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
     notification.className = `toast-notification ${type}`;
@@ -756,6 +793,7 @@ function closeProductDetail() {
 }
 
 function setProductDetailLoading() {
+    const modal = document.querySelector('#product-detail-modal .product-detail-modal');
     const title = document.getElementById('product-detail-title');
     const image = document.getElementById('product-detail-image');
     const price = document.getElementById('product-detail-price');
@@ -769,32 +807,58 @@ function setProductDetailLoading() {
     const relatedList = document.getElementById('product-related-list');
     const relatedSection = document.getElementById('product-related');
 
-    if (title) title.textContent = 'Đang tải...';
-    if (image) image.src = 'https://via.placeholder.com/520x360?text=Loading';
-    if (price) price.textContent = '';
-    if (description) description.textContent = '';
-    if (brand) brand.textContent = '';
+    if (modal) modal.classList.add('is-loading');
+    if (title) title.innerHTML = '<span class="skeleton-line w-70"></span>';
+    if (image) {
+        image.removeAttribute('src');
+        image.classList.add('skeleton-block');
+    }
+    if (price) price.innerHTML = '<span class="skeleton-line w-40"></span>';
+    if (description) {
+        description.innerHTML = [
+            '<span class="skeleton-line w-100"></span>',
+            '<span class="skeleton-line w-90"></span>',
+            '<span class="skeleton-line w-60"></span>',
+        ].join('');
+    }
+    if (brand) brand.innerHTML = '<span class="skeleton-line w-50"></span>';
     if (stock) {
         stock.textContent = '';
         stock.classList.remove('out');
     }
-    if (stockQuantity) stockQuantity.textContent = '';
+    if (stockQuantity) stockQuantity.innerHTML = '<span class="skeleton-line w-40"></span>';
     if (qtyValue) qtyValue.textContent = '1';
-    if (specsList) specsList.innerHTML = '';
+    if (specsList) {
+        specsList.innerHTML = Array.from({ length: 4 }, () => {
+            return `
+                <div class="product-spec-item skeleton-card">
+                    <span class="skeleton-line w-40"></span>
+                    <span class="skeleton-line w-50"></span>
+                </div>
+            `;
+        }).join('');
+    }
     if (addButton) {
         addButton.disabled = true;
         addButton.onclick = null;
     }
-    if (relatedList) relatedList.innerHTML = '<div class="loading">Đang tải gợi ý...</div>';
+    if (relatedList) relatedList.innerHTML = renderRelatedSkeletonCards(6);
     if (relatedSection) relatedSection.style.display = '';
     stopRelatedCarousels();
 }
 
 function renderProductDetailError(message) {
+    const modal = document.querySelector('#product-detail-modal .product-detail-modal');
     const title = document.getElementById('product-detail-title');
     const description = document.getElementById('product-detail-description');
     const specsList = document.getElementById('product-detail-specs-list');
+    const image = document.getElementById('product-detail-image');
 
+    if (modal) modal.classList.remove('is-loading');
+    if (image) {
+        image.classList.remove('skeleton-block');
+        image.src = 'https://via.placeholder.com/520x360?text=No+Data';
+    }
     if (title) title.textContent = 'Không thể tải dữ liệu';
     if (description) description.textContent = message;
     if (specsList) {
@@ -803,6 +867,7 @@ function renderProductDetailError(message) {
 }
 
 function renderProductDetail(product) {
+    const modal = document.querySelector('#product-detail-modal .product-detail-modal');
     const title = document.getElementById('product-detail-title');
     const image = document.getElementById('product-detail-image');
     const price = document.getElementById('product-detail-price');
@@ -832,8 +897,13 @@ function renderProductDetail(product) {
     };
     state.detailQuantity = 1;
 
+    if (modal) modal.classList.remove('is-loading');
+
     if (title) title.textContent = productName;
-    if (image) image.src = resolvedImage;
+    if (image) {
+        image.classList.remove('skeleton-block');
+        image.src = resolvedImage;
+    }
     if (price) price.textContent = formatPrice(productPrice);
     if (description) description.textContent = product.description || 'Chưa có mô tả chi tiết.';
     if (brand) {
@@ -879,6 +949,18 @@ async function loadRelatedProducts(product) {
 
     if (!relatedSection || !listContainer) return;
 
+    const cacheKey = getRelatedCacheKey(product.category_id, product.brand_id);
+    const cached = getCachedRelatedProducts(cacheKey);
+
+    if (cached && cached.length) {
+        listContainer.innerHTML = renderRelatedCards(cached);
+        relatedSection.style.display = '';
+        setupRelatedCarousel('related');
+        return;
+    }
+
+    listContainer.innerHTML = renderRelatedSkeletonCards(6);
+
     try {
         const [categoryRes, brandRes] = await Promise.all([
             apiRequest(`/storefront/products?category_id=${product.category_id}&per_page=8`),
@@ -897,6 +979,10 @@ async function loadRelatedProducts(product) {
 
         listContainer.innerHTML = renderRelatedCards(merged);
         relatedSection.style.display = merged.length ? '' : 'none';
+
+        if (merged.length) {
+            setCachedRelatedProducts(cacheKey, merged);
+        }
 
         setupRelatedCarousel('related');
     } catch (error) {

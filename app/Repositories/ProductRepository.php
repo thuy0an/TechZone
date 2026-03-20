@@ -16,7 +16,17 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
 
     public function getStorefrontProducts($filters = [], $perPage = 12)
     {
-        $query = $this->model->with(['category', 'brand']);
+        $query = $this->model
+            ->select([
+                'id',
+                'name',
+                'image',
+                'selling_price',
+                'stock_quantity',
+                'category_id',
+                'brand_id',
+            ])
+            ->with(['category', 'brand']);
         $this->applyVisibleFilter($query);
 
         if (isset($filters['search']) && $filters['search'] !== '') {
@@ -36,7 +46,17 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
 
     public function searchStorefrontProductsBasic(string $keyword, int $perPage = 12)
     {
-        $query = $this->model->with(['category', 'brand']);
+        $query = $this->model
+            ->select([
+                'id',
+                'name',
+                'image',
+                'selling_price',
+                'stock_quantity',
+                'category_id',
+                'brand_id',
+            ])
+            ->with(['category', 'brand']);
         $this->applyVisibleFilter($query);
 
         $query->where('name', 'like', '%' . $keyword . '%');
@@ -46,7 +66,17 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
 
     public function searchStorefrontProductsAdvanced(array $filters = [], int $perPage = 12)
     {
-        $query = $this->model->with(['category', 'brand']);
+        $query = $this->model
+            ->select([
+                'id',
+                'name',
+                'image',
+                'selling_price',
+                'stock_quantity',
+                'category_id',
+                'brand_id',
+            ])
+            ->with(['category', 'brand']);
         $this->applyVisibleFilter($query);
 
         if (!empty($filters['keyword'])) {
@@ -72,7 +102,20 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
 
     public function getVisibleProductById($id)
     {
-        $query = $this->model->with(['category', 'brand']);
+        $query = $this->model
+            ->select([
+                'id',
+                'category_id',
+                'brand_id',
+                'code',
+                'name',
+                'image',
+                'description',
+                'unit',
+                'selling_price',
+                'stock_quantity',
+            ])
+            ->with(['category', 'brand']);
         $this->applyVisibleFilter($query);
 
         return $query->findOrFail($id);

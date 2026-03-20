@@ -6,6 +6,7 @@ use App\Services\Interfaces\ProductServiceInterface;
 use App\Repositories\Interfaces\ProductRepositoryInterface;
 use App\Repositories\Interfaces\BaseRepositoryInterface;
 use App\Services\CloudinaryService;
+use Illuminate\Support\Facades\Cache;
 
 
 /**
@@ -30,21 +31,45 @@ class ProductService extends BaseService implements ProductServiceInterface
         ];
 
         $perPage = $request->get('per_page', 12);
+        $page = (int) $request->get('page', 1);
 
-        return $this->repository->getStorefrontProducts($filters, $perPage);
+        $cacheKey = $this->buildCacheKey('storefront:products:list', [
+            'filters' => $filters,
+            'per_page' => $perPage,
+            'page' => $page,
+        ]);
+
+        return Cache::remember($cacheKey, $this->getCacheTtl(), function () use ($filters, $perPage) {
+            return $this->repository->getStorefrontProducts($filters, $perPage);
+        });
     }
 
     public function getDetailForStorefront($id)
     {
-        return $this->repository->getVisibleProductById($id);
+        $cacheKey = $this->buildCacheKey('storefront:products:detail', [
+            'id' => $id,
+        ]);
+
+        return Cache::remember($cacheKey, $this->getCacheTtl(), function () use ($id) {
+            return $this->repository->getVisibleProductById($id);
+        });
     }
 
     public function searchBasicForStorefront($request)
     {
         $keyword = trim((string) $request->get('keyword', ''));
         $perPage = (int) $request->get('per_page', 12);
+        $page = (int) $request->get('page', 1);
 
-        return $this->repository->searchStorefrontProductsBasic($keyword, $perPage);
+        $cacheKey = $this->buildCacheKey('storefront:products:search-basic', [
+            'keyword' => $keyword,
+            'per_page' => $perPage,
+            'page' => $page,
+        ]);
+
+        return Cache::remember($cacheKey, $this->getCacheTtl(), function () use ($keyword, $perPage) {
+            return $this->repository->searchStorefrontProductsBasic($keyword, $perPage);
+        });
     }
 
     public function searchAdvancedForStorefront($request)
@@ -58,8 +83,17 @@ class ProductService extends BaseService implements ProductServiceInterface
         ];
 
         $perPage = (int) $request->get('per_page', 12);
+        $page = (int) $request->get('page', 1);
 
-        return $this->repository->searchStorefrontProductsAdvanced($filters, $perPage);
+        $cacheKey = $this->buildCacheKey('storefront:products:search-advanced', [
+            'filters' => $filters,
+            'per_page' => $perPage,
+            'page' => $page,
+        ]);
+
+        return Cache::remember($cacheKey, $this->getCacheTtl(), function () use ($filters, $perPage) {
+            return $this->repository->searchStorefrontProductsAdvanced($filters, $perPage);
+        });
     }
 
     public function getAdminProductsList($request)
@@ -124,13 +158,61 @@ class ProductService extends BaseService implements ProductServiceInterface
     {
         $perPage = (int) $request->get('limit', 10);
         $perPage = max(1, min($perPage, 50));
+        $page = (int) $request->get('page', 1);
 
-        return $this->repository->getProductsByCategory($categoryId, $perPage);
+        $cacheKey = $this->buildCacheKey('storefront:products:category', [
+            'category_id' => $categoryId,
+            'per_page' => $perPage,
+            'page' => $page,
+        ]);
+
+        return Cache::remember($cacheKey, $this->getCacheTtl(), function () use ($categoryId, $perPage) {
+            return $this->repository->getProductsByCategory($categoryId, $perPage);
+        });
     }
 
     public function getProductPriceHistories(int $productId, $request)
     {
         $perPage = (int) $request->input('per_page', 15);
         return $this->repository->getPriceHistories($productId, $perPage);
+    }
+
+    private function getCacheTtl(): int
+    {
+        return 60 * 15;
+    }
+
+    private function buildCacheKey(string $prefix, array $params): string
+    {
+        $normalized = $this->normalizeCacheParams($params);
+        return $prefix . ':' . sha1(http_build_query($normalized));
+    }
+
+    private function normalizeCacheParams(array $params): array
+    {
+        $filtered = array_filter($params, function ($value) {
+            return $value !== null && $value !== '';
+        });
+
+        array_walk_recursive($filtered, function (&$value) {
+            if (is_bool($value)) {
+                $value = $value ? '1' : '0';
+            }
+        });
+
+        $filtered = $this->sortRecursive($filtered);
+        return $filtered;
+    }
+
+    private function sortRecursive(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $data[$key] = $this->sortRecursive($value);
+            }
+        }
+
+        ksort($data);
+        return $data;
     }
 }
