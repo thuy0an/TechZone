@@ -15,6 +15,7 @@
 const ADMIN_NAV = [
     { type: 'section', label: 'Tổng quan' },
     { type: 'item', page: 'dashboard', href: '/admin/dashboard.html', icon: '📊', label: 'Dashboard' },
+    { type: 'item', page: 'reports', href: '/admin/reports.html', icon: '📈', label: 'Báo cáo & Thống kê' },
     { type: 'section', label: 'Danh mục' },
     { type: 'item', page: 'categories', href: '/admin/categories.html', icon: '📂', label: 'Loại sản phẩm' },
     { type: 'item', page: 'brands', href: '/admin/brands.html', icon: '🏷️', label: 'Thương hiệu' },
@@ -23,7 +24,6 @@ const ADMIN_NAV = [
     { type: 'item', page: 'orders', href: '/admin/orders.html', icon: '🛒', label: 'Đơn hàng' },
     { type: 'item', page: 'suppliers', href: '/admin/suppliers.html', icon: '🏢', label: 'Nhà cung cấp' },
     { type: 'item', page: 'import-notes', href: '/admin/import-notes.html', icon: '📥', label: 'Phiếu nhập hàng' },
-    { type: 'item', page: 'reports', href: '/admin/reports.html', icon: '📊', label: 'Báo cáo & Thống kê' },
     { type: 'item', page: 'customers', href: '/admin/users.html', icon: '👤', label: 'Khách hàng' }
 ];
 

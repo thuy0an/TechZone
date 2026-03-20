@@ -63,63 +63,147 @@
                 </div>
             </div>
 
-            <!-- Quick Links -->
-            <div class="card" style="margin-bottom: 24px;">
-                <div class="card-header">
-                    <span class="card-title">⚡ Truy cập nhanh</span>
+            <div class="dashboard-analytics">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">📈 Doanh thu 30 ngày gần nhất</div>
+                            <div class="card-subtitle">Theo đơn hàng đã hoàn tất</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-wrap">
+                            <canvas id="revenue-chart" height="140"></canvas>
+                            <div class="chart-empty" id="revenue-chart-empty">Chưa có dữ liệu doanh thu.</div>
+                        </div>
+                        <div class="chart-summary" id="revenue-summary">
+                            <div>
+                                <div class="summary-label">Tổng doanh thu</div>
+                                <div class="summary-value" id="summary-revenue">—</div>
+                            </div>
+                            <div>
+                                <div class="summary-label">Lợi nhuận gộp</div>
+                                <div class="summary-value" id="summary-gross">—</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="quick-links">
-                        <a href="/admin/categories.html" class="quick-link-card">
-                            <div class="quick-link-icon">📂</div>
-                            <div class="quick-link-label">Loại sản phẩm</div>
-                            <div class="quick-link-sub">Thêm / Sửa / Xóa</div>
-                        </a>
-                        <a href="/admin/brands.html" class="quick-link-card">
-                            <div class="quick-link-icon">🏷️</div>
-                            <div class="quick-link-label">Thương hiệu</div>
-                            <div class="quick-link-sub">Thêm / Sửa / Xóa</div>
-                        </a>
-                        <a href="/admin/products.html" class="quick-link-card">
-                            <div class="quick-link-icon">📦</div>
-                            <div class="quick-link-label">Sản phẩm</div>
-                            <div class="quick-link-sub">Quản lý kho hàng</div>
-                        </a>
-                        <a href="/admin/orders.html" class="quick-link-card">
-                            <div class="quick-link-icon">🛒</div>
-                            <div class="quick-link-label">Đơn hàng</div>
-                            <div class="quick-link-sub">Xem & cập nhật</div>
-                        </a>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">🏆 Top sản phẩm doanh thu</div>
+                            <div class="card-subtitle">Xếp hạng theo doanh thu</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="top-list" id="top-sellers">
+                            <div class="top-item placeholder">Đang tải dữ liệu...</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Account Info Card -->
+            <div class="dashboard-grid">
+                <div class="card dashboard-panel">
+                    <div class="card-header">
+                        <span class="card-title">⚡ Truy cập nhanh</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="quick-links dashboard-quick-links">
+                            <a href="/admin/categories.html" class="quick-link-card">
+                                <div class="quick-link-icon">📂</div>
+                                <div class="quick-link-label">Loại sản phẩm</div>
+                                <div class="quick-link-sub">Thêm / Sửa / Xóa</div>
+                            </a>
+                            <a href="/admin/brands.html" class="quick-link-card">
+                                <div class="quick-link-icon">🏷️</div>
+                                <div class="quick-link-label">Thương hiệu</div>
+                                <div class="quick-link-sub">Thêm / Sửa / Xóa</div>
+                            </a>
+                            <a href="/admin/products.html" class="quick-link-card">
+                                <div class="quick-link-icon">📦</div>
+                                <div class="quick-link-label">Sản phẩm</div>
+                                <div class="quick-link-sub">Quản lý kho hàng</div>
+                            </a>
+                            <a href="/admin/orders.html" class="quick-link-card">
+                                <div class="quick-link-icon">🛒</div>
+                                <div class="quick-link-label">Đơn hàng</div>
+                                <div class="quick-link-sub">Xem & cập nhật</div>
+                            </a>
+                            <a href="/admin/reports.html" class="quick-link-card quick-link-report">
+                                <div class="quick-link-icon">📊</div>
+                                <div class="quick-link-label">Báo cáo & Thống kê</div>
+                                <div class="quick-link-sub">Doanh thu & hiệu suất</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card dashboard-panel">
+                    <div class="card-header">
+                        <span class="card-title">📈 Báo cáo & Thống kê</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="report-overview">
+                            <div class="report-title">Tổng quan nhanh</div>
+                            <p class="report-desc">Theo dõi doanh thu, lợi nhuận và sản phẩm bán chạy theo từng giai đoạn.</p>
+                            <div class="report-list">
+                                <div class="report-item">
+                                    <span class="report-icon">💰</span>
+                                    <div>
+                                        <div class="report-item-title">Doanh thu theo ngày</div>
+                                        <div class="report-item-sub">Biểu đồ 30 ngày gần nhất</div>
+                                    </div>
+                                </div>
+                                <div class="report-item">
+                                    <span class="report-icon">🏆</span>
+                                    <div>
+                                        <div class="report-item-title">Top sản phẩm</div>
+                                        <div class="report-item-sub">Xếp hạng theo doanh thu</div>
+                                    </div>
+                                </div>
+                                <div class="report-item">
+                                    <span class="report-icon">📦</span>
+                                    <div>
+                                        <div class="report-item-title">Tồn kho & nhập xuất</div>
+                                        <div class="report-item-sub">Theo dõi luân chuyển hàng</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <a class="btn-report" href="/admin/reports.html">Mở trang báo cáo</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-header">
                     <span class="card-title">👤 Thông tin tài khoản</span>
                 </div>
                 <div class="card-body">
-                    <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
-                        <tbody id="admin-info-table">
-                            <tr style="border-bottom:1px solid var(--border);">
-                                <td style="padding:12px 0; color:var(--text-secondary); width:160px;">Họ tên</td>
-                                <td style="padding:12px 0; font-weight:600;" id="info-name">—</td>
-                            </tr>
-                            <tr style="border-bottom:1px solid var(--border);">
-                                <td style="padding:12px 0; color:var(--text-secondary);">Email</td>
-                                <td style="padding:12px 0;" id="info-email">—</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:12px 0; color:var(--text-secondary);">Vai trò</td>
-                                <td style="padding:12px 0;">
-                                    <span style="background:#eff6ff;color:#2563eb;padding:3px 10px;border-radius:20px;font-size:0.8rem;font-weight:600;">
-                                        Quản trị viên
-                                    </span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="info-grid" id="admin-info-table">
+                        <div class="info-item">
+                            <div class="info-label">Họ tên</div>
+                            <div class="info-value" id="info-name">—</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Email</div>
+                            <div class="info-value" id="info-email">—</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Vai trò</div>
+                            <div class="info-value">
+                                <span class="role-pill">Quản trị viên</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Trạng thái</div>
+                            <div class="info-value">
+                                <span class="status-pill">Đang hoạt động</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -135,8 +219,11 @@
 <script src="/js/admin/admin-auth.js"></script>
 <script src="/js/admin/admin-layout.js"></script>
 <script src="/js/admin/admin-utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 initAdminLayout({ title: 'Dashboard', icon: '📊', activePage: 'dashboard' });
+
+let revenueChart = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     const admin = getAdminInfo();
@@ -146,19 +233,132 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('info-email').textContent = admin.email || '—';
     }
     await loadDashboardStats();
+    await Promise.all([loadRevenueChart(), loadTopSellers()]);
 });
 
 async function loadDashboardStats() {
     try {
-        const [catRes, brandRes] = await Promise.all([
+        const [productRes, orderRes, catRes, brandRes] = await Promise.all([
+            adminRequest('/products?per_page=1'),
+            adminRequest('/orders?per_page=1'),
             adminRequest('/categories?per_page=1'),
             adminRequest('/brands?per_page=1'),
         ]);
-        if (catRes?.data?.meta?.total !== undefined)
-            document.getElementById('stat-categories').textContent = catRes.data.meta.total;
-        if (brandRes?.data?.meta?.total !== undefined)
-            document.getElementById('stat-brands').textContent = brandRes.data.meta.total;
+
+        if (productRes?.pagination?.total !== undefined)
+            document.getElementById('stat-products').textContent = productRes.pagination.total;
+        if (orderRes?.pagination?.total !== undefined)
+            document.getElementById('stat-orders').textContent = orderRes.pagination.total;
+        if (catRes?.pagination?.total !== undefined)
+            document.getElementById('stat-categories').textContent = catRes.pagination.total;
+        if (brandRes?.pagination?.total !== undefined)
+            document.getElementById('stat-brands').textContent = brandRes.pagination.total;
     } catch (_) {}
+}
+
+function formatMoney(value) {
+    return `${new Intl.NumberFormat('vi-VN').format(Number(value || 0))}đ`;
+}
+
+function getDateRange(days = 30) {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - (days - 1));
+    const toIso = (d) => d.toISOString().slice(0, 10);
+    return { start: toIso(start), end: toIso(end) };
+}
+
+async function loadRevenueChart() {
+    const { start, end } = getDateRange(30);
+    const emptyEl = document.getElementById('revenue-chart-empty');
+    const summaryRevenue = document.getElementById('summary-revenue');
+    const summaryGross = document.getElementById('summary-gross');
+
+    try {
+        const res = await adminRequest(`/reports/revenue-profit?period=daily&start_date=${start}&end_date=${end}`);
+        const data = res?.data?.chart_data || [];
+        if (!data.length) {
+            emptyEl.classList.add('show');
+            return;
+        }
+
+        emptyEl.classList.remove('show');
+        summaryRevenue.textContent = formatMoney(res.data.total_revenue || 0);
+        summaryGross.textContent = formatMoney(res.data.total_gross_profit || 0);
+
+        const labels = data.map(item => item.label);
+        const revenue = data.map(item => item.revenue);
+
+        const ctx = document.getElementById('revenue-chart');
+        if (revenueChart) revenueChart.destroy();
+
+        revenueChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Doanh thu',
+                        data: revenue,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 2,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => ` ${formatMoney(context.parsed.y)}`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { maxTicksLimit: 6 },
+                        grid: { display: false }
+                    },
+                    y: {
+                        ticks: {
+                            callback: (value) => `${new Intl.NumberFormat('vi-VN').format(value)}đ`
+                        }
+                    }
+                }
+            }
+        });
+    } catch (_) {
+        emptyEl.classList.add('show');
+    }
+}
+
+async function loadTopSellers() {
+    const container = document.getElementById('top-sellers');
+    try {
+        const res = await adminRequest('/reports/best-sellers?sort_by=revenue&limit=5');
+        const items = res?.data?.items || [];
+        if (!items.length) {
+            container.innerHTML = '<div class="top-item placeholder">Chưa có dữ liệu.</div>';
+            return;
+        }
+
+        container.innerHTML = items.map((item, index) => `
+            <div class="top-item">
+                <div class="top-rank">${index + 1}</div>
+                <div class="top-info">
+                    <div class="top-name">${AdminString.esc(item.name || 'Sản phẩm')}</div>
+                    <div class="top-sub">${item.code || ''} · ${item.total_qty} đơn vị</div>
+                </div>
+                <div class="top-value">${formatMoney(item.total_revenue)}</div>
+            </div>
+        `).join('');
+    } catch (_) {
+        container.innerHTML = '<div class="top-item placeholder">Không thể tải dữ liệu.</div>';
+    }
 }
 </script>
 
