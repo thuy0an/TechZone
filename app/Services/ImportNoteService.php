@@ -10,6 +10,7 @@ use App\Repositories\Interfaces\ImportNoteRepositoryInterface;
 use App\Services\Interfaces\ImportNoteServiceInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @property ImportNoteRepositoryInterface $repository
@@ -134,7 +135,7 @@ class ImportNoteService extends BaseService implements ImportNoteServiceInterfac
                 $avgPrice = (($oldStock * $oldPrice) + ($newQty * $newPrice)) / $totalStock;
 
                 // 5. Tính Giá bán mới (dựa trên biên lợi nhuận mong muốn)
-                $sellingPrice = $avgPrice * (1 + $product->profit_margin);
+                $sellingPrice = $avgPrice * (1 + ($product->profit_margin / 100));
 
                 // 6. Cập nhật vào Product
                 $product->update([
@@ -152,6 +153,8 @@ class ImportNoteService extends BaseService implements ImportNoteServiceInterfac
                     'selling_price'  => $sellingPrice
                 ]);
             }
+
+            $this->bumpStorefrontCacheVersion();
 
             DB::commit();
             return $note;
@@ -191,5 +194,15 @@ class ImportNoteService extends BaseService implements ImportNoteServiceInterfac
 
             return $updatedNote;
         });
+    }
+
+    private function bumpStorefrontCacheVersion(): void
+    {
+        if (!Cache::has('storefront:products:version')) {
+            Cache::put('storefront:products:version', 1);
+            return;
+        }
+
+        Cache::increment('storefront:products:version');
     }
 }

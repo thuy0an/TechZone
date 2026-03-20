@@ -6,6 +6,7 @@ use App\Services\Interfaces\ProductServiceInterface;
 use App\Repositories\Interfaces\ProductRepositoryInterface;
 use App\Repositories\Interfaces\BaseRepositoryInterface;
 use App\Services\CloudinaryService;
+use App\Models\ProductPriceHistory;
 use Illuminate\Support\Facades\Cache;
 
 
@@ -34,6 +35,7 @@ class ProductService extends BaseService implements ProductServiceInterface
         $page = (int) $request->get('page', 1);
 
         $cacheKey = $this->buildCacheKey('storefront:products:list', [
+            'version' => $this->getStorefrontCacheVersion(),
             'filters' => $filters,
             'per_page' => $perPage,
             'page' => $page,
@@ -47,6 +49,7 @@ class ProductService extends BaseService implements ProductServiceInterface
     public function getDetailForStorefront($id)
     {
         $cacheKey = $this->buildCacheKey('storefront:products:detail', [
+            'version' => $this->getStorefrontCacheVersion(),
             'id' => $id,
         ]);
 
@@ -62,6 +65,7 @@ class ProductService extends BaseService implements ProductServiceInterface
         $page = (int) $request->get('page', 1);
 
         $cacheKey = $this->buildCacheKey('storefront:products:search-basic', [
+            'version' => $this->getStorefrontCacheVersion(),
             'keyword' => $keyword,
             'per_page' => $perPage,
             'page' => $page,
@@ -86,6 +90,7 @@ class ProductService extends BaseService implements ProductServiceInterface
         $page = (int) $request->get('page', 1);
 
         $cacheKey = $this->buildCacheKey('storefront:products:search-advanced', [
+            'version' => $this->getStorefrontCacheVersion(),
             'filters' => $filters,
             'per_page' => $perPage,
             'page' => $page,
@@ -120,12 +125,17 @@ class ProductService extends BaseService implements ProductServiceInterface
 
         // Khi mới tạo, chưa nhập kho nên giá nhập = 0, kéo theo giá bán = 0
         $data['selling_price'] = 0;
-        return $this->repository->create($data);
+        $product = $this->repository->create($data);
+        $this->bumpStorefrontCacheVersion();
+        return $product;
     }
 
     public function updateProductForAdmin(int $id, array $data)
     {
         $product = $this->repository->findById($id);
+        $oldImportPrice = $product ? (float) $product->import_price : 0.0;
+        $oldProfitMargin = $product ? (float) $product->profit_margin : 0.0;
+        $oldSellingPrice = $product ? (float) $product->selling_price : 0.0;
 
         if (isset($data['image_file'])) {
             $data['image'] = $this->cloudinaryService->upload($data['image_file']);
@@ -137,7 +147,30 @@ class ProductService extends BaseService implements ProductServiceInterface
             $data['selling_price'] = $product->import_price * (1 + $data['profit_margin'] / 100);
         }
 
-        return $this->repository->update($id, $data);
+        $updatedProduct = $this->repository->update($id, $data);
+
+        $newImportPrice = (float) $updatedProduct->import_price;
+        $newProfitMargin = (float) $updatedProduct->profit_margin;
+        $newSellingPrice = (float) $updatedProduct->selling_price;
+
+        $priceChanged =
+            abs(round($newImportPrice, 2) - round($oldImportPrice, 2)) > 0.00001 ||
+            abs(round($newProfitMargin, 4) - round($oldProfitMargin, 4)) > 0.00001 ||
+            abs(round($newSellingPrice, 2) - round($oldSellingPrice, 2)) > 0.00001;
+
+        if ($priceChanged) {
+            ProductPriceHistory::create([
+                'product_id' => $updatedProduct->id,
+                'import_note_id' => null,
+                'import_price' => $newImportPrice,
+                'profit_margin' => $newProfitMargin,
+                'selling_price' => $newSellingPrice,
+            ]);
+        }
+
+        $this->bumpStorefrontCacheVersion();
+
+        return $updatedProduct;
     }
 
     public function deleteProductForAdmin($id)
@@ -186,6 +219,21 @@ class ProductService extends BaseService implements ProductServiceInterface
     {
         $normalized = $this->normalizeCacheParams($params);
         return $prefix . ':' . sha1(http_build_query($normalized));
+    }
+
+    private function getStorefrontCacheVersion(): int
+    {
+        return (int) Cache::get('storefront:products:version', 1);
+    }
+
+    private function bumpStorefrontCacheVersion(): void
+    {
+        if (!Cache::has('storefront:products:version')) {
+            Cache::put('storefront:products:version', 1);
+            return;
+        }
+
+        Cache::increment('storefront:products:version');
     }
 
     private function normalizeCacheParams(array $params): array

@@ -24,7 +24,6 @@ class CartRepository extends BaseRepository implements CartRepositoryInterface
 
         if ($item) {
             $item->increment('quantity', $quantity);
-            $item->update(['price_at_addition' => $currentPrice]);
             return $item;
         }
 
@@ -43,10 +42,18 @@ class CartRepository extends BaseRepository implements CartRepositoryInterface
             ->first();
     }
 
-    public function updateCartItemQuantity($item, $quantity, $currentPrice)
+    public function updateCartItemQuantity($item, $quantity)
     {
         $item->update([
             'quantity' => $quantity,
+        ]);
+
+        return $item;
+    }
+
+    public function updateCartItemPrice(CartItem $item, float $currentPrice)
+    {
+        $item->update([
             'price_at_addition' => $currentPrice,
         ]);
 

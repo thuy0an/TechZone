@@ -30,12 +30,13 @@
                     </div>
                 </div>
 
-                <div class="table-wrapper">
+                <div class="table-wrapper history-scroll">
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th style="width:120px">Ma lo</th>
                                 <th style="width:160px">Ngay doi gia</th>
+                                <th style="width:140px">Nguon</th>
                                 <th>Gia von BQ</th>
                                 <th>% Loi nhuan</th>
                                 <th>Gia ban</th>
@@ -75,7 +76,7 @@ function formatCurrency(value) {
 
 function formatMargin(value) {
     const margin = Number(value || 0);
-    return `${(margin * 100).toFixed(2)}%`;
+    return `${margin.toFixed(2)}%`;
 }
 
 function getQueryProductId() {
@@ -129,14 +130,18 @@ async function loadPriceHistories(page = 1) {
         });
 
         const rows = (res.data || []).map(item => {
+            const hasImport = Boolean(item.import_note_id);
             const noteId = item.import_note_id ?? '-';
             const noteDate = item.import_note?.import_date || item.created_at;
-            const adminName = item.import_note?.admin?.name || '-';
+            const adminName = item.import_note?.admin?.name || (hasImport ? '-' : 'Quan tri');
+            const sourceLabel = hasImport ? 'Nhap kho' : 'Cap nhat tay';
+            const sourceClass = hasImport ? 'history-source import' : 'history-source manual';
 
             return `
                 <tr>
                     <td>${noteId}</td>
                     <td>${AdminString.date(noteDate)}</td>
+                    <td><span class="${sourceClass}">${sourceLabel}</span></td>
                     <td style="font-weight:700">${formatCurrency(item.import_price)}</td>
                     <td>${formatMargin(item.profit_margin)}</td>
                     <td style="color:var(--admin-accent); font-weight:700">${formatCurrency(item.selling_price)}</td>

@@ -267,12 +267,13 @@
             </div>
 
             <div class="view-history" id="view-history-section">
-                <div class="table-wrapper">
+                <div class="table-wrapper history-scroll">
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th style="width:120px">Mã lô</th>
                                 <th style="width:160px">Ngày đổi giá</th>
+                                <th style="width:140px">Nguồn</th>
                                 <th>Giá vốn BQ</th>
                                 <th>% Lợi nhuận</th>
                                 <th>Giá bán</th>
@@ -491,14 +492,18 @@ async function loadViewHistory(page = 1) {
         });
 
         const rows = (res.data || []).map(item => {
+            const hasImport = Boolean(item.import_note_id);
             const noteId = item.import_note_id ?? '-';
             const noteDate = item.import_note?.import_date || item.created_at;
-            const adminName = item.import_note?.admin?.name || '-';
+            const adminName = item.import_note?.admin?.name || (hasImport ? '-' : 'Quan tri');
+            const sourceLabel = hasImport ? 'Nhap kho' : 'Cap nhat tay';
+            const sourceClass = hasImport ? 'history-source import' : 'history-source manual';
 
             return `
                 <tr>
                     <td>${noteId}</td>
                     <td>${AdminString.date(noteDate)}</td>
+                    <td><span class="${sourceClass}">${sourceLabel}</span></td>
                     <td style="font-weight:700">${formatCurrency(item.import_price)}</td>
                     <td>${formatMargin(item.profit_margin)}</td>
                     <td style="color:var(--admin-accent); font-weight:700">${formatCurrency(item.selling_price)}</td>
@@ -530,7 +535,7 @@ function formatCurrency(value) {
 
 function formatMargin(value) {
     const margin = Number(value || 0);
-    return `${(margin * 100).toFixed(2)}%`;
+    return `${margin.toFixed(2)}%`;
 }
 
 async function saveProduct() {
@@ -540,7 +545,7 @@ async function saveProduct() {
     formData.append('code', document.getElementById('p-code').value);
     formData.append('category_id', document.getElementById('p-category').value);
     formData.append('brand_id', document.getElementById('p-brand').value);
-    formData.append('profit_margin', document.getElementById('p-margin').value / 100);
+    formData.append('profit_margin', document.getElementById('p-margin').value);
     formData.append('unit', document.getElementById('p-unit').value);
     formData.append('low_stock_threshold', document.getElementById('p-threshold').value);
     
@@ -614,7 +619,7 @@ function openEditModal(id) {
     document.getElementById('p-code').disabled = true; // KHÓA field code
     document.getElementById('p-category').value = p.category_id || '';
     document.getElementById('p-brand').value = p.brand_id || '';
-    document.getElementById('p-margin').value = p.profit_margin * 100;
+    document.getElementById('p-margin').value = p.profit_margin;
     document.getElementById('p-threshold').value = p.low_stock_threshold;
     document.getElementById('p-unit').value = p.unit || '';
     document.getElementById('p-status-group').style.display = 'block';

@@ -48,6 +48,81 @@ const AdminForm   = { showError: showFieldError, clearError: clearFieldError, cl
 const AdminTable  = { renderPagination };
 
 // ============================================================
+// Modal helpers
+// ============================================================
+
+function initAdminModalInteractions() {
+    const overlays = document.querySelectorAll('.modal-overlay, .modal-overlay-form');
+
+    overlays.forEach((overlay) => {
+        const modal = overlay.querySelector('.modal-box, .modal-form-box');
+
+        overlay.addEventListener('click', (event) => {
+            if (event.target === overlay) {
+                overlay.classList.remove('show');
+            }
+        });
+
+        if (modal) {
+            modal.addEventListener('click', (event) => {
+                event.stopPropagation();
+            });
+            makeModalDraggable(modal);
+        }
+    });
+}
+
+function makeModalDraggable(modal) {
+    const handle = modal.querySelector('.modal-form-header, .modal-header, .modal-title') || modal;
+    let startX = 0;
+    let startY = 0;
+    let startLeft = 0;
+    let startTop = 0;
+    let isDragging = false;
+
+    const onMove = (event) => {
+        if (!isDragging) return;
+        const dx = event.clientX - startX;
+        const dy = event.clientY - startY;
+        modal.style.left = `${startLeft + dx}px`;
+        modal.style.top = `${startTop + dy}px`;
+    };
+
+    const onUp = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+    };
+
+    handle.addEventListener('mousedown', (event) => {
+        if (event.button !== 0) return;
+        if (event.target.closest('button, a, input, textarea, select, .modal-close-btn')) return;
+
+        const rect = modal.getBoundingClientRect();
+        startX = event.clientX;
+        startY = event.clientY;
+        startLeft = rect.left;
+        startTop = rect.top;
+
+        modal.style.position = 'fixed';
+        modal.style.margin = '0';
+        modal.style.transform = 'none';
+        modal.style.left = `${startLeft}px`;
+        modal.style.top = `${startTop}px`;
+
+        isDragging = true;
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+        event.preventDefault();
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initAdminModalInteractions();
+});
+
+// ============================================================
 // Form field error helpers
 // ============================================================
 

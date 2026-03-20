@@ -79,19 +79,25 @@ function renderCart(cart) {
 
     itemsContainer.innerHTML = items.map(item => {
         const product = item.product || {};
-        const unitPrice = Number(item.price_at_addition ?? product.selling_price ?? 0);
+        const currentPrice = Number(item.current_price ?? item.price_at_addition ?? product.selling_price ?? 0);
+        const savedPrice = Number(item.price_at_addition ?? 0);
+        const priceChanged = Boolean(item.is_price_changed);
+        const oldPrice = Number(item.old_price ?? savedPrice);
         const quantity = Number(item.quantity || 0);
-        const lineTotal = unitPrice * quantity;
+        const lineTotal = currentPrice * quantity;
         subtotal += lineTotal;
 
         return `
-            <article class="cart-item" data-product-id="${product.id}" data-unit-price="${unitPrice}" data-quantity="${quantity}">
+            <article class="cart-item" data-product-id="${product.id}" data-unit-price="${currentPrice}" data-quantity="${quantity}">
                 <div class="cart-item-media">
                     <img src="${resolveImageUrl(product.image)}" alt="${escapeHtml(product.name || 'San pham')}" onerror="this.src='https://via.placeholder.com/120x120?text=No+Image'">
                 </div>
                 <div class="cart-item-info">
                     <h4>${escapeHtml(product.name || 'San pham')}</h4>
-                    <p class="cart-item-meta">Gia luu: ${formatPrice(unitPrice)}</p>
+                    <p class="cart-item-meta cart-item-price">
+                        ${priceChanged ? `<span class="cart-item-price-old">${formatPrice(oldPrice)}</span>` : ''}
+                        <span class="cart-item-price-current">${formatPrice(currentPrice)}</span>
+                    </p>
                     <p class="cart-item-meta">Ton kho: ${product.stock_quantity ?? 0}</p>
                 </div>
                 <div class="cart-item-qty">

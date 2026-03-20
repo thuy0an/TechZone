@@ -22,7 +22,36 @@ class CartService extends BaseService implements CartServiceInterface
     public function getCart($userId)
     {
         // Lấy giỏ hàng và load sẵn các sản phẩm bên trong
-        return $this->repository->getCartByUserId($userId);
+        $cart = $this->repository->getCartByUserId($userId);
+
+        if (!$cart || !$cart->relationLoaded('items')) {
+            return $cart;
+        }
+
+        $cart->items->each(function ($item) {
+            $product = $item->product;
+
+            $item->setAttribute('is_price_changed', false);
+            $item->setAttribute('old_price', null);
+            $item->setAttribute('current_price', null);
+
+            if (!$product) {
+                $item->setAttribute('current_price', $this->roundPrice((float) $item->price_at_addition));
+                return;
+            }
+
+            $savedPrice = $this->roundPrice((float) $item->price_at_addition);
+            $newPrice = $this->roundPrice($this->resolveCurrentPrice($product));
+
+            $item->setAttribute('current_price', $newPrice);
+
+            if (abs($newPrice - $savedPrice) > 0.00001) {
+                $item->setAttribute('is_price_changed', true);
+                $item->setAttribute('old_price', $savedPrice);
+            }
+        });
+
+        return $cart;
     }
 
     public function addToCart($userId, $productId, $quantity)
@@ -34,7 +63,7 @@ class CartService extends BaseService implements CartServiceInterface
         }
 
         $cart = $this->repository->getCartByUserId($userId);
-        $currentPrice = (float) $product->import_price * (1 + ((float) $product->profit_margin / 100));
+        $currentPrice = $this->resolveCurrentPrice($product);
         return $this->repository->updateOrCreateItem($cart->id, $productId, $quantity, $currentPrice);
     }
 
@@ -49,7 +78,6 @@ class CartService extends BaseService implements CartServiceInterface
         $cart = $this->repository->getCartByUserId($userId);
         $existingItem = $this->repository->getCartItem($cart->id, $productId);
 
-        $currentPrice = (float) $product->import_price * (1 + ((float) $product->profit_margin / 100));
         $currentQuantity = $existingItem ? (int) $existingItem->quantity : 0;
         $delta = (int) $quantity;
 
@@ -76,10 +104,11 @@ class CartService extends BaseService implements CartServiceInterface
         }
 
         if ($existingItem) {
-            $this->repository->updateCartItemQuantity($existingItem, $nextQuantity, $currentPrice);
+            $this->repository->updateCartItemQuantity($existingItem, $nextQuantity);
             return $this->repository->getCartByUserId($userId);
         }
 
+        $currentPrice = $this->resolveCurrentPrice($product);
         $this->repository->updateOrCreateItem($cart->id, $productId, $nextQuantity, $currentPrice);
         return $this->repository->getCartByUserId($userId);
     }
@@ -98,5 +127,19 @@ class CartService extends BaseService implements CartServiceInterface
         }
 
         return $item->delete();
+    }
+
+    private function roundPrice(float $price): float
+    {
+        return round($price, 2);
+    }
+
+    private function resolveCurrentPrice($product): float
+    {
+        if (isset($product->selling_price) && (float) $product->selling_price > 0) {
+            return (float) $product->selling_price;
+        }
+
+        return (float) $product->import_price * (1 + ((float) $product->profit_margin / 100));
     }
 }
