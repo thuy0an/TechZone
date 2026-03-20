@@ -3,8 +3,12 @@
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schedule;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\Product;
 use App\Models\ProductPriceHistory;
+use Illuminate\Support\Facades\Storage;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -58,3 +62,35 @@ Artisan::command('products:recalc-selling-price {--dry-run}', function () {
 
     $this->info("Checked: {$checked}. Updated: {$updated}." . ($dryRun ? ' (dry run)' : ''));
 })->purpose('Recalculate selling_price for all products.');
+
+Artisan::command('report:daily {date?}', function ($date = null) {
+    // Nếu không truyền date, mặc định là hôm nay
+    $targetDate = $date ?: now()->format('Y-m-d');
+
+    $report = DB::table('orders')
+        ->where('status', 'completed')
+        ->whereDate('created_at', $targetDate)
+        ->selectRaw('COUNT(*) as total_orders, SUM(total_amount) as total_revenue')
+        ->first();
+
+    $revenue = $report->total_revenue ?? 0;
+    $orders  = $report->total_orders ?? 0;
+
+    // Tạo nội dung báo cáo chuyên nghiệp
+    $content = "--- BÁO CÁO DOANH THU NGÀY {$targetDate} ---\n";
+    $content .= "Thời gian xuất báo cáo: " . now()->toDateTimeString() . "\n";
+    $content .= "Tổng số đơn hàng: {$orders}\n";
+    $content .= "Tổng doanh thu: " . number_format($revenue) . " VNĐ\n";
+    $content .= "------------------------------------------\n";
+
+    $fileName = "reports/revenue_{$targetDate}_" . now()->format('H-i') . ".txt";
+    Storage::disk('local')->put($fileName, $content);
+
+    $this->info("Đã xuất báo cáo vào file: storage/app/{$fileName}");
+
+    Log::info("Đã chạy báo cáo tự động cho ngày {$targetDate}");
+})->purpose('Tính doanh thu và xuất file báo cáo theo ngày');
+
+// Thiết lập lịch chạy mỗi phút để test
+Schedule::command('report:daily')->everyMinute();
+// Schedule::command('report:daily')->dailyAt('23:59');

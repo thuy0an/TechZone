@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Api\Admin\ImportNoteController;
 use App\Http\Controllers\Api\Admin\ReportController;
 use App\Http\Controllers\Api\Admin\UserController;
+use App\Http\Controllers\Api\Admin\ProductImportController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -167,6 +168,11 @@ Route::prefix('admin')->group(function () {
         Route::get('reports/order-status',      [ReportController::class, 'orderStatusAnalytics']);
         Route::get('reports/sales-by-region',   [ReportController::class, 'salesByRegion']);
         Route::get('reports/supplier-payable',  [ReportController::class, 'supplierPayable']);
+    });
+
+    Route::prefix('imports')->group(function () {
+        Route::post('/upload', [ProductImportController::class, 'upload']); //
+        Route::get('/{id}/status', [ProductImportController::class, 'status']); //
     });
 });
 
