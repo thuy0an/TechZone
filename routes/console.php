@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Product;
 use App\Models\ProductPriceHistory;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 Artisan::command('inspire', function () {
@@ -64,32 +65,52 @@ Artisan::command('products:recalc-selling-price {--dry-run}', function () {
 })->purpose('Recalculate selling_price for all products.');
 
 Artisan::command('report:daily {date?}', function ($date = null) {
-    // Nếu không truyền date, mặc định là hôm nay
     $targetDate = $date ?: now()->format('Y-m-d');
 
+    // Logic lấy dữ liệu (Giữ nguyên như cũ)
     $report = DB::table('orders')
         ->where('status', 'completed')
         ->whereDate('created_at', $targetDate)
         ->selectRaw('COUNT(*) as total_orders, SUM(total_amount) as total_revenue')
         ->first();
 
-    $revenue = $report->total_revenue ?? 0;
-    $orders  = $report->total_orders ?? 0;
+    $revenue = number_format($report->total_revenue ?? 0);
+    $orders = $report->total_orders ?? 0;
 
-    // Tạo nội dung báo cáo chuyên nghiệp
-    $content = "--- BÁO CÁO DOANH THU NGÀY {$targetDate} ---\n";
-    $content .= "Thời gian xuất báo cáo: " . now()->toDateTimeString() . "\n";
-    $content .= "Tổng số đơn hàng: {$orders}\n";
-    $content .= "Tổng doanh thu: " . number_format($revenue) . " VNĐ\n";
-    $content .= "------------------------------------------\n";
+    if ($orders == 0 && $date == null) {
+        $this->info("Hôm nay chưa có đơn hàng, không gửi Telegram.");
+        // return; // Bỏ comment nếu bạn không muốn nhận tin nhắn khi doanh thu bằng 0
+    }
 
-    $fileName = "reports/revenue_{$targetDate}_" . now()->format('H-i') . ".txt";
-    Storage::disk('local')->put($fileName, $content);
+    // Tạo nội dung tin nhắn Telegram có định dạng Markdown
+    $message = "📊 *BÁO CÁO DOANH THU TECHZONE*\n";
+    $message .= "📅 Ngày: `{$targetDate}`\n";
+    $message .= "---------------------------\n";
+    $message .= "🛒 Tổng đơn hàng: *{$orders}*\n";
+    $message .= "💰 Doanh thu: *{$revenue} VNĐ*\n";
+    $message .= "---------------------------\n";
+    $message .= "✅ _Hệ thống tự động cập nhật_";
 
-    $this->info("Đã xuất báo cáo vào file: storage/app/{$fileName}");
+    // 3. Gửi tới Telegram Bot
+    $token = env('TELEGRAM_BOT_TOKEN');
+    $chatId = env('TELEGRAM_CHAT_ID');
 
-    Log::info("Đã chạy báo cáo tự động cho ngày {$targetDate}");
-})->purpose('Tính doanh thu và xuất file báo cáo theo ngày');
+    $response = Http::post("https://api.telegram.org/bot{$token}/sendMessage", [
+        'chat_id' => $chatId,
+        'text' => $message,
+        'parse_mode' => 'Markdown'
+    ]);
+
+    if ($response->successful()) {
+        $this->info("Báo cáo đã được gửi tới Telegram!");
+    } else {
+        $this->error("Lỗi gửi Telegram: " . $response->body());
+    }
+
+    // Vẫn lưu file .txt để dự phòng
+    $fileName = "reports/revenue_{$targetDate}.txt";
+    Storage::disk('local')->put($fileName, $message);
+})->purpose('Gửi báo cáo doanh thu qua Telegram');
 
 // Thiết lập lịch chạy mỗi phút để test
 Schedule::command('report:daily')->everyMinute();
