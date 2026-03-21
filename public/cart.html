@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gio hang - TechZone</title>
+    <title>Giỏ hàng - TechZone</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -13,33 +13,79 @@
         <div class="container cart-page">
             <div class="cart-header">
                 <div>
-                    <h1>Gio hang</h1>
-                    <p>Quan ly san pham truoc khi thanh toan</p>
+                    <h1>Giỏ hàng</h1>
+                    <p>Quản lý sản phẩm trước khi thanh toán</p>
                 </div>
-                <a href="/products.html" class="btn btn-secondary">Tiep tuc mua sam</a>
+                <a href="/products.html" class="btn btn-secondary">Tiếp tục mua sắm</a>
             </div>
 
             <div id="cart-status" class="cart-status"></div>
 
+            <div class="checkout-address-section">
+                <h4>Địa chỉ giao hàng</h4>
+                
+                <div class="address-options">
+                    <div class="address-radio-group">
+                        <input type="radio" name="address_option" id="opt_existing" value="existing" checked onchange="toggleAddressForm()">
+                        <label for="opt_existing">Chọn địa chỉ có sẵn</label>
+                    </div>
+                    <div class="address-radio-group">
+                        <input type="radio" name="address_option" id="opt_new" value="new" onchange="toggleAddressForm()">
+                        <label for="opt_new">Nhập địa chỉ mới</label>
+                    </div>
+                </div>
+
+                <div id="existing-address-block" class="address-list">
+                    <div class="loading-text">Đang tải địa chỉ...</div>
+                </div>
+
+                <div id="new-address-block" style="display: none;">
+                    <div class="form-row">
+                        <input type="text" id="new_receiver_name" class="form-control" placeholder="Tên người nhận">
+                        <input type="text" id="new_phone" class="form-control" placeholder="Số điện thoại">
+                    </div>
+                    
+                    <div class="form-row-triple">
+                        <select id="new_city" class="form-select" onchange="loadDistricts()">
+                            <option value="">Chọn Tỉnh/Thành phố</option>
+                        </select>
+                        <select id="new_district" class="form-select" onchange="loadWards()" disabled>
+                            <option value="">Chọn Quận/Huyện</option>
+                        </select>
+                        <select id="new_ward" class="form-select" disabled>
+                            <option value="">Chọn Phường/Xã</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="text" id="new_address" class="form-control" placeholder="Địa chỉ chi tiết (Số nhà, Tên đường...)">
+                    </div>
+
+                    <div class="form-check-group">
+                        <input type="checkbox" id="save_new_address" checked>
+                        <label for="save_new_address">Lưu địa chỉ này vào sổ địa chỉ để dùng cho lần sau</label>
+                    </div>
+                </div>
+            </div>
             <div class="cart-grid">
                 <div id="cart-items" class="cart-items"></div>
 
                 <aside class="cart-summary">
-                    <h3>Tong ket don hang</h3>
+                    <h3>Tổng kết đơn hàng</h3>
                     <div class="summary-row">
-                        <span>Tam tinh</span>
+                        <span>Tạm tính</span>
                         <span id="cart-subtotal">0</span>
                     </div>
                     <div class="summary-row">
-                        <span>Phi van chuyen</span>
-                        <span>Mien phi</span>
+                        <span>Phí vận chuyển</span>
+                        <span>Miễn phí</span>
                     </div>
                     <div class="summary-row total">
-                        <span>Tong cong</span>
+                        <span>Tổng cộng</span>
                         <span id="cart-total">0</span>
                     </div>
-                    <button class="btn btn-primary" id="checkout-btn" type="button">Tien hanh thanh toan</button>
-                    <p class="summary-note">Gia se duoc luu tai thoi diem ban them vao gio hang.</p>
+                    <button class="btn btn-primary" id="checkout-btn" type="button">Tiến hành thanh toán</button>
+                    <p class="summary-note">Giá sẽ được lưu tại thời điểm bạn thêm vào giỏ hàng.</p>
                 </aside>
             </div>
         </div>

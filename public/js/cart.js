@@ -1,4 +1,7 @@
-document.addEventListener('DOMContentLoaded', () => {
+let GHN_TOKEN = '';
+let GHN_API_URL = '';
+
+document.addEventListener('DOMContentLoaded', async () => {
     initStorefrontLayout({ activePage: 'cart' });
 
     if (typeof isLoggedIn === 'function' && !isLoggedIn()) {
@@ -20,7 +23,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     loadCart({ showStatus: true });
+    loadUserAddresses();
+
+    await loadAppConfig();
+
+    if (GHN_TOKEN) {
+        loadProvinces();
+    }
 });
+
+async function loadAppConfig() {
+    try {
+        const result = await apiRequest('/public-config')
+
+        if (result.data) {
+            GHN_TOKEN = result.data.ghn_token;
+            GHN_API_URL = result.data.ghn_api_url;
+        }
+    } catch (error) {
+        console.error('Không thể tải cấu hình hệ thống:', error);
+    }
+}
 
 async function loadCart({ showStatus = false } = {}) {
     const status = document.getElementById('cart-status');
@@ -90,7 +113,7 @@ function renderCart(cart) {
         return `
             <article class="cart-item" data-product-id="${product.id}" data-unit-price="${currentPrice}" data-quantity="${quantity}">
                 <div class="cart-item-media">
-                    <img src="${resolveImageUrl(product.image)}" alt="${escapeHtml(product.name || 'San pham')}" onerror="this.src='https://via.placeholder.com/120x120?text=No+Image'">
+                    <img src="${resolveImageUrl(product.image)}" alt="${escapeHtml(product.name || 'San pham')}" onerror="this.src='https://placehold.co/120x120?text=No+Image'">
                 </div>
                 <div class="cart-item-info">
                     <h4>${escapeHtml(product.name || 'San pham')}</h4>
@@ -206,7 +229,7 @@ function formatPrice(price) {
 }
 
 function resolveImageUrl(image) {
-    if (!image) return 'https://via.placeholder.com/120x120?text=No+Image';
+    if (!image) return 'https://placehold.co/120x120?text=No+Image';
     if (String(image).startsWith('http') || String(image).startsWith('/')) return image;
     return `/storage/${image}`;
 }
@@ -230,4 +253,138 @@ function showNotification(message, type = 'success') {
         notification.classList.add('fade-out');
         window.setTimeout(() => notification.remove(), 240);
     }, 2000);
+}
+
+function toggleAddressForm() {
+    const option = document.querySelector('input[name="address_option"]:checked').value;
+    if (option === 'existing') {
+        document.getElementById('existing-address-block').style.display = 'block';
+        document.getElementById('new-address-block').style.display = 'none';
+    } else {
+        document.getElementById('existing-address-block').style.display = 'none';
+        document.getElementById('new-address-block').style.display = 'block';
+    }
+}
+
+async function loadUserAddresses() {
+    try {
+        const response = await apiRequest('/storefront/addresses', 'GET');
+
+        const addresses = response.data;
+        const select = document.getElementById('existing-address-block');
+        select.innerHTML = '';
+
+        if (!addresses || addresses.length === 0) {
+            document.getElementById('opt_new').click();
+            document.getElementById('opt_existing').disabled = true;
+            select.innerHTML = '<option value="">Bạn chưa có địa chỉ nào được lưu</option>';
+        } else {
+            addresses.forEach(addr => {
+                const isChecked = addr.is_default ? 'checked' : '';
+                const defaultBadge = addr.is_default ? '<span class="default-badge">Mặc định</span>' : '';
+
+                const cardHtml = `
+                    <div class="address-item">
+                        <input type="radio" name="selected_existing_address" id="addr_${addr.id}" value="${addr.id}" class="address-radio" ${isChecked}>
+                        <label for="addr_${addr.id}" class="address-label">
+                            <div class="address-name">
+                                <span>${addr.receiver_name} - ${addr.receiver_phone}</span>
+                                ${defaultBadge}
+                            </div>
+                            <p class="address-detail">
+                                ${addr.address}, ${addr.ward_name}, ${addr.district_name}, ${addr.province_name}
+                            </p>
+                        </label>
+                    </div>
+                `;
+
+                select.insertAdjacentHTML('beforeend', cardHtml);
+            });
+
+            document.getElementById('opt_existing').disabled = false;
+            document.getElementById('opt_existing').click();
+        }
+    } catch (error) {
+        console.error("Lỗi khi tải địa chỉ:", error);
+        document.getElementById('existing-address-select').innerHTML = '<option value="">Không thể tải địa chỉ</option>';
+    }
+}
+
+async function loadProvinces() {
+    try {
+        const response = await fetch(`${GHN_API_URL}/province`, {
+            headers: { 'Token': GHN_TOKEN }
+        });
+        const data = await response.json();
+
+        const citySelect = document.getElementById('new_city');
+
+        data.data.forEach(province => {
+            if (province.ProvinceID < 270) {
+                let option = document.createElement('option');
+                option.value = province.ProvinceID;
+                option.text = province.ProvinceName;
+                citySelect.appendChild(option);
+            }
+        });
+    } catch (error) {
+        console.error("Lỗi khi tải danh sách Tỉnh/Thành phố:", error);
+    }
+}
+
+async function loadDistricts() {
+    const provinceId = document.getElementById('new_city').value;
+    const districtSelect = document.getElementById('new_district');
+    const wardSelect = document.getElementById('new_ward');
+
+    districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+    wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+    districtSelect.disabled = true;
+    wardSelect.disabled = true;
+
+    if (!provinceId) return;
+
+    try {
+        const response = await fetch(`${GHN_API_URL}/district?province_id=${provinceId}`, {
+            headers: { 'Token': GHN_TOKEN }
+        });
+        const data = await response.json();
+
+        data.data.forEach(district => {
+            let option = document.createElement('option');
+            option.value = district.DistrictID;
+            option.text = district.DistrictName;
+            districtSelect.appendChild(option);
+        });
+        districtSelect.disabled = false;
+    } catch (error) {
+        console.error("Lỗi khi tải danh sách Quận/Huyện:", error);
+    }
+}
+
+async function loadWards() {
+    const districtId = document.getElementById('new_district').value;
+    const wardSelect = document.getElementById('new_ward');
+
+    wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+    wardSelect.disabled = true;
+
+    if (!districtId) return;
+
+    try {
+        const response = await fetch(`${GHN_API_URL}/ward?district_id=${districtId}`, {
+            headers: { 'Token': GHN_TOKEN }
+        });
+        const data = await response.json();
+
+        data.data.forEach(ward => {
+            let option = document.createElement('option');
+            option.value = ward.WardCode;
+            option.text = ward.WardName;
+            wardSelect.appendChild(option);
+        });
+        wardSelect.disabled = false;
+    } catch (error) {
+        console.error("Lỗi khi tải danh sách Phường/Xã:", error);
+    }
 }

@@ -1664,6 +1664,158 @@ a {
     margin-bottom: 12px;
 }
 
+.checkout-address-section {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.checkout-address-section h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+.address-options {
+    display: flex;
+    gap: 20px;
+    background: #fff;
+    padding: 12px;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.address-radio-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.form-row-triple {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.form-group {
+    margin-top: 15px;
+}
+
+.form-check-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+#new-address-block .form-control, 
+#new-address-block .form-select {
+    width: 100%;
+    box-sizing: border-box; 
+    margin-bottom: 0; 
+    padding: 12px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease-in-out;
+    background-color: #ffffff;
+}
+
+#new-address-block .form-control:focus, 
+#new-address-block .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    outline: 0;
+}
+
+#new-address-block .form-select:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+    color: #adb5bd;
+}
+
+.address-list {
+    display: flex;
+    flex-direction: column; /* Xếp thành cột dọc theo ý bạn */
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.address-item {
+    display: flex;
+    align-items: flex-start; /* Căn nút radio lên cùng hàng với dòng đầu tiên */
+    gap: 12px;
+    padding: 15px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    background-color: #fff;
+    transition: border-color 0.2s;
+}
+
+/* Đổi màu viền khi click chọn */
+.address-item:has(.address-radio:checked) {
+    border-color: #0d6efd;
+    background-color: #f8fbff;
+}
+
+.address-radio {
+    margin-top: 4px; /* Hạ nút radio xuống một chút cho bằng với chữ */
+    cursor: pointer;
+}
+
+.address-label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.address-name {
+    font-weight: 600;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.address-detail {
+    color: #495057;
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.default-badge {
+    font-size: 0.75rem;
+    background-color: #0d6efd;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: normal;
+}
+
+.no-address-text, .error-text, .loading-text {
+    grid-column: 1 / -1; 
+    color: #6c757d;
+    font-style: italic;
+    padding: 10px;
+}
+
+.address-item {
+    width: 100%;
+}
+
 @media (max-width: 900px) {
     .cart-grid {
         grid-template-columns: 1fr;
