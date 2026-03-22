@@ -40,22 +40,28 @@ function _injectHeader(activePage) {
     if (loggedIn) {
         // Đã đăng nhập: Hiện giỏ hàng và Dropdown User
         rightMenuHtml = `
-            <div style="display: flex; align-items: center; gap: 25px;">
-                <a href="/cart.html" class="nav-link ${activePage === 'cart' ? 'active' : ''}" style="position: relative;width: 40px; height:40px">
-                    🛒 <span class="badge" id="cart-count" style="position: absolute; top: -8px; right: -12px;">0</span>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <a href="/cart.html" class="nav-link ${activePage === 'cart' ? 'active' : ''}" 
+                style="position: relative; width: 44px; height: 44px;">
+                    <span style="font-size: 1.4rem;">🛒</span> 
+                    <span class="badge" id="cart-count" style="position: absolute; top: -5px; right: -5px;">0</span>
                 </a>
 
-                <div class="user-dropdown" style="position: relative; cursor: pointer;">
-                    <div class="user-profile-toggle" style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--primary-color);">
-                        <span>👤</span> 
-                        <span id="header-user-name">${user?.name || 'Tài khoản'}</span>
-                        <small>▼</small>
+                <div class="user-dropdown" style="position: relative;">
+                    <div class="user-profile-toggle" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <div style="width: 32px; height: 32px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            👤
+                        </div>
+                        <div style="display: flex; flex-direction: column;">
+                            <span id="header-user-name" style="font-size: 0.9rem; font-weight: 700;">${user?.name || 'Tài khoản'}</span>
+                            <small style="color: #718096; font-size: 0.75rem;">Thành viên ▼</small>
+                        </div>
                     </div>
                     
                     <div class="dropdown-content">
                         <a href="/my-orders.html">📦 Lịch sử mua hàng</a>
                         <a href="/profile.html">⚙️ Thiết lập tài khoản</a>
-                        <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 5px 0;">
+                        <hr style="border: 0; border-top: 1px solid #edf2f7; margin: 5px 0;">
                         <button onclick="logoutCustomer()" class="btn-logout-storefront">
                             🚪 Đăng xuất
                         </button>

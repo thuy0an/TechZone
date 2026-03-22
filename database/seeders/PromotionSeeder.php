@@ -9,40 +9,39 @@ class PromotionSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('promotions')->insert([
-            [
-                'name'               => 'Giảm 10% toàn đơn',
-                'code'               => 'SALE10',
-                'start_date'         => now(),
-                'end_date'           => now()->addDays(30),
-                'is_active'          => true,
-                'type'               => 'discount_bill',
-                'discount_value'     => 10,
-                'discount_unit'      => 'percent',
-                'min_bill_value'     => 5000000,
-                'max_discount_amount'=> 1000000,
-                'created_at'         => now(),
-                'updated_at'         => now(),
-            ],
-            [
-                'name'               => 'Giảm 500k Laptop',
-                'code'               => 'LAPTOP500K',
-                'start_date'         => now(),
-                'end_date'           => now()->addDays(60),
-                'is_active'          => true,
-                'type'               => 'discount_by_product',
-                'discount_value'     => 500000,
-                'discount_unit'      => 'amount',
-                'min_bill_value'     => 0,
-                'max_discount_amount'=> 500000,
-                'created_at'         => now(),
-                'updated_at'         => now(),
-            ],
+        $promo1Id = DB::table('promotions')->insertGetId([
+            'name'                => 'Giảm 10% toàn đơn',
+            'code'                => 'SALE10',
+            'start_date'          => now(),
+            'end_date'            => now()->addDays(30),
+            'is_active'           => true,
+            'type'                => 'discount_bill',
+            'discount_value'      => 10,
+            'discount_unit'       => 'percent',
+            'min_bill_value'      => 5000000,
+            'max_discount_amount' => 1000000,
+            'created_at'          => now(),
+            'updated_at'          => now(),
         ]);
 
-        // Promotion 2 áp dụng cho sản phẩm Dell XPS 13 (product_id = 2)
-        DB::table('promotion_product')->insert([
-            ['promotion_id' => 2, 'product_id' => 2],
+        $promo2Id = DB::table('promotions')->insertGetId([
+            'name'                => 'Giảm 500k Laptop',
+            'code'                => 'LAPTOP500K',
+            'start_date'          => now(),
+            'end_date'            => now()->addDays(60),
+            'is_active'           => true,
+            'type'                => 'discount_by_product',
+            'discount_value'      => 500000,
+            'discount_unit'       => 'amount',
+            'min_bill_value'      => 0,
+            'max_discount_amount' => 500000,
+            'created_at'          => now(),
+            'updated_at'          => now(),
         ]);
+
+        DB::table('promotion_product')->updateOrInsert(
+            ['promotion_id' => $promo2Id, 'product_id' => 2],
+            ['promotion_id' => $promo2Id, 'product_id' => 2]
+        );
     }
 }
