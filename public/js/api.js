@@ -258,6 +258,36 @@ async function removeFromCart(productId) {
 }
 
 /**
+ * Áp dụng mã khuyến mãi cho giỏ hàng
+ * @param {string} promotionCode
+ */
+async function applyPromotion(promotionCode) {
+    return await apiRequest('/storefront/checkout/apply-promotion', {
+        method: 'POST',
+        body: JSON.stringify({ promotion_code: promotionCode })
+    });
+}
+
+/**
+ * Gửi yêu cầu checkout
+ * @param {object} payload
+ */
+async function checkoutOrder(payload) {
+    return await apiRequest('/client/orders', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    });
+}
+
+/**
+ * Lấy tóm tắt đơn hàng
+ * @param {number} orderId
+ */
+async function getOrderSummary(orderId) {
+    return await apiRequest(`/client/orders/${orderId}/summary`);
+}
+
+/**
  * Cập nhật số lượng trong badge giỏ hàng
  */
 async function updateCartCount() {

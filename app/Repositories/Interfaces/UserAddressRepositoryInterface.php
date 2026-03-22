@@ -6,4 +6,5 @@ interface UserAddressRepositoryInterface extends BaseRepositoryInterface
 {
     public function getUserAddresses($userId);
     public function clearDefaultAddress($userId);
+    public function findUserAddress($userId, $addressId);
 }

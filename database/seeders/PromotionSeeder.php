@@ -12,6 +12,7 @@ class PromotionSeeder extends Seeder
         DB::table('promotions')->insert([
             [
                 'name'               => 'Giảm 10% toàn đơn',
+                'code'               => 'SALE10',
                 'start_date'         => now(),
                 'end_date'           => now()->addDays(30),
                 'is_active'          => true,
@@ -25,6 +26,7 @@ class PromotionSeeder extends Seeder
             ],
             [
                 'name'               => 'Giảm 500k Laptop',
+                'code'               => 'LAPTOP500K',
                 'start_date'         => now(),
                 'end_date'           => now()->addDays(60),
                 'is_active'          => true,

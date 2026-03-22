@@ -20,4 +20,12 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
             ->orderBy('created_at', 'desc')
             ->get();
     }
+
+    public function getUserOrderSummary($userId, $orderId)
+    {
+        return $this->model->with('details.product')
+            ->where('user_id', $userId)
+            ->where('id', $orderId)
+            ->first();
+    }
 }

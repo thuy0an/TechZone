@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đơn hàng của bạn - TechZone</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div id="storefront-header-root"></div>
+
+    <main class="section">
+        <div class="container order-summary-page">
+            <div class="cart-header">
+                <div>
+                    <h1>Đặt hàng thành công</h1>
+                    <p>Xem lại thông tin đơn hàng vừa đặt.</p>
+                </div>
+                <a href="/products.html" class="btn btn-secondary">Tiếp tục mua sắm</a>
+            </div>
+
+            <div id="order-summary-status" class="cart-status">Đang tải đơn hàng...</div>
+
+            <section class="order-summary-card" id="order-summary-overview" style="display: none;">
+                <div class="order-summary-header">
+                    <div>
+                        <h3 id="order-summary-code">Mã đơn</h3>
+                        <div class="order-summary-meta" id="order-summary-meta"></div>
+                    </div>
+                    <div>
+                        <strong id="order-summary-total">0 đ</strong>
+                    </div>
+                </div>
+                <div class="order-summary-grid" id="order-summary-info"></div>
+            </section>
+
+            <section class="order-summary-card" id="order-summary-payment" style="display: none;">
+                <h3>Thông tin thanh toán</h3>
+                <div id="order-summary-payment-info"></div>
+            </section>
+
+            <section class="order-summary-card" id="order-summary-items" style="display: none;">
+                <h3>Sản phẩm đã mua</h3>
+                <div class="order-items-list" id="order-summary-items-list"></div>
+            </section>
+        </div>
+    </main>
+
+    <div id="storefront-footer-root"></div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/app-layout.js"></script>
+    <script src="/js/order-summary.js"></script>
+</body>
+</html>

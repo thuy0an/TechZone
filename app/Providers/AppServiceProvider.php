@@ -62,6 +62,8 @@ use App\Repositories\Interfaces\ImportNoteRepositoryInterface;
 use App\Repositories\ImportNoteRepository;
 use App\Services\Interfaces\ImportNoteServiceInterface;
 use App\Services\ImportNoteService;
+use App\Repositories\Interfaces\PromotionRepositoryInterface;
+use App\Repositories\PromotionRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -82,6 +84,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UserAddressRepositoryInterface::class, UserAddressRepository::class);
         $this->app->bind(SupplierRepositoryInterface::class, SupplierRepository::class);
         $this->app->bind(ImportNoteRepositoryInterface::class, ImportNoteRepository::class);
+        $this->app->bind(PromotionRepositoryInterface::class, PromotionRepository::class);
         
 
         // Bind Services

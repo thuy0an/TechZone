@@ -76,6 +76,10 @@
                         <span>Tạm tính</span>
                         <span id="cart-subtotal">0</span>
                     </div>
+                    <div class="summary-row discount">
+                        <span>Giảm giá</span>
+                        <span id="cart-discount">0</span>
+                    </div>
                     <div class="summary-row">
                         <span>Phí vận chuyển</span>
                         <span>Miễn phí</span>
@@ -84,6 +88,38 @@
                         <span>Tổng cộng</span>
                         <span id="cart-total">0</span>
                     </div>
+
+                    <div class="promotion-panel">
+                        <div class="promotion-header">
+                            <h4>Khuyến mãi</h4>
+                            <p>Chọn mã phù hợp với đơn hàng hiện tại.</p>
+                        </div>
+                        <div class="promotion-input">
+                            <input type="text" id="promotion-code-input" placeholder="Nhập mã khuyến mãi">
+                            <button class="btn btn-secondary" id="promotion-apply-btn" type="button">Áp dụng</button>
+                        </div>
+                        <div id="promotion-suggestions" class="promotion-suggestions"></div>
+                        <div id="promotion-feedback" class="promotion-feedback"></div>
+                    </div>
+
+                    <div class="payment-panel">
+                        <h4>Phương thức thanh toán</h4>
+                        <label class="payment-option">
+                            <input type="radio" name="payment_method" value="cash" checked>
+                            <span>Thanh toán khi nhận hàng</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="payment_method" value="bank_transfer">
+                            <span>Chuyển khoản ngân hàng</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="payment_method" value="online">
+                            <span>Thanh toán online</span>
+                        </label>
+                        <p class="payment-hint">Bạn có thể chuyển khoản ngay sau khi đặt hàng, hệ thống sẽ hiển thị thông tin tài khoản.</p>
+                        <div id="payment-info" class="payment-info"></div>
+                    </div>
+
                     <button class="btn btn-primary" id="checkout-btn" type="button">Tiến hành thanh toán</button>
                     <p class="summary-note">Giá sẽ được lưu tại thời điểm bạn thêm vào giỏ hàng.</p>
                 </aside>
@@ -92,6 +128,24 @@
     </main>
 
     <div id="storefront-footer-root"></div>
+
+    <div class="order-modal" id="order-success-modal" aria-hidden="true">
+        <div class="order-modal-backdrop" data-close="order-success-modal"></div>
+        <div class="order-modal-card" role="dialog" aria-modal="true">
+            <div class="order-modal-header">
+                <div class="order-modal-icon">✅</div>
+                <div>
+                    <h3>Đặt hàng thành công</h3>
+                    <p>Cảm ơn bạn đã mua sắm tại TechZone.</p>
+                </div>
+            </div>
+            <div class="order-modal-body" id="order-success-content"></div>
+            <div class="order-modal-actions">
+                <button class="btn btn-secondary" type="button" data-close="order-success-modal">Đóng</button>
+                <button class="btn btn-primary" id="order-summary-btn" type="button">Xem đơn hàng</button>
+            </div>
+        </div>
+    </div>
 
     <script src="/js/api.js"></script>
     <script src="/js/auth.js"></script>

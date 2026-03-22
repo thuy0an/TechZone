@@ -92,7 +92,7 @@ Route::prefix('storefront')->middleware('require.client.login')->group(function 
 
 Route::prefix('storefront')->middleware('auth:sanctum')->group(function () {
     // ĐẶT HÀNG (CHECKOUT)
-    Route::post('/checkout', [OrderController::class, 'checkout']); // chốt đơn
+    Route::post('/checkout/apply-promotion', [OrderController::class, 'applyPromotion']); // áp dụng khuyến mãi
     Route::get('/orders', [OrderController::class, 'myOrders']); // lịch sử đơn hàng
 
     // ĐỊA CHỈ NHẬN HÀNG
@@ -112,6 +112,11 @@ Route::prefix('client')->middleware('require.client.login')->group(function () {
     Route::post('/cart/add', [CartController::class, 'add']);
     Route::post('/cart/update', [CartController::class, 'update']);
     Route::delete('/cart/delete/{cartItemId}', [CartController::class, 'delete']);
+});
+
+Route::prefix('client')->middleware('auth:sanctum')->group(function () {
+    Route::post('/orders', [OrderController::class, 'createOrder']);
+    Route::get('/orders/{id}/summary', [OrderController::class, 'orderSummary']);
 });
 
 

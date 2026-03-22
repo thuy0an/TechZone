@@ -26,4 +26,11 @@ class UserAddressRepository extends BaseRepository implements UserAddressReposit
         return $this->model->where('user_id', $userId)
             ->update(['is_default' => false]);
     }
+
+    public function findUserAddress($userId, $addressId)
+    {
+        return $this->model->where('user_id', $userId)
+            ->where('id', $addressId)
+            ->first();
+    }
 }
