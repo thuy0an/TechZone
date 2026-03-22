@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\Admin\ImportNoteController;
 use App\Http\Controllers\Api\Admin\ReportController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\ProductImportController;
+use App\Http\Controllers\Api\Admin\PromotionController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -173,6 +174,10 @@ Route::prefix('admin')->group(function () {
         Route::get('reports/order-status',      [ReportController::class, 'orderStatusAnalytics']);
         Route::get('reports/sales-by-region',   [ReportController::class, 'salesByRegion']);
         Route::get('reports/supplier-payable',  [ReportController::class, 'supplierPayable']);
+
+        // KHUYẾN MÃI
+        Route::apiResource('promotions', PromotionController::class);
+        Route::patch('promotions/{id}/toggle-active', [PromotionController::class, 'toggleActive']);
     });
 
     Route::prefix('imports')->group(function () {

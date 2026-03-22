@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khuyến mãi - TechZone Admin</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="icon" href="/favicon.ico">
+    <style>
+        /* ── Promotion-specific styles (tối giản, tái dùng CSS gốc) ── */
+
+        /* Tag sản phẩm trong form */
+        .product-tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-height: 36px;
+            padding: 8px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            background: #f8fafc;
+        }
+
+        .product-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1d4ed8;
+            border-radius: 20px;
+            padding: 3px 10px 3px 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .product-tag .tag-remove {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: none;
+            background: #93c5fd;
+            color: #1e3a8a;
+            cursor: pointer;
+            font-size: 0.65rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+
+        .product-tag .tag-remove:hover { background: #3b82f6; color: #fff; }
+
+        /* Discount value preview */
+        .discount-preview {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .discount-preview.percent { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .discount-preview.amount  { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+
+        /* Type badge */
+        .badge-type-bill    { background: #f0abfc; color: #701a75; }
+        .badge-type-product { background: #a5f3fc; color: #164e63; }
+
+        /* Date range display */
+        .date-range {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .date-range span { white-space: nowrap; }
+
+        /* Status indicator in table */
+        .status-dot {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .status-dot::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status-dot.active::before   { background: var(--admin-success); box-shadow: 0 0 0 3px #d1fae5; }
+        .status-dot.inactive::before { background: #94a3b8; }
+
+        /* Expired badge */
+        .badge-expired { background: #fee2e2; color: #991b1b; }
+
+        /* Product search results dropdown */
+        .product-search-wrap { position: relative; }
+
+        .product-search-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0; right: 0;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 600;
+            display: none;
+        }
+
+        .product-search-dropdown.show { display: block; }
+
+        .product-search-item {
+            padding: 9px 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.875rem;
+            transition: var(--transition);
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .product-search-item:last-child { border-bottom: none; }
+        .product-search-item:hover { background: #f8fafc; }
+
+        .product-search-item .item-code {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-family: monospace;
+        }
+
+        /* Toggle switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 42px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: #cbd5e1;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px; height: 18px;
+            left: 3px; bottom: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: var(--transition);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch input:checked + .toggle-slider { background: var(--admin-success); }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+        /* Form grid responsive */
+        .promo-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .promo-form-grid .full-col { grid-column: 1 / -1; }
+
+        @media (max-width: 600px) {
+            .promo-form-grid { grid-template-columns: 1fr; }
+            .promo-form-grid .full-col { grid-column: 1; }
+        }
+
+        /* Modal wider for promotions */
+        .modal-form-box-lg {
+            max-width: 660px;
+        }
+
+        /* View modal sections */
+        .view-section-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Empty product list placeholder */
+        .product-tag-empty {
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            padding: 4px 6px;
+        }
+    </style>
+</head>
+<body>
+<div class="admin-layout">
+    <div id="admin-sidebar-root"></div>
+    <div class="admin-main">
+        <div id="admin-topbar-root"></div>
+
+        <main class="admin-content">
+            <div class="page-header">
+                <h1>Quản lý Khuyến Mãi</h1>
+                <p>Tạo và quản lý các chương trình giảm giá, mã khuyến mãi</p>
+            </div>
+
+            <!-- ── Stats Cards ── -->
+            <div class="stats-grid" id="promo-stats" style="margin-bottom:24px">
+                <div class="stat-card">
+                    <div class="stat-icon blue">🏷️</div>
+                    <div>
+                        <div class="stat-value" id="stat-total">—</div>
+                        <div class="stat-label">Tổng khuyến mãi</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">✅</div>
+                    <div>
+                        <div class="stat-value" id="stat-active">—</div>
+                        <div class="stat-label">Đang hoạt động</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon amber">⏰</div>
+                    <div>
+                        <div class="stat-value" id="stat-expired">—</div>
+                        <div class="stat-label">Đã hết hạn</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">🛒</div>
+                    <div>
+                        <div class="stat-value" id="stat-product-type">—</div>
+                        <div class="stat-label">Theo sản phẩm</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Main table card ── -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="toolbar" style="flex-direction:column; align-items:flex-start;">
+                        <div class="flex-row" style="flex-wrap:wrap;">
+                            <div class="search-box" style="width:320px;">
+                                <span>🔍</span>
+                                <input type="text" id="search-input"
+                                       placeholder="Tìm tên hoặc mã khuyến mãi...">
+                            </div>
+                            <select id="filter-type" class="form-control cursor-pointer"
+                                    style="width:220px;" onchange="currentPage=1; loadPromotions()">
+                                <option value="">Tất cả loại</option>
+                                <option value="discount_bill">Giảm theo đơn hàng</option>
+                                <option value="discount_by_product">Giảm theo sản phẩm</option>
+                            </select>
+                            <select id="filter-active" class="form-control cursor-pointer"
+                                    style="width:270px;" onchange="currentPage=1; loadPromotions()">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="1">Đang bật</option>
+                                <option value="0">Đang tắt</option>
+                            </select>
+                            <button class="btn-add" onclick="openAddModal()">＋ Thêm khuyến mãi</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:50px">#</th>
+                                <th>Tên &amp; Mã</th>
+                                <th>Loại</th>
+                                <th>Giá trị giảm</th>
+                                <th>Điều kiện</th>
+                                <th>Thời gian</th>
+                                <th style="width:110px; text-align:center">Trạng thái</th>
+                                <th style="width:160px; text-align:center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="promo-table-body">
+                            <tr><td colspan="8" class="table-loading">⏳ Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination" id="pagination-bar" style="display:none">
+                    <div class="pagination-info" id="pagination-info"></div>
+                    <div class="pagination-btns" id="pagination-btns"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- ================================================================
+     FORM MODAL – Add / Edit Promotion
+     ================================================================ -->
+<div class="modal-overlay-form" id="form-modal">
+    <div class="modal-form-box modal-form-box-lg">
+        <div class="modal-form-header">
+            <span class="modal-form-title" id="modal-title">Thêm khuyến mãi</span>
+            <button class="modal-close-btn" onclick="closeFormModal()">✕</button>
+        </div>
+        <div class="modal-form-body">
+            <div class="promo-form-grid">
+
+                <!-- Tên khuyến mãi -->
+                <div class="form-group full-col">
+                    <label>Tên chương trình <span style="color:var(--admin-danger)">*</span></label>
+                    <input type="text" id="p-name" class="form-control"
+                           placeholder="VD: Giảm 10% toàn đơn tháng 7">
+                    <div id="p-name-error" class="field-error"></div>
+                </div>
+
+                <!-- Mã code -->
+                <div class="form-group">
+                    <label>Mã khuyến mãi <span style="color:var(--admin-danger)">*</span></label>
+                    <input type="text" id="p-code" class="form-control"
+                           placeholder="VD: SALE10" style="text-transform:uppercase">
+                    <div id="p-code-error" class="field-error"></div>
+                </div>
+
+                <!-- Loại -->
+                <div class="form-group">
+                    <label>Loại khuyến mãi <span style="color:var(--admin-danger)">*</span></label>
+                    <select id="p-type" class="form-control" onchange="onTypeChange()">
+                        <option value="discount_bill">Giảm theo đơn hàng</option>
+                        <option value="discount_by_product">Giảm theo sản phẩm</option>
+                    </select>
+                    <div id="p-type-error" class="field-error"></div>
+                </div>
+
+                <!-- Giá trị giảm -->
+                <div class="form-group">
+                    <label>Giá trị giảm <span style="color:var(--admin-danger)">*</span></label>
+                    <input type="number" id="p-discount-value" class="form-control"
+                           min="0" placeholder="VD: 10" oninput="updateDiscountPreview()">
+                    <div id="p-discount-value-error" class="field-error"></div>
+                </div>
+
+                <!-- Đơn vị giảm -->
+                <div class="form-group">
+                    <label>Đơn vị giảm <span style="color:var(--admin-danger)">*</span></label>
+                    <select id="p-discount-unit" class="form-control" onchange="updateDiscountPreview()">
+                        <option value="percent">% (Phần trăm)</option>
+                        <option value="amount">₫ (Số tiền cố định)</option>
+                    </select>
+                    <div style="margin-top:6px" id="discount-preview-wrap"></div>
+                </div>
+
+                <!-- Giá trị đơn tối thiểu -->
+                <div class="form-group">
+                    <label>Đơn tối thiểu (₫)</label>
+                    <input type="number" id="p-min-bill" class="form-control"
+                           min="0" placeholder="0 = không giới hạn">
+                </div>
+
+                <!-- Giảm tối đa -->
+                <div class="form-group">
+                    <label>Giảm tối đa (₫)</label>
+                    <input type="number" id="p-max-discount" class="form-control"
+                           min="0" placeholder="0 = không giới hạn">
+                </div>
+
+                <!-- Ngày bắt đầu -->
+                <div class="form-group">
+                    <label>Ngày bắt đầu</label>
+                    <input type="datetime-local" id="p-start-date" class="form-control">
+                </div>
+
+                <!-- Ngày kết thúc -->
+                <div class="form-group">
+                    <label>Ngày kết thúc</label>
+                    <input type="datetime-local" id="p-end-date" class="form-control">
+                    <div id="p-end-date-error" class="field-error"></div>
+                </div>
+
+                <!-- Trạng thái -->
+                <div class="form-group full-col" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f8fafc;border-radius:var(--radius);border:1.5px solid var(--border);">
+                    <label class="toggle-switch" style="margin:0">
+                        <input type="checkbox" id="p-is-active" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <div>
+                        <div style="font-size:.875rem;font-weight:600">Kích hoạt ngay</div>
+                        <div style="font-size:.78rem;color:var(--text-secondary)">Bật để áp dụng chương trình</div>
+                    </div>
+                </div>
+
+                <!-- Sản phẩm áp dụng (chỉ hiện khi type = discount_by_product) -->
+                <div class="form-group full-col" id="product-select-group" style="display:none;">
+                    <label>Sản phẩm áp dụng</label>
+
+                    <!-- Search input -->
+                    <div class="product-search-wrap" style="margin-bottom:8px">
+                        <input type="text" id="product-search-input" class="form-control"
+                               placeholder="🔍 Tìm tên hoặc mã sản phẩm để thêm..."
+                               autocomplete="off" oninput="searchProducts(this.value)">
+                        <div class="product-search-dropdown" id="product-search-dropdown"></div>
+                    </div>
+
+                    <!-- Tag list -->
+                    <div class="product-tag-list" id="product-tag-list">
+                        <span class="product-tag-empty">Chưa chọn sản phẩm nào</span>
+                    </div>
+                    <div style="font-size:.78rem;color:var(--text-secondary);margin-top:6px">
+                        Để trống = áp dụng cho tất cả sản phẩm
+                    </div>
+                </div>
+
+            </div><!-- /promo-form-grid -->
+        </div><!-- /modal-form-body -->
+
+        <div class="modal-form-footer">
+            <button type="button" class="btn btn-cancel" onclick="closeFormModal()">Hủy</button>
+            <button type="button" class="btn-save" id="save-btn" onclick="savePromotion()">
+                <span class="spinner" id="save-spinner"></span>
+                <span id="save-btn-text">Lưu</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     VIEW MODAL – Promotion Detail
+     ================================================================ -->
+<div class="modal-overlay" id="view-modal">
+    <div class="modal-box" style="max-width:560px;text-align:left;padding:28px 32px">
+        <div class="modal-header" style="margin-bottom:20px">
+            <div>
+                <div class="modal-title" id="view-promo-name">—</div>
+                <div style="margin-top:4px" id="view-promo-code-badge"></div>
+            </div>
+            <button class="modal-close-btn" onclick="closeViewModal()">✕</button>
+        </div>
+
+        <!-- Tổng quan -->
+        <div class="view-section-title">Thông tin chương trình</div>
+        <div class="view-row" style="margin-bottom:16px">
+            <div class="view-item">
+                <div class="view-label">Loại</div>
+                <div class="view-value" id="view-type">—</div>
+            </div>
+            <div class="view-item">
+                <div class="view-label">Giá trị giảm</div>
+                <div class="view-value" id="view-discount">—</div>
+            </div>
+            <div class="view-item">
+                <div class="view-label">Trạng thái</div>
+                <div class="view-value" id="view-status">—</div>
+            </div>
+        </div>
+
+        <div class="view-row" style="margin-bottom:16px">
+            <div class="view-item">
+                <div class="view-label">Đơn tối thiểu</div>
+                <div class="view-value" id="view-min-bill">—</div>
+            </div>
+            <div class="view-item">
+                <div class="view-label">Giảm tối đa</div>
+                <div class="view-value" id="view-max-discount">—</div>
+            </div>
+        </div>
+
+        <div class="view-row" style="margin-bottom:20px">
+            <div class="view-item">
+                <div class="view-label">Bắt đầu</div>
+                <div class="view-value" id="view-start">—</div>
+            </div>
+            <div class="view-item">
+                <div class="view-label">Kết thúc</div>
+                <div class="view-value" id="view-end">—</div>
+            </div>
+        </div>
+
+        <!-- Sản phẩm áp dụng -->
+        <div id="view-products-section">
+            <div class="view-section-title">Sản phẩm áp dụng</div>
+            <div class="product-tag-list" id="view-product-tags" style="background:#fff;border-color:var(--border)">
+                <span class="product-tag-empty">Không có</span>
+            </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px">
+            <button class="btn btn-cancel" onclick="closeViewModal()">Đóng</button>
+            <button class="btn-save" onclick="openEditFromView()">✏️ Chỉnh sửa</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     DELETE MODAL
+     ================================================================ -->
+<div class="modal-overlay" id="delete-modal">
+    <div class="modal-box">
+        <div class="modal-icon">🗑️</div>
+        <div class="modal-title">Xác nhận xóa</div>
+        <div class="modal-message">
+            Bạn có chắc muốn xóa khuyến mãi
+            <strong id="delete-name"></strong>?<br>
+            <small style="color:var(--text-secondary)">
+                Nếu mã đã được sử dụng trong đơn hàng, hệ thống sẽ
+                <strong>tắt (deactivate)</strong> thay vì xóa cứng.
+            </small>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-cancel" onclick="closeDeleteModal()">Hủy</button>
+            <button class="btn btn-danger" id="confirm-delete-btn" onclick="doDelete()">Xóa</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Scripts ──────────────────────────────────────────────── -->
+<script src="/js/admin/admin-token.js"></script>
+<script src="/js/admin/admin-api.js"></script>
+<script src="/js/admin/admin-auth.js"></script>
+<script src="/js/admin/admin-layout.js"></script>
+<script src="/js/admin/admin-utils.js"></script>
+<script>
+initAdminLayout({ title: 'Khuyến Mãi', icon: '🏷️', activePage: 'promotions' });
+
+// ─── State ────────────────────────────────────────────────────────────────
+let currentPage   = 1;
+let editingId     = null;
+let deletingId    = null;
+let viewingId     = null;
+let promotionsData = [];
+let allProducts   = [];          // cache danh sách SP cho search
+let selectedProductIds = [];     // sản phẩm được chọn trong form
+let searchTimeout = null;
+let productSearchTimeout = null;
+
+const vnd = v => new Intl.NumberFormat('vi-VN').format(Math.round(Number(v || 0)));
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    loadPromotions();
+    preloadProducts();
+
+    document.getElementById('search-input').addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => { currentPage = 1; loadPromotions(); }, 400);
+    });
+
+    // Uppercase mã code khi gõ
+    document.getElementById('p-code').addEventListener('input', function () {
+        const pos = this.selectionStart;
+        this.value = this.value.toUpperCase();
+        this.setSelectionRange(pos, pos);
+    });
+
+    // Đóng dropdown khi click ngoài
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.product-search-wrap')) {
+            document.getElementById('product-search-dropdown').classList.remove('show');
+        }
+    });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA LOADING
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadPromotions() {
+    const search   = document.getElementById('search-input').value.trim();
+    const type     = document.getElementById('filter-type').value;
+    const isActive = document.getElementById('filter-active').value;
+
+    const params = new URLSearchParams({ page: currentPage, per_page: 15 });
+    if (search)   params.append('search',    search);
+    if (type)     params.append('type',      type);
+    if (isActive !== '') params.append('is_active', isActive);
+
+    setTableLoading(true);
+
+    try {
+        const res = await adminRequest(`/promotions?${params}`);
+        promotionsData = res.data;
+        renderTable(promotionsData);
+        updateStats(promotionsData, res.pagination?.total);
+        renderPagination({
+            meta:         res.pagination,
+            currentPage,
+            onPageChange: p => { currentPage = p; loadPromotions(); },
+        });
+    } catch (err) {
+        showTableError('Không thể tải danh sách khuyến mãi. Vui lòng thử lại.');
+    }
+}
+
+async function preloadProducts() {
+    try {
+        const res = await adminRequest('/products?per_page=500&status=visible');
+        allProducts = res.data || [];
+    } catch (_) {}
+}
+
+// ─── Stats ───────────────────────────────────────────────────────────────
+function updateStats(items, total) {
+    const now = new Date();
+    const active    = items.filter(p => p.is_active && !isExpired(p)).length;
+    const expired   = items.filter(p => isExpired(p)).length;
+    const byProduct = items.filter(p => p.type === 'discount_by_product').length;
+
+    document.getElementById('stat-total').textContent      = total ?? items.length;
+    document.getElementById('stat-active').textContent     = active;
+    document.getElementById('stat-expired').textContent    = expired;
+    document.getElementById('stat-product-type').textContent = byProduct;
+}
+
+function isExpired(p) {
+    return p.end_date && new Date(p.end_date) < new Date();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TABLE RENDERING
+// ═══════════════════════════════════════════════════════════════════════════
+function renderTable(items) {
+    const tbody = document.getElementById('promo-table-body');
+    if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="table-loading" style="color:var(--text-secondary)">Không có dữ liệu</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = items.map((p, idx) => {
+        const expired  = isExpired(p);
+        const typeBadge = p.type === 'discount_bill'
+            ? `<span class="badge badge-type-bill">🧾 Theo đơn hàng</span>`
+            : `<span class="badge badge-type-product">📦 Theo sản phẩm</span>`;
+
+        const discountStr = p.discount_unit === 'percent'
+            ? `<span class="discount-preview percent">-${p.discount_value}%</span>`
+            : `<span class="discount-preview amount">-${vnd(p.discount_value)}₫</span>`;
+
+        const minBill = Number(p.min_bill_value) > 0
+            ? `Min: ${vnd(p.min_bill_value)}₫`
+            : `<span class="text-muted">Không giới hạn</span>`;
+
+        const startFmt = p.start_date ? AdminString.date(p.start_date) : '—';
+        const endFmt   = p.end_date   ? AdminString.date(p.end_date)   : '∞';
+
+        const statusEl = expired
+            ? `<span class="badge badge-expired">Hết hạn</span>`
+            : (p.is_active
+                ? `<span class="status-dot active">Đang bật</span>`
+                : `<span class="status-dot inactive">Đã tắt</span>`);
+
+        return `
+        <tr>
+            <td class="td-id">${(currentPage - 1) * 15 + idx + 1}</td>
+            <td>
+                <div style="font-weight:700;font-size:.9rem">${escHtml(p.name)}</div>
+                <code style="font-size:.75rem;color:var(--admin-accent);background:#eff6ff;padding:1px 6px;border-radius:4px">${escHtml(p.code)}</code>
+            </td>
+            <td>${typeBadge}</td>
+            <td>${discountStr}</td>
+            <td style="font-size:.82rem">${minBill}</td>
+            <td>
+                <div class="date-range">
+                    <span>▶ ${startFmt}</span>
+                    <span>■ ${endFmt}</span>
+                </div>
+            </td>
+            <td style="text-align:center">
+                ${statusEl}
+                ${!expired ? `
+                <div style="margin-top:4px">
+                    <label class="toggle-switch" title="${p.is_active ? 'Tắt' : 'Bật'} khuyến mãi"
+                           onclick="event.stopPropagation()">
+                        <input type="checkbox" ${p.is_active ? 'checked' : ''}
+                               onchange="toggleActive(${p.id}, this)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>` : ''}
+            </td>
+            <td>
+                <div class="td-actions">
+                    <button class="btn-view"   onclick="openViewModal(${p.id})">Xem</button>
+                    <button class="btn-edit"   onclick="openEditModal(${p.id})">✏️ Sửa</button>
+                    <button class="btn-delete" onclick="openDeleteModal(${p.id}, '${escJs(p.name)}')">🗑️ Xóa</button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function setTableLoading(on) {
+    if (on) {
+        document.getElementById('promo-table-body').innerHTML =
+            '<tr><td colspan="8" class="table-loading">⏳ Đang tải...</td></tr>';
+        document.getElementById('pagination-bar').style.display = 'none';
+    }
+}
+
+function showTableError(msg) {
+    document.getElementById('promo-table-body').innerHTML =
+        `<tr><td colspan="8" class="table-loading" style="color:var(--admin-danger)">⚠️ ${msg}</td></tr>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOGGLE ACTIVE (inline trong bảng)
+// ═══════════════════════════════════════════════════════════════════════════
+async function toggleActive(id, checkbox) {
+    const originalState = checkbox.checked;
+    try {
+        const res = await adminRequest(`/promotions/${id}/toggle-active`, { method: 'PATCH' });
+        showAdminToast(res.message, 'success');
+        // Cập nhật local state không cần reload toàn bộ
+        const item = promotionsData.find(p => p.id === id);
+        if (item) item.is_active = res.data?.is_active ?? !originalState;
+    } catch (err) {
+        checkbox.checked = !originalState; // revert
+        showAdminToast(err.message || 'Lỗi cập nhật trạng thái', 'error');
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PRODUCT SEARCH (trong form)
+// ═══════════════════════════════════════════════════════════════════════════
+function searchProducts(q) {
+    clearTimeout(productSearchTimeout);
+    productSearchTimeout = setTimeout(() => renderProductDropdown(q), 200);
+}
+
+function renderProductDropdown(q) {
+    const dropdown = document.getElementById('product-search-dropdown');
+    if (!q.trim()) { dropdown.classList.remove('show'); return; }
+
+    const filtered = allProducts
+        .filter(p =>
+            !selectedProductIds.includes(p.id) &&
+            (p.name.toLowerCase().includes(q.toLowerCase()) ||
+             p.code.toLowerCase().includes(q.toLowerCase()))
+        )
+        .slice(0, 10);
+
+    if (!filtered.length) {
+        dropdown.innerHTML = '<div style="padding:10px 14px;color:var(--text-secondary);font-size:.85rem">Không tìm thấy sản phẩm</div>';
+        dropdown.classList.add('show');
+        return;
+    }
+
+    dropdown.innerHTML = filtered.map(p => `
+        <div class="product-search-item" onclick="addProductTag(${p.id}, '${escJs(p.name)}', '${escJs(p.code)}')">
+            <div style="flex:1">
+                <div style="font-weight:600">${escHtml(p.name)}</div>
+                <div class="item-code">${escHtml(p.code)}</div>
+            </div>
+            <span style="font-size:.75rem;color:var(--admin-accent)">+ Thêm</span>
+        </div>`).join('');
+    dropdown.classList.add('show');
+}
+
+function addProductTag(id, name, code) {
+    if (selectedProductIds.includes(id)) return;
+    selectedProductIds.push(id);
+    renderProductTags();
+    document.getElementById('product-search-input').value = '';
+    document.getElementById('product-search-dropdown').classList.remove('show');
+}
+
+function removeProductTag(id) {
+    selectedProductIds = selectedProductIds.filter(x => x !== id);
+    renderProductTags();
+}
+
+function renderProductTags() {
+    const container = document.getElementById('product-tag-list');
+    if (!selectedProductIds.length) {
+        container.innerHTML = '<span class="product-tag-empty">Chưa chọn sản phẩm nào</span>';
+        return;
+    }
+    container.innerHTML = selectedProductIds.map(id => {
+        const p = allProducts.find(x => x.id === id);
+        if (!p) return '';
+        return `
+            <span class="product-tag">
+                ${escHtml(p.name)}
+                <button type="button" class="tag-remove" onclick="removeProductTag(${id})">✕</button>
+            </span>`;
+    }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FORM HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+function onTypeChange() {
+    const type  = document.getElementById('p-type').value;
+    const group = document.getElementById('product-select-group');
+    group.style.display = type === 'discount_by_product' ? 'block' : 'none';
+}
+
+function updateDiscountPreview() {
+    const val  = document.getElementById('p-discount-value').value;
+    const unit = document.getElementById('p-discount-unit').value;
+    const wrap = document.getElementById('discount-preview-wrap');
+    if (!val) { wrap.innerHTML = ''; return; }
+
+    const text  = unit === 'percent'
+        ? `Giảm ${val}% trên tổng đơn`
+        : `Giảm ${vnd(val)}₫ trên tổng đơn`;
+    const cls = unit === 'percent' ? 'percent' : 'amount';
+    wrap.innerHTML = `<span class="discount-preview ${cls}">${text}</span>`;
+}
+
+function resetForm() {
+    ['p-name','p-code','p-discount-value','p-min-bill','p-max-discount',
+     'p-start-date','p-end-date'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    document.getElementById('p-type').value          = 'discount_bill';
+    document.getElementById('p-discount-unit').value = 'percent';
+    document.getElementById('p-is-active').checked   = true;
+    document.getElementById('discount-preview-wrap').innerHTML = '';
+    document.getElementById('product-select-group').style.display = 'none';
+    document.getElementById('product-search-input').value = '';
+    selectedProductIds = [];
+    renderProductTags();
+    clearErrors('p-name','p-code','p-discount-value','p-end-date');
+}
+
+// ─── toDatetimeLocal helper ───────────────────────────────────────────────
+function toDatetimeLocal(isoStr) {
+    if (!isoStr) return '';
+    const d = new Date(isoStr);
+    // Format: YYYY-MM-DDTHH:mm  (input[datetime-local] cần format này)
+    return d.getFullYear() + '-'
+        + String(d.getMonth()+1).padStart(2,'0') + '-'
+        + String(d.getDate()).padStart(2,'0') + 'T'
+        + String(d.getHours()).padStart(2,'0') + ':'
+        + String(d.getMinutes()).padStart(2,'0');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// OPEN / CLOSE MODALS
+// ═══════════════════════════════════════════════════════════════════════════
+function openAddModal() {
+    editingId = null;
+    resetForm();
+    document.getElementById('p-code').disabled = false;
+    document.getElementById('modal-title').textContent = '＋ Thêm khuyến mãi';
+    document.getElementById('form-modal').classList.add('show');
+}
+
+function openEditModal(id) {
+    const p = promotionsData.find(x => x.id === id);
+    if (!p) return;
+
+    editingId = id;
+    resetForm();
+
+    document.getElementById('modal-title').textContent   = '✏️ Sửa khuyến mãi';
+    document.getElementById('p-name').value              = p.name;
+    document.getElementById('p-code').value              = p.code;
+    document.getElementById('p-code').disabled           = true;   // code không đổi
+    document.getElementById('p-type').value              = p.type;
+    document.getElementById('p-discount-value').value    = p.discount_value;
+    document.getElementById('p-discount-unit').value     = p.discount_unit;
+    document.getElementById('p-min-bill').value          = p.min_bill_value || '';
+    document.getElementById('p-max-discount').value      = p.max_discount_amount || '';
+    document.getElementById('p-start-date').value        = toDatetimeLocal(p.start_date);
+    document.getElementById('p-end-date').value          = toDatetimeLocal(p.end_date);
+    document.getElementById('p-is-active').checked       = !!p.is_active;
+
+    onTypeChange();
+    updateDiscountPreview();
+
+    // Load sản phẩm đã chọn
+    if (p.type === 'discount_by_product' && p.products?.length) {
+        selectedProductIds = p.products.map(x => x.id);
+        renderProductTags();
+    }
+
+    document.getElementById('form-modal').classList.add('show');
+}
+
+function closeFormModal() {
+    document.getElementById('form-modal').classList.remove('show');
+}
+
+async function openViewModal(id) {
+    // Fetch detail để có đủ products
+    try {
+        const res = await adminRequest(`/promotions/${id}`);
+        const p   = res.data;
+        viewingId = id;
+
+        document.getElementById('view-promo-name').textContent = p.name;
+        document.getElementById('view-promo-code-badge').innerHTML =
+            `<code style="background:#eff6ff;color:var(--admin-accent);padding:2px 8px;border-radius:4px;font-size:.85rem">${escHtml(p.code)}</code>`;
+
+        const typeLabel = p.type === 'discount_bill' ? '🧾 Theo đơn hàng' : '📦 Theo sản phẩm';
+        document.getElementById('view-type').innerHTML =
+            `<span class="badge ${p.type === 'discount_bill' ? 'badge-type-bill' : 'badge-type-product'}">${typeLabel}</span>`;
+
+        const discStr = p.discount_unit === 'percent'
+            ? `<span class="discount-preview percent">-${p.discount_value}%</span>`
+            : `<span class="discount-preview amount">-${vnd(p.discount_value)}₫</span>`;
+        document.getElementById('view-discount').innerHTML = discStr;
+
+        const expired = isExpired(p);
+        document.getElementById('view-status').innerHTML = expired
+            ? `<span class="badge badge-expired">Hết hạn</span>`
+            : (p.is_active
+                ? `<span class="status-dot active">Đang bật</span>`
+                : `<span class="status-dot inactive">Đã tắt</span>`);
+
+        document.getElementById('view-min-bill').textContent =
+            Number(p.min_bill_value) > 0 ? vnd(p.min_bill_value) + '₫' : 'Không giới hạn';
+        document.getElementById('view-max-discount').textContent =
+            Number(p.max_discount_amount) > 0 ? vnd(p.max_discount_amount) + '₫' : 'Không giới hạn';
+        document.getElementById('view-start').textContent =
+            p.start_date ? AdminString.date(p.start_date) : 'Không giới hạn';
+        document.getElementById('view-end').textContent =
+            p.end_date ? AdminString.date(p.end_date) : 'Không giới hạn';
+
+        // Products section
+        const section = document.getElementById('view-products-section');
+        const tagsEl  = document.getElementById('view-product-tags');
+        if (p.type === 'discount_by_product') {
+            section.style.display = 'block';
+            if (p.products?.length) {
+                tagsEl.innerHTML = p.products.map(x =>
+                    `<span class="product-tag" style="cursor:default">${escHtml(x.name)}</span>`
+                ).join('');
+            } else {
+                tagsEl.innerHTML = '<span class="product-tag-empty">Tất cả sản phẩm</span>';
+            }
+        } else {
+            section.style.display = 'none';
+        }
+
+        document.getElementById('view-modal').classList.add('show');
+    } catch (err) {
+        showAdminToast('Không thể tải chi tiết khuyến mãi', 'error');
+    }
+}
+
+function closeViewModal() {
+    document.getElementById('view-modal').classList.remove('show');
+    viewingId = null;
+}
+
+function openEditFromView() {
+    closeViewModal();
+    if (viewingId) openEditModal(viewingId);
+}
+
+function openDeleteModal(id, name) {
+    deletingId = id;
+    document.getElementById('delete-name').textContent = `"${name}"`;
+    document.getElementById('delete-modal').classList.add('show');
+}
+
+function closeDeleteModal() {
+    document.getElementById('delete-modal').classList.remove('show');
+    deletingId = null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SAVE
+// ═══════════════════════════════════════════════════════════════════════════
+async function savePromotion() {
+    clearErrors('p-name','p-code','p-discount-value','p-end-date');
+    setSaveLoading(true);
+
+    const payload = {
+        name:               document.getElementById('p-name').value.trim(),
+        type:               document.getElementById('p-type').value,
+        discount_value:     document.getElementById('p-discount-value').value,
+        discount_unit:      document.getElementById('p-discount-unit').value,
+        min_bill_value:     document.getElementById('p-min-bill').value     || null,
+        max_discount_amount:document.getElementById('p-max-discount').value || null,
+        start_date:         document.getElementById('p-start-date').value   || null,
+        end_date:           document.getElementById('p-end-date').value     || null,
+        is_active:          document.getElementById('p-is-active').checked ? 1 : 0,
+        product_ids:        selectedProductIds,
+    };
+
+    if (!editingId) {
+        payload.code = document.getElementById('p-code').value.trim();
+    }
+
+    const url    = editingId ? `/promotions/${editingId}` : '/promotions';
+    const method = editingId ? 'PUT' : 'POST';
+
+    try {
+        const res = await adminRequest(url, {
+            method,
+            body: JSON.stringify(payload),
+        });
+        showAdminToast(res.message || (editingId ? 'Cập nhật thành công ✅' : 'Tạo khuyến mãi thành công ✅'));
+        closeFormModal();
+        currentPage = editingId ? currentPage : 1;
+        loadPromotions();
+    } catch (err) {
+        const errors = err.data?.errors;
+        if (errors) {
+            // Map field names: p-name, p-code, p-discount-value, p-end-date
+            const fieldMap = {
+                name:           'p-name',
+                code:           'p-code',
+                discount_value: 'p-discount-value',
+                end_date:       'p-end-date',
+            };
+            Object.entries(errors).forEach(([key, msgs]) => {
+                const fieldId = fieldMap[key] || `p-${key.replace('_','-')}`;
+                showFieldError(fieldId, msgs[0]);
+            });
+        } else {
+            showAdminToast(err.message || 'Lỗi lưu dữ liệu', 'error');
+        }
+    } finally {
+        setSaveLoading(false);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DELETE
+// ═══════════════════════════════════════════════════════════════════════════
+async function doDelete() {
+    if (!deletingId) return;
+    const btn = document.getElementById('confirm-delete-btn');
+    btn.disabled = true;
+    btn.textContent = 'Đang xử lý...';
+
+    try {
+        const res = await adminRequest(`/promotions/${deletingId}`, { method: 'DELETE' });
+        showAdminToast(res.message || 'Xử lý thành công ✅');
+        closeDeleteModal();
+        if (promotionsData.length === 1 && currentPage > 1) currentPage--;
+        loadPromotions();
+    } catch (err) {
+        closeDeleteModal();
+        showAdminToast(err.message || '❌ Không thể xóa khuyến mãi này', 'error', 5000);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Xóa';
+    }
+}
+</script>
+</body>
+</html>
