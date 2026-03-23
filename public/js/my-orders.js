@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span style="color: var(--text-light); font-size: 0.9rem;">Tổng tiền:</span>
                             <div class="order-total-price">${formatCurrency(order.total_amount)}</div>
                         </div>
-                        <a href="order-detail.html?id=${order.id}" class="btn btn-secondary" style="padding: 8px 20px;">Xem chi tiết</a>
+                        <a href="order-summary.html?id=${order.id}&myOrder=true" class="btn btn-secondary" style="padding: 8px 20px;">Xem chi tiết</a>
                     </div>
                 </div>
             `;

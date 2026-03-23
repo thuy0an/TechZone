@@ -1,3 +1,4 @@
+var myOrder = false;
 document.addEventListener('DOMContentLoaded', async () => {
     initStorefrontLayout({ activePage: 'orders' });
 
@@ -8,6 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const params = new URLSearchParams(window.location.search);
     const orderId = params.get('id');
+    params.get('myOrder') ? myOrder = true : myOrder = false;
 
     if (!orderId) {
         renderSummaryError('Không tìm thấy mã đơn hàng.');
@@ -40,6 +42,12 @@ function renderSummary(summary) {
 
     const code = summary.order_code || `#${summary.order_id}`;
     const createdAt = summary.created_at || '';
+
+    if (myOrder) {
+        document.getElementById("order-summary-header").innerText = "Thông tin đơn hàng"
+        document.getElementById("order-summary-text").innerText = "Xem lại thông tin đơn hàng đã đặt"
+        document.getElementById("back-to-my-orders").innerHTML = `<a href="/my-orders.html" class="btn btn-login-form" style="text-align: center;">Quay lại</a>`
+    }
 
     const codeElement = document.getElementById('order-summary-code');
     if (codeElement) codeElement.textContent = `Mã đơn: ${code}`;
