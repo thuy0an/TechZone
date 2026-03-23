@@ -83,6 +83,7 @@
     </main>
 
 <script src="/js/api.js"></script>
+<script src="/js/app.js"></script>
 <script src="/js/auth.js"></script>
 <script>
 
@@ -212,7 +213,7 @@ async function handleSaveAddress() {
             body: JSON.stringify(payload)
         });
 
-        alert('Lưu địa chỉ thành công! Bắt đầu mua sắm thôi.');
+        showNotification('Lưu địa chỉ thành công! Bắt đầu mua sắm thôi.');
         window.location.href = '/';
     } catch (err) {
         alertBox.textContent = err.data?.message || 'Lỗi khi lưu địa chỉ. Vui lòng kiểm tra lại thông tin.';

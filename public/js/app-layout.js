@@ -53,8 +53,8 @@ function _injectHeader(activePage) {
                             👤
                         </div>
                         <div style="display: flex; flex-direction: column;">
-                            <span id="header-user-name" style="font-size: 0.9rem; font-weight: 700;">${user?.name || 'Tài khoản'}</span>
-                            <small style="color: #718096; font-size: 0.75rem;">Thành viên ▼</small>
+                            <span id="header-user-name" style="font-size: 1rem; font-weight: 700;">${user?.name || 'Tài khoản'}</span>
+                            <small style="color: #718096; font-size: 0.9rem;">Thành viên ▼</small>
                         </div>
                     </div>
                     

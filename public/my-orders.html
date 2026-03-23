@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch sử đơn hàng - TechZone</title>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div id="storefront-header-root"></div>
+
+    <main class="section products-shell">
+        <div class="container products-desktop-layout">
+            
+            <aside class="products-sidebar">
+                <h3 class="panel-title">Lọc đơn hàng</h3>
+                <p class="sidebar-note">Tìm kiếm lịch sử mua hàng</p>
+
+                <div class="sidebar-filter-group">
+                    <label>Mã đơn hàng</label>
+                    <input type="text" id="filter-code" class="sidebar-filter-input" placeholder="VD: ORD...">
+                </div>
+
+                <div class="sidebar-filter-group">
+                    <label>Từ ngày</label>
+                    <input type="date" id="filter-start-date" class="sidebar-filter-input">
+                </div>
+
+                <div class="sidebar-filter-group">
+                    <label>Đến ngày</label>
+                    <input type="date" id="filter-end-date" class="sidebar-filter-input">
+                </div>
+
+                <div class="sidebar-filter-group">
+                    <label>Trạng thái</label>
+                    <select id="filter-status" class="sidebar-filter-select">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="new">Chờ xác nhận</option>
+                        <option value="confirmed">Đã xác nhận</option>
+                        <option value="shipping">Đang giao hàng</option>
+                        <option value="delivered">Đã giao</option>
+                        <option value="completed">Hoàn thành</option>
+                        <option value="failed">Giao thất bại</option>
+                        <option value="cancelled">Đã hủy</option>
+                    </select>
+                </div>
+
+                <button id="btn-filter" class="btn btn-login-form filter-reset-btn">Áp dụng lọc</button>
+            </aside>
+
+            <div class="products-main">
+                <div class="products-topline">
+                    <h1 class="section-title">Lịch sử mua hàng</h1>
+                    <span class="products-meta" id="orders-meta">Đang tải...</span>
+                </div>
+
+                <div id="orders-container" class="order-items-list">
+                    <div class="loading text-center">Đang tải dữ liệu đơn hàng...</div>
+                </div>
+
+                <div id="pagination-container" class="pagination-wrapper pagination-right is-hidden"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="storefront-footer-root"></div>
+
+    <script src="/js/my-orders.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/app-layout.js"></script>
+    <script src="/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initStorefrontLayout({ activePage: 'orders' });
+        });
+    </script>
+</body>
+</html>

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Storefront\BrandController as StorefrontBrandContro
 use App\Http\Controllers\Api\Storefront\CartController;
 use App\Http\Controllers\Api\Storefront\OrderController;
 use App\Http\Controllers\Api\Storefront\AddressController;
+use App\Http\Controllers\Api\Storefront\ProfileController;
 use App\Http\Controllers\Api\Admin\CategoryController;
 use App\Http\Controllers\Api\Admin\BrandController;
 use \App\Http\Controllers\Api\Admin\SupplierController;
@@ -99,6 +100,11 @@ Route::prefix('storefront')->middleware('auth:sanctum')->group(function () {
     // ĐỊA CHỈ NHẬN HÀNG
     Route::get('/addresses', [AddressController::class, 'index']);
     Route::post('/addresses', [AddressController::class, 'store']);
+
+
+    // HỒ SƠ KHÁCH HÀNG
+    Route::get('/profile', [ProfileController::class, 'myInfo']);
+    Route::put('/profile', [ProfileController::class, 'updateInfo']);
 
     // ĐĂNG XUẤT
     Route::post('/logout', [AuthController::class, 'logout']);

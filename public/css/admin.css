@@ -430,6 +430,7 @@ a { text-decoration: none; color: inherit; }
     color: var(--white);
     display: flex;
     flex-direction: column;
+    gap: 10px;
     position: fixed;
     top: 0;
     left: 0;
@@ -481,7 +482,7 @@ a { text-decoration: none; color: inherit; }
 }
 
 .sidebar-section-title {
-    font-size: 0.7rem;
+    font-size: .9rem;
     letter-spacing: 1.5px;
     text-transform: uppercase;
     opacity: 0.4;
@@ -494,7 +495,7 @@ a { text-decoration: none; color: inherit; }
     gap: 12px;
     padding: 11px 24px;
     color: rgba(255,255,255,0.7);
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 500;
     border-left: 3px solid transparent;
     transition: var(--transition);
@@ -514,8 +515,8 @@ a { text-decoration: none; color: inherit; }
 }
 
 .sidebar-nav-item .nav-icon {
-    font-size: 1.1rem;
-    width: 22px;
+    font-size: 1.3rem;
+    min-width: 26px;
     text-align: center;
     flex-shrink: 0;
 }
