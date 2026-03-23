@@ -24,7 +24,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
 
         if ($keyword) {
             $query->where('name', 'LIKE', "%{$keyword}%")
-                  ->orWhere('email', 'LIKE', "%{$keyword}%");
+                ->orWhere('email', 'LIKE', "%{$keyword}%");
         }
 
         return $query->orderBy('created_at', 'DESC')->paginate($perPage);
@@ -41,6 +41,4 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         $data['password'] = Hash::make($data['password']);
         return $this->model->create($data);
     }
-
-
 }

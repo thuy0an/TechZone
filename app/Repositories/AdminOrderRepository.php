@@ -54,6 +54,10 @@ class AdminOrderRepository extends BaseRepository implements AdminOrderRepositor
             $query->where('ward_code', $filters['ward_code']);
         }
 
+        if (!empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+
         return $query->orderBy('created_at', 'desc')->paginate($perPage);
     }
 }

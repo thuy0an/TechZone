@@ -21,10 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadUsers() {
     const keyword = document.getElementById('search-input').value.trim();
-    const params = new URLSearchParams({ 
-        page: currentPage, 
+    const params = new URLSearchParams({
+        page: currentPage,
         limit: 10,
-        keyword: keyword 
+        keyword: keyword
     });
 
     const tbody = document.getElementById('user-table-body');
@@ -34,13 +34,13 @@ async function loadUsers() {
         const res = await adminRequest(`/users?${params}`);
         usersData = res.data;
         renderTable(usersData);
-        
+
         renderPagination({
-            meta: res, 
+            meta: res,
             currentPage: currentPage,
-            onPageChange: (p) => { 
-                currentPage = p; 
-                loadUsers(); 
+            onPageChange: (p) => {
+                currentPage = p;
+                loadUsers();
             }
         });
     } catch (err) {
@@ -67,11 +67,12 @@ function renderTable(items) {
                 </span>
             </td>
             <td>
-                <div class="td-actions" style="justify-content: center;">
+                <div class="td-actions" style="justify-content: center; font-size: .95rem">
                     <button class="${u.is_locked ? 'btn-view' : 'btn-delete'}" 
                             onclick="handleToggleLock(${u.id}, ${u.is_locked})">
                         ${u.is_locked ? '🔓 Mở khóa' : '🔒 Khóa'}
                     </button>
+                    <button class="btn-edit" onclick="window.location.href='user-detail.html?id=${u.id}'">👁️ Chi tiết</button>
                 </div>
             </td>
         </tr>

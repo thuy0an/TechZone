@@ -29,7 +29,7 @@ class UserService implements UserServiceInterface
     public function createNewUser(array $data)
     {
         if (empty($data['password'])) {
-            $data['password'] = 'TechZone@2026'; 
+            $data['password'] = 'TechZone@2026';
         }
 
         return $this->userRepo->createUser($data);

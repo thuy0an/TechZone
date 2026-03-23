@@ -169,6 +169,9 @@ Route::prefix('admin')->group(function () {
             Route::get('/', [UserController::class, 'index']);
             Route::post('/', [UserController::class, 'store']);
             Route::put('/{id}/lock', [UserController::class, 'toggleLock']);
+            Route::get('/{id}', [UserController::class, 'show']);
+            Route::put('/{id}', [UserController::class, 'update']);
+            Route::get('/{id}/addresses', [UserController::class, 'addresses']);
         });
         // BÁO CÁO THỐNG KÊ
         Route::get('reports/historical-stock', [ReportController::class, 'historicalStock']);
