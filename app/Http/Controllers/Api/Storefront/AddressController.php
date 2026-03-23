@@ -17,7 +17,6 @@ class AddressController extends BaseApiController
         $this->addressService = $addressService;
     }
 
-    // Xem danh sách sổ địa chỉ
     public function index()
     {
         try {
@@ -30,11 +29,9 @@ class AddressController extends BaseApiController
         }
     }
 
-    // Thêm địa chỉ mới
     public function store(StoreUserAddressRequest $request)
     {
         try {
-            // Validate nhanh, nếu cần bạn có thể tách ra StoreUserAddressRequest sau
             $validated = $request->validated();
 
             $userId = Auth::id();
@@ -42,7 +39,7 @@ class AddressController extends BaseApiController
 
             return $this->createdResponse($address,  'Thêm địa chỉ thành công');
         } catch (\Exception $e) {
-            return $this->errorResponse('Thêm địa chỉ thất bại', $e->getMessage(), 400);
+            return $this->errorResponse($e->getMessage(), 400);
         }
     }
 }

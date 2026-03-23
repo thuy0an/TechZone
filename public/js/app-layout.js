@@ -53,7 +53,7 @@ function _injectHeader(activePage) {
                     </div>
                     
                     <div class="dropdown-content">
-                        <a href="/my-orders.html">📦 Lịch sử mua hàng</a>
+                        <a href="/orders.html">📦 Lịch sử mua hàng</a>
                         <a href="/profile.html">⚙️ Thiết lập tài khoản</a>
                         <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 5px 0;">
                         <button onclick="logoutCustomer()" class="btn-logout-storefront">

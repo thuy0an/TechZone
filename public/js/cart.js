@@ -13,11 +13,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const checkoutBtn = document.getElementById('checkout-btn');
-    if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', () => {
-            showNotification('Chuc nang thanh toan dang duoc phat trien.', 'error');
-        });
-    }
+
+if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', async () => {
+        try {
+            // 1. Gọi API lấy giỏ hàng hiện tại
+            const res = await apiRequest('/storefront/cart');
+            
+            // 2. Kiểm tra nếu giỏ hàng trống
+            if (!res.data || res.data.items.length === 0) {
+                showNotification('Giỏ hàng của bạn đang trống. Vui lòng thêm sản phẩm trước khi thanh toán!', 'error');
+                return;
+            }
+
+            // 3. Nếu có sản phẩm, chuyển hướng sang trang thanh toán
+            window.location.href = '/checkout.html';
+            
+        } catch (error) {
+            console.error('Lỗi khi kiểm tra giỏ hàng:', error);
+            showNotification('Không thể kiểm tra giỏ hàng. Vui lòng thử lại sau.', 'error');
+        }
+    });
+}
 
     loadCart({ showStatus: true });
 });

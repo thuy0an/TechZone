@@ -18,6 +18,7 @@ class Order extends BaseModel
         'receiver_name',
         'receiver_phone',
         'payment_method',
+        'note',
         'total_amount',
         'province_id',
         'district_id',
@@ -25,6 +26,7 @@ class Order extends BaseModel
         'province_name',
         'district_name',
         'ward_name',
+        'note',
     ];
 
     public function details()
@@ -36,4 +38,8 @@ class Order extends BaseModel
     {
         return $this->belongsTo(User::class);
     }
+
+    public function promotion() {
+    return $this->belongsTo(Promotion::class, 'promotion_id');
+}
 }

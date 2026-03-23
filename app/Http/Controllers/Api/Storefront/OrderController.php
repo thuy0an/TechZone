@@ -16,7 +16,6 @@ class OrderController extends BaseApiController
         $this->orderService = $orderService;
     }
 
-    // Chốt đơn hàng
     public function checkout(CheckoutRequest $request)
     {
         try {
@@ -29,7 +28,6 @@ class OrderController extends BaseApiController
         }
     }
 
-    // Lịch sử đơn hàng
     public function myOrders()
     {
         try {
@@ -41,4 +39,23 @@ class OrderController extends BaseApiController
             return $this->errorResponse('Lỗi khi lấy danh sách đơn hàng', $e->getMessage());
         }
     }
+
+    
+public function summary($id)
+{
+    try {
+    
+        $order = $this->orderService->getOrderSummary($id); 
+
+        return response()->json([
+            'success' => true,
+            'data' => $order
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Không tìm thấy thông tin đơn hàng hoặc bạn không có quyền truy cập.'
+        ], 404);
+    }
+}
 }

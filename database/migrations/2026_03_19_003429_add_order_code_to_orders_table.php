@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::table('orders', function (Blueprint $table) {
             $table->string('order_code', 50)->unique()->after('promotion_id');
 
-            // Nếu bạn muốn thêm cả receiver_email như trong SQL đã bàn
             if (!Schema::hasColumn('orders', 'receiver_email')) {
                 $table->string('receiver_email')->nullable()->after('receiver_phone');
             }

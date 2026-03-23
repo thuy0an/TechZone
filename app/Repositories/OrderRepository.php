@@ -11,13 +11,28 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
     {
         parent::__construct($model);
     }
+    public function getModel()
+{
+    return $this->model; 
+}
+
+    public function createOrder(array $data) {
+        return $this->model->create($data);
+    }
+
+    public function createOrderDetail(array $data) {
+        return OrderDetail::create($data);
+    }
+
+    public function getOrderByCode($code) {
+        return $this->model->where('order_code', $code)->with('details.product')->first();
+    }
 
     public function getUserOrders($userId)
     {
-        // Lấy danh sách đơn hàng kèm chi tiết sản phẩm, xếp mới nhất lên đầu
         return $this->model->with('details.product')
-            ->where('user_id', $userId)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        ->where('user_id', $userId)
+        ->orderBy('created_at', 'desc')
+        ->paginate(5);
     }
 }

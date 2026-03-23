@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\Storefront\BrandController as StorefrontBrandContro
 use App\Http\Controllers\Api\Storefront\CartController;
 use App\Http\Controllers\Api\Storefront\OrderController;
 use App\Http\Controllers\Api\Storefront\AddressController;
+use App\Http\Controllers\Api\Storefront\CheckoutController;
+use App\Http\Controllers\Api\Storefront\PromotionController;
 use App\Http\Controllers\Api\Admin\CategoryController;
 use App\Http\Controllers\Api\Admin\BrandController;
 use \App\Http\Controllers\Api\Admin\SupplierController;
@@ -16,6 +18,7 @@ use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Api\Admin\ImportNoteController;
 use App\Http\Controllers\Api\Admin\UserController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -90,8 +93,10 @@ Route::prefix('storefront')->middleware('require.client.login')->group(function 
 
 Route::prefix('storefront')->middleware('auth:sanctum')->group(function () {
     // ĐẶT HÀNG (CHECKOUT)
-    Route::post('/checkout', [OrderController::class, 'checkout']); // chốt đơn
+    Route::post('/checkout', [CheckoutController::class, 'processCheckout']); // chốt đơn
     Route::get('/orders', [OrderController::class, 'myOrders']); // lịch sử đơn hàng
+    Route::post('/checkout/apply-promotion', [PromotionController::class, 'apply']);
+    Route::get('/orders/{id}/summary', [OrderController::class, 'summary']);
 
     // ĐỊA CHỈ NHẬN HÀNG
     Route::get('/addresses', [AddressController::class, 'index']);

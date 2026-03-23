@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đơn hàng của tôi - TechZone</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <div id="storefront-header-root"></div>
+
+    <main class="section">
+        <div class="container">
+            <div class="page-header">
+                <h2 class="section-title">Lịch sử mua hàng</h2>
+                <p class="text-light">Xem lại các đơn hàng bạn đã đặt tại TechZone</p>
+            </div>
+
+            <div id="order-container" class="order-list mt-20">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Đang tải danh sách đơn hàng...</p>
+                </div>
+            </div>
+
+            <nav id="pagination-root" class="pagination-container"></nav>
+        </div>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/orders.js"></script>
+</body>
+
+</html>

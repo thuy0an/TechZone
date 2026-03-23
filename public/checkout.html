@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Thanh toán - TechZone</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body class="checkout-page">
+    <header class="checkout-header">
+        <div class="container header-content">
+            <div class="header-left">
+                <a href="/" class="logo">📱 TechZone</a>
+            </div>
+            <div class="header-right">
+                <ul class="checkout-steps">
+                    <li class="step">1. Giỏ hàng</li>
+                    <li class="step active">2. Thanh toán</li>
+                    <li class="step">3. Hoàn tất</li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mt-30">
+        <div class="checkout-layout">
+            <div class="checkout-main">
+                <section class="card">
+                    <div class="section-header">
+                        <h3>📍 Thông tin thanh toán</h3>
+                        <button class="btn-tz-outline" onclick="openAddressModal()">Thay đổi / Thêm địa chỉ</button>
+                    </div>
+
+                    <div class="form-grid" id="checkout-address-form">
+                        <div class="form-group">
+                            <label>Họ và tên <span class="required">*</span></label>
+                            <input type="text" id="cust_name" class="form-control" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Số điện thoại <span class="required">*</span></label>
+                            <input type="text" id="cust_phone" class="form-control" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Tỉnh / Thành phố <span class="required">*</span></label>
+                            <input type="text" id="cust_province" class="form-control" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Quận / Huyện <span class="required">*</span></label>
+                            <input type="text" id="cust_district" class="form-control" readonly>
+                        </div>
+                        <div class="form-group span-2">
+                            <label>Địa chỉ chi tiết <span class="required">*</span></label>
+                            <textarea id="cust_address" class="form-control" readonly rows="2"></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card mt-20">
+                    <h3>💳 Hình thức thanh toán</h3>
+                    <div class="payment-methods">
+                        <label class="payment-item">
+                            <input type="radio" name="pay_method" value="CASH" checked>
+                            <span>Tiền mặt (COD)</span>
+                        </label>
+
+                        <label class="payment-item">
+                            <input type="radio" name="pay_method" value="BANK_TRANSFER">
+                            <span>Chuyển khoản ngân hàng</span>
+                        </label>
+                        <div id="bank-info" class="payment-info-box" style="display:none;">
+                            <p>🏦 STK: 123456789 - Vietcombank</p>
+                            <p>👤 Chủ TK: NGUYEN TUAN VU</p>
+                        </div>
+
+                        <label class="payment-item">
+                            <input type="radio" name="pay_method" value="ONLINE">
+                            <span>Thanh toán trực tuyến</span>
+                        </label>
+                        <div id="online-logos" class="payment-info-box" style="display:none;">
+                            <img src="https://sandbox.vnpayment.vn/paymentv2/Images/brands/logo-vnpay.png" alt="VNPAY"
+                                onclick="mockOnlinePay('VNPAY')">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a0/MoMo_Logo_App.svg" alt="Momo" onclick="mockOnlinePay('Momo')">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card mt-20">
+                    <h3>📝 Ghi chú đơn hàng</h3>
+                    <textarea id="order_note" class="form-control"
+                        placeholder="Lưu ý về thời gian giao hàng, chỉ dẫn đường đi..."></textarea>
+                </section>
+            </div>
+
+            <aside class="checkout-sidebar">
+                <div class="card summary-card">
+                    <h3>Tổng kết đơn hàng</h3>
+                    <div class="summary-details">
+                        <div class="row"><span>Tạm tính:</span> <span id="subtotal">0đ</span></div>
+                        <div class="row"><span>Phí ship:</span> <span id="ship-fee">30.000đ</span></div>
+
+                        <div class="promo-container mt-15">
+                            <div class="promo-input-group">
+                                <input type="text" id="coupon_code" placeholder="Nhập mã ưu đãi">
+                                <button onclick="applyCoupon()">Áp dụng</button>
+                            </div>
+                            <div id="promo-suggestions" class="promo-suggestions"></div>
+                        </div>
+
+                        <div class="row text-success mt-10"><span>Giảm giá:</span> <span id="discount">-0đ</span></div>
+                        <hr>
+                        <div class="row total"><span>Thành tiền:</span> <span id="final-total">0đ</span></div>
+                    </div>
+
+                    <div class="actions mt-20">
+                        <button class="btn-tz-secondary w-100" onclick="location.href='/cart.html'">Quay lại giỏ
+                            hàng</button>
+                        <button class="btn-tz-primary w-100 mt-10" id="btn-submit-order"
+                            onclick="handleCheckout()">THANH TOÁN</button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <div id="addressModal" class="tz-modal">
+        <div class="tz-modal-content">
+            <span class="close-modal" onclick="closeAddressModal()">&times;</span>
+            <h4>📍 Chọn địa chỉ giao hàng</h4>
+            <div id="address-list-container"></div>
+            <button class="btn-tz-primary w-100 mt-15" onclick="location.href='/setup-address.html'">+ Thêm địa chỉ
+                mới</button>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/checkout.js"></script>
+</body>
+
+</html>

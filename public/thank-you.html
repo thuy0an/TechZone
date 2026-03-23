@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Hoàn tất đặt hàng - TechZone</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body class="checkout-page">
+    <header class="checkout-header">
+        <div class="container header-content">
+            <div class="header-left">
+                <a href="/" class="logo">📱 TechZone</a>
+            </div>
+            <div class="header-right">
+                <ul class="checkout-steps">
+                    <li class="step">1. Giỏ hàng</li>
+                    <li class="step">2. Thanh toán</li>
+                    <li class="step active">3. Hoàn tất</li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mt-30">
+        <div class="thankyou-wrapper card">
+            <div class="thankyou-status">
+                <div class="success-icon">✔</div>
+                <h2 class="text-tz-main">Đặt hàng thành công!</h2>
+                <p>Mã đơn hàng: <strong id="order-code-display">...</strong></p>
+                <p class="text-sm">Hệ thống đã gửi xác nhận đến email của bạn.</p>
+            </div>
+
+            <div class="thankyou-grid">
+                <section class="info-section">
+                    <h4>📋 Thông tin đơn hàng</h4>
+                    <table class="thankyou-table">
+                        <tbody id="customer-info-table">
+                        </tbody>
+                    </table>
+
+                    <div id="payment-status-area" class="payment-status-card">
+                    </div>
+                </section>
+
+                <section class="products-section">
+                    <h4>🛒 Sản phẩm đã đặt</h4>
+                    <div id="product-summary-list" class="product-summary-container">
+                    </div>
+
+                    <div class="order-note-box mt-15">
+                        <strong>📝 Ghi chú của bạn:</strong>
+                        <p id="display-note">Không có ghi chú.</p>
+                    </div>
+
+                    <div class="final-price-box">
+                        <div class="row">
+                            <span>Thành tiền:</span>
+                            <span id="display-total" class="total-price">0đ</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="thankyou-actions mt-30">
+                <button class="btn-tz-primary" onclick="location.href='/'">Tiếp tục mua sắm</button>
+                <button class="btn-tz-secondary" onclick="location.href='/orders.html'">Lịch sử đơn hàng</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/thankyou.js"></script>
+</body>
+
+</html>

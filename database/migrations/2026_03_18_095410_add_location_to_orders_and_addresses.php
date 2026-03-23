@@ -13,8 +13,8 @@ return new class extends Migration
     {
         // Thêm vào bảng user_addresses
         Schema::table('user_addresses', function (Blueprint $table) {
-            $table->integer('province_id')->nullable();
-            $table->integer('district_id')->nullable();
+            $table->string('province_id')->nullable();
+            $table->string('district_id')->nullable();
             $table->string('ward_code')->nullable();
             $table->string('province_name')->nullable();
             $table->string('district_name')->nullable();
@@ -36,9 +36,13 @@ return new class extends Migration
      * Reverse the migrations.
      */
     public function down(): void
-    {
-        Schema::table('orders_and_addresses', function (Blueprint $table) {
-            //
-        });
-    }
+{
+    Schema::table('user_addresses', function (Blueprint $table) {
+        $table->dropColumn(['province_id', 'district_id', 'ward_code', 'province_name', 'district_name', 'ward_name']);
+    });
+
+    Schema::table('orders', function (Blueprint $table) {
+        $table->dropColumn(['province_id', 'district_id', 'ward_code', 'province_name', 'district_name', 'ward_name']);
+    });
+}
 };
