@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initStorefrontLayout({ activePage: 'orders' });
 
     if (typeof isLoggedIn === 'function' && !isLoggedIn()) {
-        window.location.href = '/login.html';
+        window.location.href = 'login.html';
         return;
     }
 
@@ -46,7 +46,7 @@ function renderSummary(summary) {
     if (myOrder) {
         document.getElementById("order-summary-header").innerText = "Thông tin đơn hàng"
         document.getElementById("order-summary-text").innerText = "Xem lại thông tin đơn hàng đã đặt"
-        document.getElementById("back-to-my-orders").innerHTML = `<a href="/my-orders.html" class="btn btn-login-form" style="text-align: center;">Quay lại</a>`
+        document.getElementById("back-to-my-orders").innerHTML = `<a href="my-orders.html" class="btn btn-login-form" style="text-align: center;">Quay lại</a>`
     }
 
     const codeElement = document.getElementById('order-summary-code');
@@ -150,7 +150,7 @@ function formatStatus(status) {
 function resolveImageUrl(image) {
     if (!image) return 'https://placehold.co/120x120?text=No+Image';
     if (String(image).startsWith('http') || String(image).startsWith('/')) return image;
-    return `/storage/${image}`;
+    return `storage/${image}`;
 }
 
 function escapeHtml(value) {

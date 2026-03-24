@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thiết lập địa chỉ - TechZone</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body style="background-color: var(--bg-color);">
 
     <header class="header">
         <div class="container" style="display: flex; justify-content: center; padding: 15px 20px;">
-            <a href="/" class="logo">
+            <a href="index.html" class="logo">
                 <span class="logo-icon">📱</span> TechZone
             </a>
         </div>
@@ -24,7 +24,7 @@
                     <div style="font-size: 3rem; margin-bottom: 10px;">📍</div>
                     <h2 style="color: var(--primary-color);">Cập nhật địa chỉ nhận hàng</h2>
                     <p style="color: var(--text-light); font-size: 0.95rem; margin-top: 5px;">
-                        Thêm địa chỉ giao hàng để mua sắm nhanh chóng hơn. Bạn có thể bỏ qua và thêm sau.
+                        Vui lòng thêm địa chỉ giao hàng để tiếp tục mua sắm.
                     </p>
                 </div>
 
@@ -69,9 +69,6 @@
                     </div>
 
                     <div style="display: flex; gap: 15px; margin-top: 30px;">
-                        <button type="button" class="btn" style="flex: 1; background: #f3f4f6; color: var(--text-color); border: 1px solid var(--border-color);" onclick="skipAddress()">
-                            Bỏ qua lúc này
-                        </button>
                         <button type="submit" class="btn btn-primary" id="btn-save-address" style="flex: 1;">
                             Lưu địa chỉ
                         </button>
@@ -82,18 +79,14 @@
         </div>
     </main>
 
-<script src="/js/api.js"></script>
-<script src="/js/app.js"></script>
-<script src="/js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
 <script>
-
-//----- CẤU HÌNH API GHN-----
-let GHN_TOKEN = '';
-let GHN_API_URL = '';
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (!isLoggedIn()) {
-        window.location.href = '/login.html';
+        window.location.href = 'login.html';
         return;
     }
 
@@ -102,37 +95,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('receiver_name').value = user.name;
     }
 
-    // TẢI CẤU HÌNH TỪ SERVER 
-    await loadAppConfig();
-
-    // SAU KHI CÓ TOKEN THÌ MỚI GỌI API GHN
-    if (GHN_TOKEN) {
-        loadProvinces();
-    }
+    loadProvinces();
 });
-
-async function loadAppConfig() {
-    try {
-        const result = await apiRequest('/public-config')
-        
-        if (result.data) {
-            GHN_TOKEN = result.data.ghn_token;
-            GHN_API_URL = result.data.ghn_api_url;
-        }
-    } catch (error) {
-        console.error('Không thể tải cấu hình hệ thống:', error);
-    }
-}
 
 // --- CÁC HÀM GỌI API TỈNH/QUẬN/PHƯỜNG,XÃ ---
 async function loadProvinces() {
     try {
-        const data = await apiRequest(`${GHN_API_URL}/province`, {
-            headers: { "Token": GHN_TOKEN }
-        });
+        const data = await apiRequest('/locations/provinces');
         const select = document.getElementById('province');
-        data.data.forEach(p => p.ProvinceID < 270 ? select.innerHTML += `<option value="${p.ProvinceID}">${p.ProvinceName}</option>`
-        : '');
+        select.innerHTML = '<option value="">Chọn Tỉnh thành</option>';
+        data.data.forEach(p => {
+            select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+        });
     } catch (error) { console.error('Lỗi tải Tỉnh:', error); }
 }
 
@@ -148,13 +122,8 @@ async function loadDistricts() {
     if (!provinceId) { distSelect.disabled = true; return; }
 
     try {
-        const data = await apiRequest(`${GHN_API_URL}/district`, {
-            method: 'POST',
-            headers: { "Token": GHN_TOKEN },
-            body: JSON.stringify({ province_id: parseInt(provinceId) })
-        });
-
-        data.data.forEach(d => distSelect.innerHTML += `<option value="${d.DistrictID}">${d.DistrictName}</option>`);
+        const data = await apiRequest(`/locations/districts?province_id=${provinceId}`);
+        data.data.forEach(d => distSelect.innerHTML += `<option value="${d.id}">${d.name}</option>`);
         distSelect.disabled = false;
     } catch (error) { console.error('Lỗi tải Quận:', error); }
 }
@@ -167,12 +136,9 @@ async function loadWards() {
     if (!districtId) { wardSelect.disabled = true; return; }
 
     try {
-        const data = await apiRequest(`${GHN_API_URL}/ward?district_id=${districtId}`, {
-            headers: { "Token": GHN_TOKEN }
-        });
-        
+        const data = await apiRequest(`/locations/wards?district_id=${districtId}`);
         data.data.forEach(w => {
-            wardSelect.innerHTML += `<option value="${w.WardCode}">${w.WardName}</option>`;
+            wardSelect.innerHTML += `<option value="${w.id}">${w.name}</option>`;
         });
         wardSelect.disabled = false;
     } catch (error) { console.error('Lỗi tải Phường:', error); }
@@ -187,9 +153,6 @@ async function handleSaveAddress() {
     const distEl = document.getElementById('district');
     const wardEl = document.getElementById('ward');
 
-    const province_id = provEl.value;
-    const district_id = distEl.value;
-    const ward_code = wardEl.value;
     const province_name = provEl.options[provEl.selectedIndex].text;
     const district_name = distEl.options[distEl.selectedIndex].text;
     const ward_name = wardEl.options[wardEl.selectedIndex].text;
@@ -202,10 +165,11 @@ async function handleSaveAddress() {
     btn.textContent = 'Đang lưu...';
 
     try {
+        const fullAddressParts = [address, ward_name, district_name, province_name].filter(Boolean);
         const payload = {
-            receiver_name, receiver_phone, address,
-            province_id, district_id, ward_code,
-            province_name, district_name, ward_name
+            receiver_name,
+            receiver_phone,
+            address: fullAddressParts.join(', ')
         };
 
         await apiRequest('/storefront/addresses', {
@@ -214,7 +178,7 @@ async function handleSaveAddress() {
         });
 
         showNotification('Lưu địa chỉ thành công! Bắt đầu mua sắm thôi.');
-        window.location.href = '/';
+        window.location.href = 'index.html';
     } catch (err) {
         alertBox.textContent = err.data?.message || 'Lỗi khi lưu địa chỉ. Vui lòng kiểm tra lại thông tin.';
         alertBox.classList.add('show');
@@ -224,9 +188,6 @@ async function handleSaveAddress() {
     }
 }
 
-function skipAddress() {
-    window.location.href = '/';
-}
 </script>
 </body>
 </html>

@@ -22,13 +22,6 @@ class StoreUserAddressRequest extends FormRequest
             'receiver_phone' => 'required|string|min:10|max:11',
             'address'        => 'required|string',
             'is_default'     => 'nullable|boolean',
-            'province_id'   => 'required|string',
-            'province_name'   => 'required|string',
-            'district_id'   => 'required|string',
-            'district_name'   => 'required|string',
-            'ward_code'   => 'required|string',
-            'ward_name'   => 'required|string',
-
         ];
     }
 

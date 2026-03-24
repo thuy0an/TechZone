@@ -90,7 +90,7 @@ async function logoutCustomer() {
         console.error('Lỗi khi gọi API logout', e);
     } finally {
         clearSession();
-        window.location.href = '/login.html';
+        window.location.href = 'login.html';
     }
 }
 
@@ -101,12 +101,12 @@ async function checkAddressAndRedirect(redirectTo = '/') {
 
         // Nếu mảng data rỗng (chưa có địa chỉ nào)
         if (response.data && response.data.length === 0) {
-            window.location.href = '/setup-address.html';
+            window.location.href = 'setup-address.html';
         } else {
-            window.location.href = redirectTo || '/';
+            window.location.href = redirectTo || 'index.html';
         }
     } catch (error) {
         console.error('Lỗi khi kiểm tra địa chỉ:', error);
-        window.location.href = redirectTo || '/';
+        window.location.href = redirectTo || 'index.html';
     }
 }

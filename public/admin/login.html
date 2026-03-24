@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập Quản trị - TechZone Admin</title>
-    <link rel="stylesheet" href="/css/admin.css">
-    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="icon" href="../favicon.ico">
 </head>
 
 <body>
@@ -86,9 +86,9 @@
     </div>
 </div>
 
-<script src="/js/admin/admin-token.js"></script>
-<script src="/js/admin/admin-api.js"></script>
-<script src="/js/admin/admin-auth.js"></script>
+<script src="../js/admin/admin-token.js"></script>
+<script src="../js/admin/admin-api.js"></script>
+<script src="../js/admin/admin-auth.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // Nếu đã login thì về dashboard
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await adminLogin(email, password);
             // Redirect sau khi đăng nhập thành công
-            window.location.href = '/admin/dashboard.html';
+            window.location.href = 'dashboard.html';
         } catch (err) {
             const msg = err?.data?.message
                      || err?.data?.error

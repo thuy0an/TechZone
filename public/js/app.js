@@ -191,7 +191,7 @@ async function renderHomeCategoryStrip() {
         const tiles = categories.map(category => {
             const icon = getCategoryIcon(category.name);
             return `
-                <a class="category-tile" href="/products.html?category_id=${category.id}">
+                <a class="category-tile" href="products.html?category_id=${category.id}">
                     <div class="category-tile-icon">${icon}</div>
                     <span class="category-tile-label">${escapeHtml(category.name)}</span>
                 </a>
@@ -649,7 +649,7 @@ async function handleAddToCart(id, name, price, quantity = null) {
             // Ignore storage errors and proceed with redirect.
         }
         window.setTimeout(() => {
-            window.location.href = '/login.html';
+            window.location.href = 'login.html';
         }, 600);
         return;
     }
@@ -678,7 +678,7 @@ function getCategoryIcon(name) {
 function resolveImageUrl(image) {
     if (!image) return 'https://via.placeholder.com/400x260?text=No+Image';
     if (String(image).startsWith('http') || String(image).startsWith('/')) return image;
-    return `/storage/${image}`;
+    return `storage/${image}`;
 }
 
 function escapeSingleQuote(value) {

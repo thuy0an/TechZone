@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nhà cung cấp - TechZone Admin</title>
-    <link rel="stylesheet" href="/css/admin.css">
-    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="icon" href="../favicon.ico">
 </head>
 <body>
 <div class="admin-layout">
@@ -208,11 +208,11 @@
     </div>
 </div>
 
-<script src="/js/admin/admin-token.js"></script>
-<script src="/js/admin/admin-api.js"></script>
-<script src="/js/admin/admin-auth.js"></script>
-<script src="/js/admin/admin-utils.js"></script>
-<script src="/js/admin/admin-layout.js"></script>
+<script src="../js/admin/admin-token.js"></script>
+<script src="../js/admin/admin-api.js"></script>
+<script src="../js/admin/admin-auth.js"></script>
+<script src="../js/admin/admin-utils.js"></script>
+<script src="../js/admin/admin-layout.js"></script>
 <script>
 let currentPage = 1;
 let deleteId = null;
@@ -490,7 +490,7 @@ async function loadTransactionHistory() {
                 ? `<button class="btn btn-edit" style="width:150px; padding: 8px 12px; margin-top: 5px;font-size:0.9rem" onclick="openPaymentModal(${tx.id}, ${totalCost}, ${paidAmount})">💸 Thanh toán</button>` 
                 : '';
                 
-            const viewBtn = `<a href="/admin/import-notes.html?view_note_id=${tx.id}" class="btn btn-view" style="width:150px; padding: 8px 12px; margin-top: 5px;font-size:0.9rem">👁️ Xem phiếu này</a>`;
+            const viewBtn = `<a href="import-notes.html?view_note_id=${tx.id}" class="btn btn-view" style="width:150px; padding: 8px 12px; margin-top: 5px;font-size:0.9rem">👁️ Xem phiếu này</a>`;
 
             return `
                 <tr>    

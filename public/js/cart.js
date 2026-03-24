@@ -1,5 +1,3 @@
-let GHN_TOKEN = '';
-let GHN_API_URL = '';
 let cartSubtotalValue = 0;
 let addressBook = [];
 let promotionState = {
@@ -11,6 +9,7 @@ let promotionState = {
 
 let lastOrderPayload = null;
 let redirectTimer = null;
+let hasSavedAddresses = false;
 
 const BANK_INFO = {
     bank_name: 'Vietcombank',
@@ -39,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) {
             // Ignore storage errors and proceed with redirect.
         }
-        window.location.href = '/login.html';
+        window.location.href = 'login.html';
         return;
     }
 
@@ -75,25 +74,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderPromotionSuggestions();
     bindPaymentMethodListener();
 
-    await loadAppConfig();
-
-    if (GHN_TOKEN) {
-        loadProvinces();
-    }
+    loadProvinces();
 });
-
-async function loadAppConfig() {
-    try {
-        const result = await apiRequest('/public-config')
-
-        if (result.data) {
-            GHN_TOKEN = result.data.ghn_token;
-            GHN_API_URL = result.data.ghn_api_url;
-        }
-    } catch (error) {
-        console.error('Không thể tải cấu hình hệ thống:', error);
-    }
-}
 
 async function loadCart({ showStatus = false } = {}) {
     const status = document.getElementById('cart-status');
@@ -141,7 +123,7 @@ function renderCart(cart) {
                 <div class="cart-empty-icon">🛒</div>
                 <h3>Gio hang dang trong</h3>
                 <p>Hay them san pham de bat dau mua sam.</p>
-                <a href="/products.html" class="btn btn-primary">Kham pha san pham</a>
+                <a href="products.html" class="btn btn-primary">Kham pha san pham</a>
             </div>
         `;
         cartSubtotalValue = 0;
@@ -269,7 +251,7 @@ function updateTotalsFromDom() {
                 <div class="cart-empty-icon">🛒</div>
                 <h3>Gio hang dang trong</h3>
                 <p>Hay them san pham de bat dau mua sam.</p>
-                <a href="/products.html" class="btn btn-primary">Kham pha san pham</a>
+                <a href="products.html" class="btn btn-primary">Kham pha san pham</a>
             </div>
         `;
     }
@@ -298,7 +280,7 @@ function formatPrice(price) {
 function resolveImageUrl(image) {
     if (!image) return 'https://placehold.co/120x120?text=No+Image';
     if (String(image).startsWith('http') || String(image).startsWith('/')) return image;
-    return `/storage/${image}`;
+    return `storage/${image}`;
 }
 
 function escapeHtml(value) {
@@ -335,17 +317,25 @@ function toggleAddressForm() {
 
 async function loadUserAddresses() {
     try {
-        const response = await apiRequest('/storefront/addresses', 'GET');
+        const response = await apiRequest('/storefront/addresses', { method: 'GET' });
 
         const addresses = response.data;
         addressBook = Array.isArray(addresses) ? addresses : [];
+        hasSavedAddresses = addressBook.length > 0;
         const select = document.getElementById('existing-address-block');
         select.innerHTML = '';
 
         if (!addresses || addresses.length === 0) {
-            document.getElementById('opt_new').click();
-            document.getElementById('opt_existing').disabled = true;
-            select.innerHTML = '<option value="">Bạn chưa có địa chỉ nào được lưu</option>';
+            const newOption = document.getElementById('opt_new');
+            const existingOption = document.getElementById('opt_existing');
+            if (existingOption) {
+                existingOption.disabled = true;
+            }
+            if (newOption) {
+                newOption.checked = true;
+            }
+            toggleAddressForm();
+            select.innerHTML = '<div class="empty-state">Bạn chưa có địa chỉ nào được lưu. Vui lòng nhập địa chỉ mới để tiếp tục.</div>';
         } else {
             addresses.forEach(addr => {
                 const isChecked = addr.is_default ? 'checked' : '';
@@ -360,7 +350,7 @@ async function loadUserAddresses() {
                                 ${defaultBadge}
                             </div>
                             <p class="address-detail">
-                                ${addr.address}, ${addr.ward_name}, ${addr.district_name}, ${addr.province_name}
+                                ${addr.address}
                             </p>
                         </label>
                     </div>
@@ -374,6 +364,7 @@ async function loadUserAddresses() {
         }
     } catch (error) {
         console.error("Lỗi khi tải địa chỉ:", error);
+        hasSavedAddresses = false;
         const select = document.getElementById('existing-address-block');
         if (select) {
             select.innerHTML = '<div class="error-text">Không thể tải địa chỉ</div>';
@@ -383,20 +374,16 @@ async function loadUserAddresses() {
 
 async function loadProvinces() {
     try {
-        const response = await fetch(`${GHN_API_URL}/province`, {
-            headers: { 'Token': GHN_TOKEN }
-        });
-        const data = await response.json();
+        const data = await apiRequest('/locations/provinces');
 
         const citySelect = document.getElementById('new_city');
+        citySelect.innerHTML = '<option value="">Chọn Tỉnh/Thành phố</option>';
 
         data.data.forEach(province => {
-            if (province.ProvinceID < 270) {
-                let option = document.createElement('option');
-                option.value = province.ProvinceID;
-                option.text = province.ProvinceName;
-                citySelect.appendChild(option);
-            }
+            let option = document.createElement('option');
+            option.value = province.id;
+            option.text = province.name;
+            citySelect.appendChild(option);
         });
     } catch (error) {
         console.error("Lỗi khi tải danh sách Tỉnh/Thành phố:", error);
@@ -416,15 +403,11 @@ async function loadDistricts() {
     if (!provinceId) return;
 
     try {
-        const response = await fetch(`${GHN_API_URL}/district?province_id=${provinceId}`, {
-            headers: { 'Token': GHN_TOKEN }
-        });
-        const data = await response.json();
-
+        const data = await apiRequest(`/locations/districts?province_id=${provinceId}`);
         data.data.forEach(district => {
             let option = document.createElement('option');
-            option.value = district.DistrictID;
-            option.text = district.DistrictName;
+            option.value = district.id;
+            option.text = district.name;
             districtSelect.appendChild(option);
         });
         districtSelect.disabled = false;
@@ -443,15 +426,11 @@ async function loadWards() {
     if (!districtId) return;
 
     try {
-        const response = await fetch(`${GHN_API_URL}/ward?district_id=${districtId}`, {
-            headers: { 'Token': GHN_TOKEN }
-        });
-        const data = await response.json();
-
+        const data = await apiRequest(`/locations/wards?district_id=${districtId}`);
         data.data.forEach(ward => {
             let option = document.createElement('option');
-            option.value = ward.WardCode;
-            option.text = ward.WardName;
+            option.value = ward.id;
+            option.text = ward.name;
             wardSelect.appendChild(option);
         });
         wardSelect.disabled = false;
@@ -621,7 +600,7 @@ function setupOrderSuccessModal() {
     if (summaryBtn) {
         summaryBtn.addEventListener('click', () => {
             if (lastOrderPayload?.order_id) {
-                window.location.href = `/order-summary.html?id=${lastOrderPayload.order_id}`;
+                window.location.href = `order-summary.html?id=${lastOrderPayload.order_id}`;
             }
         });
     }
@@ -680,7 +659,7 @@ function openOrderSuccessModal(payload) {
     }
     redirectTimer = window.setTimeout(() => {
         if (payload.order_id) {
-            window.location.href = `/order-summary.html?id=${payload.order_id}`;
+            window.location.href = `order-summary.html?id=${payload.order_id}`;
         }
     }, 5000);
 }
@@ -742,8 +721,8 @@ function getSelectedAddress() {
         const districtId = districtEl?.value || null;
         const wardCode = wardEl?.value || null;
 
-        if (!receiverName || !receiverPhone || !addressLine) {
-            return { error: 'Vui lòng nhập đầy đủ thông tin địa chỉ mới.' };
+        if (!receiverName || !receiverPhone || !addressLine || !provinceId || !districtId || !wardCode) {
+            return { error: 'Vui lòng nhập đầy đủ thông tin địa chỉ mới (tỉnh, quận, phường, địa chỉ).' };
         }
 
         const shippingAddressParts = [addressLine, wardName, districtName, cityName].filter(Boolean);
@@ -762,6 +741,10 @@ function getSelectedAddress() {
 
     const selectedExisting = document.querySelector('input[name="selected_existing_address"]:checked');
     const selectedId = selectedExisting ? Number(selectedExisting.value) : null;
+
+    if (!hasSavedAddresses) {
+        return { error: 'Bạn chưa có địa chỉ lưu. Vui lòng nhập địa chỉ mới để tiếp tục.' };
+    }
 
     if (!selectedId) {
         return { error: 'Vui lòng chọn địa chỉ giao hàng.' };

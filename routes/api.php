@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\Admin\ReportController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\ProductImportController;
 use App\Http\Controllers\Api\Admin\PromotionController;
+use App\Http\Controllers\Api\LocationController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -70,6 +71,15 @@ Route::get('/public-config', function () {
             'ghn_token'   => config('services.ghn.token'),
         ]
     ]);
+});
+
+// ============================================
+// PUBLIC Routes cho danh muc dia chi noi bo
+// ============================================
+Route::prefix('locations')->group(function () {
+    Route::get('/provinces', [LocationController::class, 'provinces']);
+    Route::get('/districts', [LocationController::class, 'districts']);
+    Route::get('/wards', [LocationController::class, 'wards']);
 });
 
 // ============================================

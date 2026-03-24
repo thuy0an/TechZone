@@ -14,7 +14,7 @@
 
 function requireAdminAuth() {
     if (!isAdminLoggedIn()) {
-        window.location.href = '/admin/login.html';
+        window.location.href = 'login.html';
     }
 }
 
@@ -57,7 +57,7 @@ async function adminLogout() {
         // Token may be expired — clear anyway
     } finally {
         clearAdminSession();
-        window.location.href = '/admin/login.html';
+        window.location.href = 'login.html';
     }
 }
 

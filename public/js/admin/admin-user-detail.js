@@ -100,7 +100,7 @@ async function loadUserAddresses() {
                 <td style="font-weight: 600">${escHtml(addr.receiver_name)}</td>
                 <td>${escHtml(addr.receiver_phone)}</td>
                 <td>${escHtml(addr.address)}</td>
-                <td>${escHtml(addr.ward_name)}, ${escHtml(addr.district_name)}, ${escHtml(addr.province_name)}</td>
+                <td>${escHtml(addr.address)}</td>
                 <td>${addr.is_default ? '<span class="badge success" style="min-width:auto">Mặc định</span>' : ''}</td>
             </tr>
         `).join('');

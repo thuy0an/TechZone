@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sản phẩm - TechZone Admin</title>
-    <link rel="stylesheet" href="/css/admin.css">
-    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="icon" href="../favicon.ico">
 </head>
 <body>
 <div class="admin-layout">
@@ -159,6 +159,9 @@
                             <img src="" id="p-image-preview" style="width:100px; border-radius:8px;">
                             <button type="button" class="logo-remove-btn" onclick="removeProductImage()">✕</button>
                         </div>
+                        <label id="p-remove-image-wrap" style="display:none; margin-top:10px; font-size:0.85rem; color:var(--text-secondary);">
+                            <input type="checkbox" id="p-remove-image"> Bỏ ảnh hiện tại
+                        </label>
                     </div>
                 </div>
             </div>
@@ -294,11 +297,11 @@
     </div>
 </div>
 
-<script src="/js/admin/admin-token.js"></script>
-<script src="/js/admin/admin-api.js"></script>
-<script src="/js/admin/admin-auth.js"></script>
-<script src="/js/admin/admin-layout.js"></script>
-<script src="/js/admin/admin-utils.js"></script>
+<script src="../js/admin/admin-token.js"></script>
+<script src="../js/admin/admin-api.js"></script>
+<script src="../js/admin/admin-auth.js"></script>
+<script src="../js/admin/admin-layout.js"></script>
+<script src="../js/admin/admin-utils.js"></script>
 <script>
 initAdminLayout({ title: 'Sản phẩm', icon: '📦', activePage: 'products' });
 
@@ -416,7 +419,7 @@ function renderTable(items) {
         return `
             <tr>
                 <td class="td-id">${p.code}</td>
-                <td><img src="${p.image || '/img/no-image.png'}" width="40" style="border-radius:4px"></td>
+                <td><img src="${p.image || '../img/no-image.png'}" width="40" style="border-radius:4px"></td>
                 <td class="td-name">${escHtml(p.name)}</td>
                 <td style="font-size:0.8rem">${p.category?.name} / ${p.brand?.name}</td>
                 <td style="font-weight:700; color:var(--admin-accent)">${new Intl.NumberFormat('vi-VN').format(p.selling_price)}đ</td>
@@ -457,10 +460,10 @@ function openViewModal(id) {
     document.getElementById('view-product-updated').textContent = AdminString.date(product.updated_at);
     document.getElementById('view-product-description').textContent = product.description || '-';
 
-    const image = product.image || '/img/no-image.png';
+    const image = product.image || '../img/no-image.png';
     const imageEl = document.getElementById('view-product-image');
     imageEl.src = image;
-    imageEl.onerror = () => { imageEl.src = '/img/no-image.png'; };
+    imageEl.onerror = () => { imageEl.src = '../img/no-image.png'; };
 
     document.getElementById('view-modal').classList.add('show');
 }
@@ -553,6 +556,10 @@ async function saveProduct() {
     if (editingId) {
         formData.append('status', document.getElementById('p-status').value);
         formData.append('_method', 'PUT');
+        const removeImage = document.getElementById('p-remove-image')?.checked;
+        if (removeImage && !selectedFile) {
+            formData.append('remove_image', '1');
+        }
     } 
 
     const url = editingId ? `/products/${editingId}` : '/products';
@@ -603,6 +610,7 @@ function openAddModal() {
     document.getElementById('p-upload-area').style.display = 'block';
     document.getElementById('p-current-image-wrap').style.display = 'none';
     document.getElementById('p-image-preview-wrap').style.display = 'none';
+    document.getElementById('p-remove-image-wrap').style.display = 'none';
     document.getElementById('p-status-group').style.display = 'none'; // Ẩn chọn status khi thêm mới
     document.getElementById('form-modal').classList.add('show');
 }
@@ -627,15 +635,18 @@ function openEditModal(id) {
 
     // Hiển thị ảnh
     document.getElementById('p-image-preview-wrap').style.display = 'none';
+    document.getElementById('p-remove-image').checked = false;
     if (p.image) {
         document.getElementById('p-upload-area').style.display = 'none';
         document.getElementById('p-current-image-wrap').style.display = 'block';
+        document.getElementById('p-remove-image-wrap').style.display = 'block';
         
         // Sử dụng buildLogoUrl nếu bạn có hàm đó (tương tự brands.html) hoặc truyền thẳng URL nếu Cloudinary đã trả về link http đầy đủ
         document.getElementById('p-current-image').src = p.image; 
     } else {
         document.getElementById('p-upload-area').style.display = 'block';
         document.getElementById('p-current-image-wrap').style.display = 'none';
+        document.getElementById('p-remove-image-wrap').style.display = 'none';
     }
 
     document.getElementById('form-modal').classList.add('show');

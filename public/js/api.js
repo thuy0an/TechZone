@@ -38,7 +38,7 @@ async function apiRequest(endpoint, options = {}) {
             if (response.status === 401 && endpoint !== '/storefront/login') {
                 localStorage.removeItem('storefront_token');
                 localStorage.removeItem('storefront_user');
-                window.location.href = '/login.html';
+                window.location.href = 'login.html';
             }
 
             const err = new Error(data.message || 'Lỗi kết nối API');

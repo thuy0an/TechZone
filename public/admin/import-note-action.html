@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tạo Phiếu Nhập Mới - TechZone Admin</title>
-    <link rel="stylesheet" href="/css/admin.css">
-    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="icon" href="../favicon.ico">
     <style>
         /* Input table styles */
         .input-qty, .input-price {
@@ -30,7 +30,7 @@
                     <h1>Tạo Phiếu Nhập Mới</h1>
                     <p>Tìm kiếm sản phẩm và lập danh sách nhập kho</p>
                 </div>
-                <a href="/admin/import-notes.html" class="centered btn btn-cancel">
+                <a href="import-notes.html" class="centered btn btn-cancel">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                         <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
                     </svg> Trở về danh sách
@@ -121,7 +121,7 @@
                     </div>
                     
                     <div style="padding: 20px; background: #f8fafc; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; border-radius: 0 0 10px 10px;">
-                        <button type="button" class="btn btn-cancel" onclick="window.location.href='/admin/import-notes.html'">Hủy</button>
+                        <button type="button" class="btn btn-cancel" onclick="window.location.href='import-notes.html'">Hủy</button>
                         <button type="submit" class="btn-edit" id="btn-submit" style="min-width: 150px;">💾 Lưu Bản Nháp</button>
                     </div>
                 </div>
@@ -130,11 +130,11 @@
     </div>
 </div>
 
-<script src="/js/admin/admin-token.js"></script>
-<script src="/js/admin/admin-api.js"></script>
-<script src="/js/admin/admin-auth.js"></script>
-<script src="/js/admin/admin-utils.js"></script>
-<script src="/js/admin/admin-layout.js"></script>
+<script src="../js/admin/admin-token.js"></script>
+<script src="../js/admin/admin-api.js"></script>
+<script src="../js/admin/admin-auth.js"></script>
+<script src="../js/admin/admin-utils.js"></script>
+<script src="../js/admin/admin-layout.js"></script>
 
 <script>
     // State lưu trữ mảng các sản phẩm đã được chọn
@@ -427,7 +427,7 @@
             
             // Chuyển hướng về trang danh sách sau 1 giây
             setTimeout(() => {
-                window.location.href = '/admin/import-notes.html';
+                window.location.href = 'import-notes.html';
             }, 1000);
         } catch (err) {
             showAdminToast(err.data?.message || 'Lỗi khi tạo phiếu nhập', 'error');

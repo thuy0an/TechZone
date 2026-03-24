@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Phiếu nhập kho - TechZone Admin</title>
-    <link rel="stylesheet" href="/css/admin.css">
-    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="icon" href="../favicon.ico">
     <style>
         /* Bổ sung một class nhỏ cho nút Duyệt phiếu */
         .btn-success {
@@ -231,11 +231,11 @@
     </div>
 </div>
 
-<script src="/js/admin/admin-token.js"></script>
-<script src="/js/admin/admin-api.js"></script>
-<script src="/js/admin/admin-auth.js"></script>
-<script src="/js/admin/admin-utils.js"></script>
-<script src="/js/admin/admin-layout.js"></script>
+<script src="../js/admin/admin-token.js"></script>
+<script src="../js/admin/admin-api.js"></script>
+<script src="../js/admin/admin-auth.js"></script>
+<script src="../js/admin/admin-utils.js"></script>
+<script src="../js/admin/admin-layout.js"></script>
 <script>
     let currentPage = 1;
     let completeId = null;
@@ -352,7 +352,7 @@
                         
                         ${!isCompleted ? 
                         `
-                            <a href="/admin/import-note-action.html?id=${n.id}" class="btn-edit" style="text-decoration: none;">✏️ Sửa</a>
+                            <a href="import-note-action.html?id=${n.id}" class="btn-edit" style="text-decoration: none;">✏️ Sửa</a>
                             <button class="btn-success" onclick="confirmComplete(${n.id}, ${n.id})">✅ Duyệt</button>
                         ` 
                         :
@@ -377,7 +377,7 @@
     // ==========================================
     async function openFormModal(id = null, isViewOnly = false) {
         if (!id) {
-            window.location.href = '/admin/import-note-action.html';
+            window.location.href = 'import-note-action.html';
             return;
         }
 
@@ -437,7 +437,7 @@
                 
                 const timestamp = new Date().getTime();
                 const historyLink = document.getElementById('info-sup-history-link');
-                historyLink.href = `/admin/suppliers.html?show_history=${s.id}&sup_name=${encodeURIComponent(s.name)}&t=${timestamp}`;
+                historyLink.href = `suppliers.html?show_history=${s.id}&sup_name=${encodeURIComponent(s.name)}&t=${timestamp}`;
                 
                 supplierInfoCard.style.display = 'flex'; 
             }

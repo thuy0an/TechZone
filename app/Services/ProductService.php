@@ -137,8 +137,16 @@ class ProductService extends BaseService implements ProductServiceInterface
         $oldProfitMargin = $product ? (float) $product->profit_margin : 0.0;
         $oldSellingPrice = $product ? (float) $product->selling_price : 0.0;
 
+        $removeImage = false;
+        if (isset($data['remove_image'])) {
+            $removeImage = filter_var($data['remove_image'], FILTER_VALIDATE_BOOLEAN);
+            unset($data['remove_image']);
+        }
+
         if (isset($data['image_file'])) {
             $data['image'] = $this->cloudinaryService->upload($data['image_file']);
+        } elseif ($removeImage) {
+            $data['image'] = null;
         }
 
         // Nếu Admin thay đổi 'Biên độ lợi nhuận' (profit_margin), 
@@ -175,14 +183,13 @@ class ProductService extends BaseService implements ProductServiceInterface
 
     public function deleteProductForAdmin($id)
     {
-        // 1. Nếu có đơn hàng đang hoạt động (không phải cancelled)
-        if ($this->repository->hasActiveOrders($id)) {
-            // Chỉ ẩn trạng thái và xóa mềm (Soft Delete)
+        // Nếu sản phẩm đã từng được nhập kho (phiếu nhập hoàn thành) thì chỉ ẩn.
+        if ($this->repository->hasCompletedImports($id)) {
             $this->repository->softDeleteProduct($id);
             return ['type' => 'soft_delete'];
         }
 
-        // 2. Nếu không có đơn hàng hoặc chỉ có đơn đã hủy -> Xóa cứng (Force Delete)
+        // Chưa từng nhập kho -> Xóa cứng.
         $this->repository->forceDelete($id);
         return ['type' => 'force_delete'];
     }

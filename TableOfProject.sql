@@ -49,14 +49,36 @@ CREATE TABLE user_addresses (
   is_default BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  -- Các cột lưu vết địa chỉ hành chính (GHN)
-  `province_id` INT NULL,
-  `district_id` INT NULL,
-  `ward_code` VARCHAR(20) NULL,
-  `province_name` VARCHAR(255) NULL,
-  `district_name` VARCHAR(255) NULL,
-  `ward_name` VARCHAR(255) NULL
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- =============================
+-- LOCATIONS (PROVINCE/DISTRICT/WARD)
+-- =============================
+CREATE TABLE provinces (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE districts (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  province_id INT NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (province_id) REFERENCES provinces(id)
+);
+
+CREATE TABLE wards (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  district_id INT NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  code VARCHAR(50) NOT NULL UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (district_id) REFERENCES districts(id)
 );
 
 -- =============================

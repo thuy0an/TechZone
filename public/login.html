@@ -4,19 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập - TechZone</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
     <header class="header">
         <div class="container">
-            <a href="/" class="logo">
+            <a href="index.html" class="logo">
                 <span class="logo-icon">📱</span>
                 TechZone
             </a>
             <nav class="nav">
-                <a href="/" class="nav-link">Trang chủ</a>
-                <a href="/products.html" class="nav-link">Sản phẩm</a>
+                <a href="index.html" class="nav-link">Trang chủ</a>
+                <a href="products.html" class="nav-link">Sản phẩm</a>
             </nav>
         </div>
     </header>
@@ -47,18 +47,18 @@
                 </form>
 
                 <p style="margin-top: 25px; font-size: 0.95rem;">
-                    Chưa có tài khoản? <a href="/register.html" style="color: var(--primary-color); font-weight: 600;">Đăng ký ngay</a>
+                    Chưa có tài khoản? <a href="register.html" style="color: var(--primary-color); font-weight: 600;">Đăng ký ngay</a>
                 </p>
             </div>
         </div>
     </main>
 
-    <script src="/js/api.js"></script>
-    <script src="/js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (isLoggedIn()) {
-                window.location.href = '/';
+                window.location.href = 'index.html';
                 return;
             }
 

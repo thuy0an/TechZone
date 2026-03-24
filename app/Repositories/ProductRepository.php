@@ -187,6 +187,15 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
             ->exists();
     }
 
+    public function hasCompletedImports(int $productId): bool
+    {
+        return $this->model->where('id', $productId)
+            ->whereHas('importNoteDetails.importNote', function ($query) {
+                $query->where('status', 'completed');
+            })
+            ->exists();
+    }
+
 
     /**
      * Thực hiện xóa cứng

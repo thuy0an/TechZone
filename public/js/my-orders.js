@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let detailsHtml = order.details.map(detail => `
                 <div class="order-item-row" style="border: none; padding: 10px 0; border-bottom: 1px dashed #e2e8f0; border-radius: 0;">
-                    <img src="${detail.product.image ? '/storage/' + detail.product.image : 'https://via.placeholder.com/64'}" alt="${detail.product.name}">
+                    <img src="${detail.product.image ? 'storage/' + detail.product.image : 'https://via.placeholder.com/64'}" alt="${detail.product.name}">
                     <div>
                         <div style="font-weight: 600; color: #1f2937;">${detail.product.name}</div>
                         <div class="order-item-meta">Phân loại: ${detail.product.category_id} | SL: x${detail.quantity}</div>

@@ -1,9 +1,6 @@
-let GHN_TOKEN = '';
-let GHN_API_URL = '';
-
 document.addEventListener('DOMContentLoaded', async () => {
     if (typeof isLoggedIn === 'function' && !isLoggedIn()) {
-        window.location.href = '/login.html';
+        window.location.href = 'login.html';
         return;
     }
 
@@ -26,17 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadUserProfile();
     await loadUserAddresses();
 
-    // Tải cấu hình GHN
-    try {
-        const result = await apiRequest('/public-config');
-        if (result.data) {
-            GHN_TOKEN = result.data.ghn_token;
-            GHN_API_URL = result.data.ghn_api_url;
-            loadProvinces(); // Load tỉnh ngay khi có token
-        }
-    } catch (error) {
-        console.error('Không thể tải cấu hình GHN:', error);
-    }
+    loadProvinces();
 
     const formProfile = document.getElementById('profile-form');
     const btnSaveProfile = document.getElementById('btn-save-profile');
@@ -120,8 +107,7 @@ async function loadUserAddresses() {
                     <strong>${addr.receiver_name}</strong> | ${addr.receiver_phone}
                 </div>
                 <div style="color: var(--text-light); font-size: 0.95rem;">
-                    ${addr.address}<br>
-                    ${addr.ward_name}, ${addr.district_name}, ${addr.province_name}
+                    ${addr.address}
                 </div>
             </div>
         `).join('');
@@ -148,14 +134,15 @@ function toggleAddressForm(show) {
 }
 
 // ==========================================
-// TÍCH HỢP GIAO HÀNG NHANH (GHN) API
+// API DIA CHI NOI BO
 // ==========================================
 
 async function loadProvinces() {
     try {
-        const data = await apiRequest(`${GHN_API_URL}/province`, { headers: { "Token": GHN_TOKEN } });
+        const data = await apiRequest('/locations/provinces');
         const select = document.getElementById('province');
-        data.data.forEach(p => p.ProvinceID < 270 ? select.innerHTML += `<option value="${p.ProvinceID}">${p.ProvinceName}</option>` : '');
+        select.innerHTML = '<option value="">Chọn Tỉnh thành</option>';
+        data.data.forEach(p => select.innerHTML += `<option value="${p.id}">${p.name}</option>`);
     } catch (error) { console.error('Lỗi tải Tỉnh:', error); }
 }
 
@@ -171,12 +158,8 @@ async function loadDistricts() {
     if (!provinceId) { distSelect.disabled = true; return; }
 
     try {
-        const data = await apiRequest(`${GHN_API_URL}/district`, {
-            method: 'POST',
-            headers: { "Token": GHN_TOKEN },
-            body: JSON.stringify({ province_id: parseInt(provinceId) })
-        });
-        data.data.forEach(d => distSelect.innerHTML += `<option value="${d.DistrictID}">${d.DistrictName}</option>`);
+        const data = await apiRequest(`/locations/districts?province_id=${provinceId}`);
+        data.data.forEach(d => distSelect.innerHTML += `<option value="${d.id}">${d.name}</option>`);
         distSelect.disabled = false;
     } catch (error) { console.error('Lỗi tải Quận:', error); }
 }
@@ -189,8 +172,8 @@ async function loadWards() {
     if (!districtId) { wardSelect.disabled = true; return; }
 
     try {
-        const data = await apiRequest(`${GHN_API_URL}/ward?district_id=${districtId}`, { headers: { "Token": GHN_TOKEN } });
-        data.data.forEach(w => wardSelect.innerHTML += `<option value="${w.WardCode}">${w.WardName}</option>`);
+        const data = await apiRequest(`/locations/wards?district_id=${districtId}`);
+        data.data.forEach(w => wardSelect.innerHTML += `<option value="${w.id}">${w.name}</option>`);
         wardSelect.disabled = false;
     } catch (error) { console.error('Lỗi tải Phường:', error); }
 }
@@ -207,14 +190,14 @@ async function handleSaveAddress() {
     const distEl = document.getElementById('district');
     const wardEl = document.getElementById('ward');
 
+    const provinceName = provEl.options[provEl.selectedIndex].text;
+    const districtName = distEl.options[distEl.selectedIndex].text;
+    const wardName = wardEl.options[wardEl.selectedIndex].text;
+    const fullAddressParts = [address, wardName, districtName, provinceName].filter(Boolean);
     const payload = {
-        receiver_name, receiver_phone, address,
-        province_id: provEl.value,
-        district_id: distEl.value,
-        ward_code: wardEl.value,
-        province_name: provEl.options[provEl.selectedIndex].text,
-        district_name: distEl.options[distEl.selectedIndex].text,
-        ward_name: wardEl.options[wardEl.selectedIndex].text
+        receiver_name,
+        receiver_phone,
+        address: fullAddressParts.join(', ')
     };
 
     alertBox.style.display = 'none';

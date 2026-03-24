@@ -12,6 +12,7 @@ interface ProductRepositoryInterface extends BaseRepositoryInterface
     public function getAdminProducts(array $filters = [], int $perPage = 15);
     public function softDeleteProduct(int $id);
     public function hasActiveOrders(int $productId);
+    public function hasCompletedImports(int $productId);
     public function forceDelete(int $id);
     public function getProductsByCategory(int $categoryId, int $perPage = 10);
     public function getPriceHistories(int $productId, int $perPage = 15);

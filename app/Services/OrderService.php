@@ -239,25 +239,16 @@ class OrderService extends BaseService implements OrderServiceInterface
                 throw new \Exception('Địa chỉ nhận hàng không tồn tại hoặc không thuộc về bạn.');
             }
 
-            $fullAddressParts = [
-                $address->address,
-                $address->ward_name,
-                $address->district_name,
-                $address->province_name,
-            ];
-
-            $fullAddress = implode(', ', array_filter($fullAddressParts));
-
             return [
                 'receiver_name' => $address->receiver_name,
                 'receiver_phone' => $address->receiver_phone,
-                'shipping_address' => $fullAddress ?: $address->address,
-                'province_id' => $address->province_id,
-                'district_id' => $address->district_id,
-                'ward_code' => $address->ward_code,
-                'province_name' => $address->province_name,
-                'district_name' => $address->district_name,
-                'ward_name' => $address->ward_name,
+                'shipping_address' => $address->address,
+                'province_id' => null,
+                'district_id' => null,
+                'ward_code' => null,
+                'province_name' => null,
+                'district_name' => null,
+                'ward_name' => null,
             ];
         }
 

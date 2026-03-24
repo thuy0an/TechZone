@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đơn hàng - TechZone Admin</title>
-    <link rel="stylesheet" href="/css/admin.css">
-    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="icon" href="../favicon.ico">
 </head>
 <body>
 <div class="admin-layout">
@@ -149,31 +149,23 @@
 
 <div class="toast" id="admin-toast"></div>
 
-<script src="/js/admin/admin-token.js"></script>
-<script src="/js/admin/admin-api.js"></script>
-<script src="/js/admin/admin-auth.js"></script>
-<script src="/js/admin/admin-layout.js"></script>
-<script src="/js/admin/admin-utils.js"></script>
+<script src="../js/admin/admin-token.js"></script>
+<script src="../js/admin/admin-api.js"></script>
+<script src="../js/admin/admin-auth.js"></script>
+<script src="../js/admin/admin-layout.js"></script>
+<script src="../js/admin/admin-utils.js"></script>
 <script>
 initAdminLayout({ title: 'Đơn hàng', icon: '🛒', activePage: 'orders' });
 
 let currentPage = 1;
 let searchTimeout = null;
 let currentOrder = null;
-// -----API GHN-----
-let GHN_TOKEN = '';
-let GHN_API_URL = '';
+// -----API dia chi noi bo-----
 
 document.addEventListener('DOMContentLoaded', async () => {
     loadOrders();
 
-    // 1. TẢI CẤU HÌNH TỪ SERVER TRƯỚC
-    await loadAppConfig();
-
-    // 2. SAU KHI CÓ TOKEN THÌ MỚI GỌI API GHN
-    if (GHN_TOKEN) {
-        loadProvinces();
-    }
+    loadProvinces();
     
     // Debounce tìm kiếm
     document.getElementById('search-input').addEventListener('input', () => {
@@ -185,19 +177,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 });
 
-async function loadAppConfig() {
-    try {
-        const res = await fetch('/api/public-config');
-        const result = await res.json();
-        
-        if (result.data) {
-            GHN_TOKEN = result.data.ghn_token;
-            GHN_API_URL = result.data.ghn_api_url;
-        }
-    } catch (error) {
-        console.error('Không thể tải cấu hình hệ thống:', error);
-    }
-}
 
 async function loadOrders() {
     const search = document.getElementById('search-input').value.trim();
@@ -297,7 +276,13 @@ async function openOrderModal(id) {
         document.getElementById('view-order-code').textContent = `#${currentOrder.id}`;
         document.getElementById('view-receiver').textContent = currentOrder.receiver_name;
         document.getElementById('view-phone').textContent = currentOrder.receiver_phone;
-        document.getElementById('view-address').textContent = `${currentOrder.shipping_address}, ${currentOrder.ward_name}, ${currentOrder.district_name}, ${currentOrder.province_name}`;
+        const addressParts = [
+            currentOrder.shipping_address,
+            currentOrder.ward_name,
+            currentOrder.district_name,
+            currentOrder.province_name,
+        ].filter(Boolean);
+        document.getElementById('view-address').textContent = addressParts.join(', ');
 
         // --- RENDER CHI TIẾT SẢN PHẨM ---
         const detailsTbody = document.getElementById('view-order-details');
@@ -437,17 +422,13 @@ async function updateOrderStatus() {
 // Tải danh sách Tỉnh
 async function loadProvinces() {
     try {
-        const res = await fetch(`${GHN_API_URL}/province`, {
-            headers: { 'Token': GHN_TOKEN ,
-        'Content-Type': 'application/json'}
-        });
+        const res = await fetch('/api/locations/provinces');
         const data = await res.json();
         
         const provinceSelect = document.getElementById('filter-province');
+        provinceSelect.innerHTML = '<option value="">Tất cả Tỉnh / Thành</option>';
         data.data.forEach(p => {
-            p.ProvinceID < 270 ?
-            provinceSelect.innerHTML += `<option value="${p.ProvinceID}">${p.ProvinceName}</option>`:
-            '';
+            provinceSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
         });
     } catch (error) { console.error('Lỗi tải Tỉnh:', error); }
 }
@@ -469,15 +450,10 @@ async function loadDistricts() {
     }
 
     try {
-        const res = await fetch(`${GHN_API_URL}/district`, {
-            method: 'POST',
-            headers: { 'token': GHN_TOKEN, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ province_id: parseInt(provinceId) })
-        });
+        const res = await fetch(`/api/locations/districts?province_id=${provinceId}`);
         const data = await res.json();
-        
         data.data.forEach(d => {
-            districtSelect.innerHTML += `<option value="${d.DistrictID}">${d.DistrictName}</option>`;
+            districtSelect.innerHTML += `<option value="${d.id}">${d.name}</option>`;
         });
         districtSelect.disabled = false;
     } catch (error) { console.error('Lỗi tải Quận:', error); }
@@ -496,13 +472,10 @@ async function loadWards() {
     }
 
     try {
-        const res = await fetch(`${GHN_API_URL}/ward?district_id=${districtId}`, {
-            headers: { 'token': GHN_TOKEN }
-        });
+        const res = await fetch(`/api/locations/wards?district_id=${districtId}`);
         const data = await res.json();
-        
         data.data.forEach(w => {
-            wardSelect.innerHTML += `<option value="${w.WardCode}">${w.WardName}</option>`;
+            wardSelect.innerHTML += `<option value="${w.id}">${w.name}</option>`;
         });
         wardSelect.disabled = false;
     } catch (error) { console.error('Lỗi tải Phường:', error); }

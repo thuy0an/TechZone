@@ -12,14 +12,79 @@ INSERT INTO users (name, email, password, phone, is_locked, created_at, updated_
 ('Ngô Thanh Hà', 'khach4@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0904444444', 1, NOW(), NOW()),
 ('Võ Nhật Nam', 'khach5@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0905555555', 0, NOW(), NOW());
 
+INSERT INTO provinces (id, name, created_at, updated_at) VALUES
+(1, 'TP Hà Nội', NOW(), NOW()),
+(2, 'TP Hải Phòng', NOW(), NOW()),
+(3, 'TP Huế', NOW(), NOW()),
+(4, 'TP Đà Nẵng', NOW(), NOW()),
+(5, 'TP Hồ Chí Minh', NOW(), NOW()),
+(6, 'TP Cần Thơ', NOW(), NOW()),
+(7, 'Tỉnh Phú Thọ', NOW(), NOW()),
+(8, 'Tỉnh Thái Nguyên', NOW(), NOW()),
+(9, 'Tỉnh Lào Cai', NOW(), NOW()),
+(10, 'Tỉnh Tuyên Quang', NOW(), NOW()),
+(11, 'Tỉnh Bắc Ninh', NOW(), NOW()),
+(12, 'Tỉnh Hưng Yên', NOW(), NOW()),
+(13, 'Tỉnh Ninh Bình', NOW(), NOW()),
+(14, 'Tỉnh Quảng Trị', NOW(), NOW()),
+(15, 'Tỉnh Quảng Ngãi', NOW(), NOW()),
+(16, 'Tỉnh Gia Lai', NOW(), NOW()),
+(17, 'Tỉnh Khánh Hòa', NOW(), NOW()),
+(18, 'Tỉnh Đắk Lắk', NOW(), NOW()),
+(19, 'Tỉnh Đồng Nai', NOW(), NOW()),
+(20, 'Tỉnh Lâm Đồng', NOW(), NOW()),
+(21, 'Tỉnh Bình Phước', NOW(), NOW()),
+(22, 'Tỉnh Tây Ninh', NOW(), NOW()),
+(23, 'Tỉnh Vĩnh Long', NOW(), NOW()),
+(24, 'Tỉnh Đồng Tháp', NOW(), NOW()),
+(25, 'Tỉnh Cà Mau', NOW(), NOW()),
+(26, 'Tỉnh An Giang', NOW(), NOW()),
+(27, 'Tỉnh Bà Rịa - Vũng Tàu', NOW(), NOW()),
+(28, 'Tỉnh Bình Định', NOW(), NOW()),
+(29, 'Tỉnh Quảng Ninh', NOW(), NOW()),
+(30, 'Tỉnh Thanh Hóa', NOW(), NOW()),
+(31, 'Tỉnh Nghệ An', NOW(), NOW()),
+(32, 'Tỉnh Hà Tĩnh', NOW(), NOW()),
+(33, 'Tỉnh Bắc Kạn', NOW(), NOW()),
+(34, 'Tỉnh Cao Bằng', NOW(), NOW());
+
+INSERT INTO districts (id, province_id, name, created_at, updated_at)
+SELECT
+	((p.id - 1) * 12) + n.n AS id,
+	p.id AS province_id,
+	CAST(n.n AS CHAR) AS name,
+	NOW(),
+	NOW()
+FROM provinces p
+JOIN (
+	SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL
+	SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
+	SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12
+) n;
+
+INSERT INTO wards (id, district_id, name, code, created_at, updated_at)
+SELECT
+	((d.id - 1) * 12) + n.n AS id,
+	d.id AS district_id,
+	CAST(n.n AS CHAR) AS name,
+	CONCAT('W', LPAD(((d.id - 1) * 12) + n.n, 5, '0')) AS code,
+	NOW(),
+	NOW()
+FROM districts d
+JOIN (
+	SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL
+	SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
+	SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12
+) n;
+
 INSERT INTO `user_addresses` 
-(`user_id`, `receiver_name`, `receiver_phone`, `address`, `province_id`, `district_id`, `ward_code`, `province_name`, `district_name`, `ward_name`, `is_default`, `created_at`, `updated_at`) 
+(`user_id`, `receiver_name`, `receiver_phone`, `address`, `is_default`, `created_at`, `updated_at`) 
 VALUES
-(1, 'Lê Minh Khách', '0901111111', '12 Lê Lợi', 202, 1442, '20109', 'Hồ Chí Minh', 'Quận 1', 'Phường Bến Nghé', 1, NOW(), NOW()),
-(2, 'Trần Thị Lan', '0902222222', '45 Nguyễn Trãi', 202, 1446, '20314', 'Hồ Chí Minh', 'Quận 5', 'Phường 14', 1, NOW(), NOW()),
-(3, 'Phạm Quốc Huy', '0903333333', '78 Hùng Vương', 203, 1520, '3010', 'Đà Nẵng', 'Quận Hải Châu', 'Phường Thạch Thang', 1, NOW(), NOW()),
-(4, 'Ngô Thanh Hà', '0904444444', '22 Cầu Giấy', 201, 1482, '1A01', 'Hà Nội', 'Quận Ba Đình', 'Phường Điện Biên', 1, NOW(), NOW()),
-(5, 'Võ Nhật Nam', '0905555555', '90 Lý Thường Kiệt', 202, 1451, '20211', 'Hồ Chí Minh', 'Quận 10', 'Phường 14', 1, NOW(), NOW());
+(1, 'Lê Minh Khách', '0901111111', '12 Lê Lợi, Phường Bến Nghé, Quận 1, Hồ Chí Minh', 1, NOW(), NOW()),
+(2, 'Trần Thị Lan', '0902222222', '45 Nguyễn Trãi, Phường 14, Quận 5, Hồ Chí Minh', 1, NOW(), NOW()),
+(3, 'Phạm Quốc Huy', '0903333333', '78 Hùng Vương, Phường Thạch Thang, Quận Hải Châu, Đà Nẵng', 1, NOW(), NOW()),
+(4, 'Ngô Thanh Hà', '0904444444', '22 Cầu Giấy, Phường Điện Biên, Quận Ba Đình, Hà Nội', 1, NOW(), NOW()),
+(5, 'Võ Nhật Nam', '0905555555', '90 Lý Thường Kiệt, Phường 14, Quận 10, Hồ Chí Minh', 1, NOW(), NOW());
 
 INSERT INTO categories (name, created_at, updated_at) VALUES
 ('Điện thoại', NOW(), NOW()),

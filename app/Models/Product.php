@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\ImportNoteDetail;
 
 class Product extends BaseModel
 {
@@ -38,6 +39,11 @@ class Product extends BaseModel
     public function orderDetails()
     {
         return $this->hasMany(OrderDetail::class, 'product_id');
+    }
+
+    public function importNoteDetails()
+    {
+        return $this->hasMany(ImportNoteDetail::class, 'product_id');
     }
 
     public function priceHistories()

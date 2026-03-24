@@ -14,18 +14,18 @@
 // ============================================================
 const ADMIN_NAV = [
     { type: 'section', label: 'Tổng quan' },
-    { type: 'item', page: 'dashboard', href: '/admin/dashboard.html', icon: 'bx bx-grid-alt', label: 'Dashboard' },
-    { type: 'item', page: 'reports', href: '/admin/reports.html', icon: 'bx bx-line-chart', label: 'Báo cáo & Thống kê' },
+    { type: 'item', page: 'dashboard', href: 'dashboard.html', icon: 'bx bx-grid-alt', label: 'Dashboard' },
+    { type: 'item', page: 'reports', href: 'reports.html', icon: 'bx bx-line-chart', label: 'Báo cáo & Thống kê' },
     { type: 'section', label: 'Danh mục' },
-    { type: 'item', page: 'categories', href: '/admin/categories.html', icon: 'bx bx-folder', label: 'Loại sản phẩm' },
-    { type: 'item', page: 'brands', href: '/admin/brands.html', icon: 'bx bx-purchase-tag', label: 'Thương hiệu' },
+    { type: 'item', page: 'categories', href: 'categories.html', icon: 'bx bx-folder', label: 'Loại sản phẩm' },
+    { type: 'item', page: 'brands', href: 'brands.html', icon: 'bx bx-purchase-tag', label: 'Thương hiệu' },
     { type: 'section', label: 'Quản lý' },
-    { type: 'item', page: 'products', href: '/admin/products.html', icon: 'bx bx-package', label: 'Sản phẩm' },
-    { type: 'item', page: 'orders', href: '/admin/orders.html', icon: 'bx bx-cart', label: 'Đơn hàng' },
-    { type: 'item', page: 'suppliers', href: '/admin/suppliers.html', icon: 'bx bx-buildings', label: 'Nhà cung cấp' },
-    { type: 'item', page: 'import-notes', href: '/admin/import-notes.html', icon: 'bx bx-import', label: 'Phiếu nhập hàng' },
-    { type: 'item', page: 'customers', href: '/admin/users.html', icon: 'bx bx-group', label: 'Khách hàng' },
-    { type: 'item', page: 'promotions', href: '/admin/promotions.html', icon: 'bx bx-gift', label: 'Khuyến mãi' }
+    { type: 'item', page: 'products', href: 'products.html', icon: 'bx bx-package', label: 'Sản phẩm' },
+    { type: 'item', page: 'orders', href: 'orders.html', icon: 'bx bx-cart', label: 'Đơn hàng' },
+    { type: 'item', page: 'suppliers', href: 'suppliers.html', icon: 'bx bx-buildings', label: 'Nhà cung cấp' },
+    { type: 'item', page: 'import-notes', href: 'import-notes.html', icon: 'bx bx-import', label: 'Phiếu nhập hàng' },
+    { type: 'item', page: 'customers', href: 'users.html', icon: 'bx bx-group', label: 'Khách hàng' },
+    { type: 'item', page: 'promotions', href: 'promotions.html', icon: 'bx bx-gift', label: 'Khuyến mãi' }
 ];
 
 // ============================================================

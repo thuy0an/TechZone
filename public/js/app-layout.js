@@ -26,8 +26,8 @@ function _injectHeader(activePage) {
 
     // Render các menu bên trái
     const navLinks = [
-        { page: 'home', href: '/', label: 'Trang chủ' },
-        { page: 'products', href: '/products.html', label: 'Sản phẩm' }
+        { page: 'home', href: 'index.html', label: 'Trang chủ' },
+        { page: 'products', href: 'products.html', label: 'Sản phẩm' }
     ].map(link => `
         <a href="${link.href}" class="nav-link ${activePage === link.page ? 'active' : ''}">
             ${link.label}
@@ -41,7 +41,7 @@ function _injectHeader(activePage) {
         // Đã đăng nhập: Hiện giỏ hàng và Dropdown User
         rightMenuHtml = `
             <div style="display: flex; align-items: center; gap: 20px;">
-                <a href="/cart.html" class="nav-link ${activePage === 'cart' ? 'active' : ''}" 
+                <a href="cart.html" class="nav-link ${activePage === 'cart' ? 'active' : ''}" 
                 style="position: relative; width: 44px; height: 44px;">
                     <span style="font-size: 1.4rem;">🛒</span> 
                     <span class="badge" id="cart-count" style="position: absolute; top: -5px; right: -5px;">0</span>
@@ -59,8 +59,8 @@ function _injectHeader(activePage) {
                     </div>
                     
                     <div class="dropdown-content">
-                        <a href="/my-orders.html">📦 Lịch sử mua hàng</a>
-                        <a href="/profile.html">⚙️ Thiết lập tài khoản</a>
+                        <a href="my-orders.html">📦 Lịch sử mua hàng</a>
+                        <a href="profile.html">⚙️ Thiết lập tài khoản</a>
                         <hr style="border: 0; border-top: 1px solid #edf2f7; margin: 5px 0;">
                         <button onclick="logoutCustomer()" class="btn-logout-storefront">
                             🚪 Đăng xuất
@@ -73,8 +73,8 @@ function _injectHeader(activePage) {
         // Chưa đăng nhập: Hiện nút Đăng ký / Đăng nhập
         rightMenuHtml = `
             <div style="display: flex; align-items: center; gap: 35px;">
-                <a href="/register.html" class="nav-link">Đăng ký</a>
-                <a href="/login.html" class="btn btn-login">Đăng nhập</a>
+                <a href="register.html" class="nav-link">Đăng ký</a>
+                <a href="login.html" class="btn btn-login">Đăng nhập</a>
             </div>
         `;
     }
@@ -85,7 +85,7 @@ function _injectHeader(activePage) {
         <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
             
             <div style="flex: 1; display: flex; justify-content: flex-start;">
-                <a href="/" class="logo">
+                <a href="index.html" class="logo">
                     <span class="logo-icon">📱</span>
                     TechZone
                 </a>

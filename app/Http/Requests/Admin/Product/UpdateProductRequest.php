@@ -27,6 +27,7 @@ class UpdateProductRequest extends FormRequest
             'low_stock_threshold' => 'sometimes|integer|min:0',
             'status'        => 'sometimes|in:visible,hidden',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Max 2MB
+            'remove_image' => 'sometimes|boolean',
         ];
     }
 
