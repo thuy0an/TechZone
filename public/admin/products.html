@@ -55,7 +55,10 @@
                                 </label>
                             </div>
 
-                            <button class="btn-add" onclick="openAddModal()">＋ Thêm sản phẩm</button>
+                            <div class="flex-row">
+                                <button class="btn btn-add" onclick="openImportModal()">📥 Nhập CSV</button>
+                                <button class="btn-add" onclick="openAddModal()">＋ Thêm sản phẩm</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -293,6 +296,38 @@
                     <div class="pagination-btns" id="view-history-btns"></div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay-form" id="import-modal">
+    <div class="modal-form-box" style="max-width: 500px;">
+        <div class="modal-form-header">
+            <span class="modal-form-title">Nhập dữ liệu sản phẩm</span>
+            <button class="modal-close-btn" onclick="closeImportModal()">✕</button>
+        </div>
+        <div class="modal-form-body">
+            <div class="dropzone" id="dropzone" onclick="document.getElementById('import-file').click()">
+                <div class="dropzone-icon">📄</div>
+                <div class="dropzone-text" id="import-filename">Kéo thả file CSV vào đây hoặc click để chọn</div>
+                <input type="file" id="import-file" hidden accept=".csv, .txt" onchange="handleFileSelect(this)">
+            </div>
+
+            <div class="progress-container" id="import-progress-wrap">
+                <div class="progress-bar" id="import-progress-bar"></div>
+            </div>
+            <div style="text-align: center; font-size: 0.85rem; margin-top: 5px; font-weight: 600; color: var(--admin-primary)" id="import-progress-text"></div>
+            
+            <div id="import-error" class="field-error" style="display:none; text-align:center; margin-top:10px;"></div>
+            
+            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 20px; text-align: center;">
+                File CSV cần có cấu trúc 6 cột theo thứ tự: <br>
+                <strong>Mã SP | Tên SP | ID Danh mục | ID Thương hiệu | Giá Nhập | Tồn kho</strong>
+            </div>
+        </div>
+        <div class="modal-form-footer">
+            <button type="button" class="btn btn-cancel" onclick="closeImportModal()">Hủy</button>
+            <button type="button" class="btn-save" id="btn-start-import" onclick="startImport()">Bắt đầu Nhập</button>
         </div>
     </div>
 </div>
@@ -795,6 +830,108 @@ function makeSelectSearchable(selectId) {
             input.value = (selectedOption && selectedOption.value !== '') ? selectedOption.text : '';
         }
     });
+}
+
+// ==========================================
+// XỬ LÝ IMPORT CSV (UPLOAD & POLLING)
+// ==========================================
+let importPollingInterval = null;
+
+function openImportModal() {
+    document.getElementById('import-file').value = '';
+    document.getElementById('import-filename').textContent = 'Kéo thả file CSV vào đây hoặc click để chọn';
+    document.getElementById('import-progress-wrap').style.display = 'none';
+    document.getElementById('import-progress-bar').style.width = '0%';
+    document.getElementById('import-progress-text').textContent = '';
+    document.getElementById('import-error').style.display = 'none';
+    document.getElementById('btn-start-import').disabled = false;
+    document.getElementById('import-modal').classList.add('show');
+}
+
+function closeImportModal() {
+    document.getElementById('import-modal').classList.remove('show');
+    if (importPollingInterval) clearInterval(importPollingInterval);
+}
+
+function handleFileSelect(input) {
+    const file = input.files[0];
+    if (file) {
+        document.getElementById('import-filename').textContent = file.name;
+    }
+}
+
+// Drag & Drop events
+const dropzone = document.getElementById('dropzone');
+dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        document.getElementById('import-file').files = files;
+        handleFileSelect(document.getElementById('import-file'));
+    }
+});
+
+async function startImport() {
+    const fileInput = document.getElementById('import-file');
+    if (!fileInput.files[0]) {
+        return showAdminToast('Vui lòng chọn file CSV', 'error');
+    }
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    // Khóa nút bấm và hiện thanh tiến trình
+    document.getElementById('btn-start-import').disabled = true;
+    document.getElementById('import-progress-wrap').style.display = 'block';
+    document.getElementById('import-error').style.display = 'none';
+    document.getElementById('import-progress-text').textContent = 'Đang tải file lên...';
+
+    try {
+        // Gọi API Upload (Sử dụng hàm adminRequestFormData đã có sẵn trong admin-api.js)
+        const res = await adminRequestFormData('/imports/upload', formData);
+        
+        // Bắt đầu vòng lặp hỏi Server xem Job chạy đến đâu rồi
+        pollImportStatus(res.data.job_id);
+    } catch (err) {
+        document.getElementById('import-error').textContent = err.data?.error || err.message || 'Lỗi upload file';
+        document.getElementById('import-error').style.display = 'block';
+        document.getElementById('btn-start-import').disabled = false;
+    }
+}
+
+async function pollImportStatus(jobId) {
+    importPollingInterval = setInterval(async () => {
+        try {
+            const res = await adminRequest(`/imports/${jobId}/status`);
+            const job = res.data;
+
+            // Cập nhật thanh tiến trình
+            document.getElementById('import-progress-bar').style.width = `${job.progress}%`;
+            document.getElementById('import-progress-text').textContent = `Đang xử lý: ${job.progress}% (${job.processed}/${job.total} dòng)`;
+
+            if (job.status === 'completed') {
+                clearInterval(importPollingInterval);
+                showAdminToast('Nhập dữ liệu thành công! ✅');
+                setTimeout(() => {
+                    closeImportModal();
+                    currentPage = 1;
+                    loadProducts(); // Reload lại bảng sản phẩm
+                }, 1000);
+            } else if (job.status === 'failed') {
+                clearInterval(importPollingInterval);
+                document.getElementById('import-error').textContent = `Lỗi: ${job.error_message}`;
+                document.getElementById('import-error').style.display = 'block';
+                document.getElementById('btn-start-import').disabled = false;
+            }
+        } catch (err) {
+            clearInterval(importPollingInterval);
+            document.getElementById('import-error').textContent = 'Mất kết nối kiểm tra tiến trình.';
+            document.getElementById('import-error').style.display = 'block';
+        }
+    }, 2000); // Mỗi 2 giây hỏi lại 1 lần
 }
 
 </script>

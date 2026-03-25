@@ -200,6 +200,11 @@ Route::prefix('admin')->group(function () {
         // KHUYẾN MÃI
         Route::apiResource('promotions', PromotionController::class);
         Route::patch('promotions/{id}/toggle-active', [PromotionController::class, 'toggleActive']);
+
+
+        // Import Sản phẩm
+        Route::post('imports/upload', [\App\Http\Controllers\Api\Admin\ProductImportController::class, 'upload']);
+        Route::get('imports/{id}/status', [\App\Http\Controllers\Api\Admin\ProductImportController::class, 'status']);
     });
 });
 

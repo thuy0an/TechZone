@@ -1886,6 +1886,41 @@ table.data-table tbody tr:hover {
     color: var(--admin-accent);
 }
 
+/* Styling cho khu vực kéo thả file CSV */
+.dropzone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 30px 20px;
+    text-align: center;
+    cursor: pointer;
+    background: #f8fafc;
+    transition: 0.3s;
+    margin-bottom: 15px;
+}
+.dropzone:hover, .dropzone.dragover {
+    border-color: var(--admin-primary);
+    background: #eff6ff;
+}
+.dropzone-icon { font-size: 2rem; margin-bottom: 10px; }
+.dropzone-text { font-size: 0.9rem; color: var(--text-secondary); font-weight: 600; }
+
+/* Progress bar */
+.progress-container {
+    width: 100%;
+    background: #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+    height: 12px;
+    margin-top: 15px;
+    display: none;
+}
+.progress-bar {
+    height: 100%;
+    background: var(--admin-primary);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
 
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
