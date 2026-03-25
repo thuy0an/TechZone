@@ -91,10 +91,12 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
             $query->where('brand_id', $filters['brand_id']);
         }
 
-        if (isset($filters['min_price'], $filters['max_price'])
-            && $filters['min_price'] !== ''
-            && $filters['max_price'] !== '') {
-            $query->whereBetween('selling_price', [$filters['min_price'], $filters['max_price']]);
+        if (isset($filters['min_price']) && $filters['min_price'] !== '') {
+            $query->where('selling_price', '>=', $filters['min_price']);
+        }
+
+        if (isset($filters['max_price']) && $filters['max_price'] !== '') {
+            $query->where('selling_price', '<=', $filters['max_price']);
         }
 
         return $query->paginate($perPage);

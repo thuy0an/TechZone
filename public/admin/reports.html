@@ -431,6 +431,43 @@
                 </div>
                 </div>
             </div>
+
+            <!-- Cảnh báo sắp hết hàng -->
+            <div class="card" style="margin-top:24px">
+              <div class="card-header">
+                <span class="card-title">⚠️ Cảnh báo sắp hết hàng</span>
+                <button class="btn btn-add" onclick="loadLowStockWarning()">↻ Làm mới</button>
+              </div>
+              <div class="card-body">
+                <div id="ls-summary" class="stats-grid" style="margin-bottom:16px; display:none">
+                  <div class="stat-card">
+                    <div class="stat-icon amber">⚠️</div>
+                    <div>
+                      <div class="stat-value" id="ls-count">0</div>
+                      <div class="stat-label">Sản phẩm sắp hết hàng</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="overflow-x:auto">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Mã SP</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Tồn kho</th>
+                        <th>Ngưỡng cảnh báo</th>
+                        <th>Giá nhập</th>
+                      </tr>
+                    </thead>
+                    <tbody id="ls-tbody">
+                      <tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:32px">Nhấn "Làm mới" để tải dữ liệu</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
             
             </div><!-- /tab-products -->
             
@@ -918,6 +955,33 @@ async function loadSlowMoving() {
       : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--admin-success)">✅ Không có hàng chậm luân chuyển trong khoảng thời gian này</td></tr>';
   } catch (e) {
     showAdminToast(e.message || 'Lỗi tải dữ liệu', 'error');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CẢNH BÁO SẮP HẾT HÀNG
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadLowStockWarning() {
+  try {
+    const res = await adminRequest('/products?per_page=1000&low_stock=true');
+    const items = res.data.data || res.data || [];
+
+    document.getElementById('ls-count').textContent = items.length.toLocaleString('vi-VN');
+    document.getElementById('ls-summary').style.display = 'grid';
+
+    document.getElementById('ls-tbody').innerHTML = items.length
+      ? items.map((p, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td><code>${AdminString.esc(p.code || '')}</code></td>
+            <td>${AdminString.esc(p.name || '')}</td>
+            <td><span class="badge warning">${Number(p.stock_quantity || 0).toLocaleString('vi-VN')}</span></td>
+            <td>${Number(p.low_stock_threshold || 0).toLocaleString('vi-VN')}</td>
+            <td>${vnd(p.import_price || 0)}</td>
+          </tr>`).join('')
+      : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--admin-success)">✅ Không có sản phẩm sắp hết hàng</td></tr>';
+  } catch (e) {
+    showAdminToast(e.message || 'Lỗi tải cảnh báo sắp hết hàng', 'error');
   }
 }
  
