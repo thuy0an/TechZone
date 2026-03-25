@@ -24,12 +24,12 @@ async function adminRequest(endpoint, options = {}) {
     };
 
     const response = await fetch(`${ADMIN_API}${endpoint}`, { ...options, headers });
-    const data     = await response.json();
+    const data = await response.json();
 
     if (!response.ok) {
-        const err    = new Error(data.message || 'Request failed');
-        err.status   = response.status;
-        err.data     = data;
+        const err = new Error(data.message || 'Request failed');
+        err.status = response.status;
+        err.data = data;
         throw err;
     }
 
@@ -42,12 +42,12 @@ async function adminRequest(endpoint, options = {}) {
  * Dùng method POST; truyền _method=PUT vào FormData khi cần update.
  */
 async function adminRequestFormData(endpoint, formData) {
-    const token    = getAdminToken();
+    const token = getAdminToken();
     const response = await fetch(`${ADMIN_API}${endpoint}`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,
-            'Accept':        'application/json',
+            'Accept': 'application/json',
         },
         body: formData,
     });
@@ -55,9 +55,9 @@ async function adminRequestFormData(endpoint, formData) {
     const json = await response.json();
 
     if (!response.ok) {
-        const err  = new Error(json.message || 'Request failed');
+        const err = new Error(json.message || 'Request failed');
         err.status = response.status;
-        err.data   = json;
+        err.data = json;
         throw err;
     }
 

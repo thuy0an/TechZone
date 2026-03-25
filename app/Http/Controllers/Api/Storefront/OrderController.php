@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\CreateOrderRequest;
 use App\Http\Requests\ApplyPromotionRequest;
 use App\Services\Interfaces\OrderServiceInterface;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Auth;
 
 class OrderController extends BaseApiController
@@ -59,15 +60,24 @@ class OrderController extends BaseApiController
     }
 
     // Lịch sử đơn hàng
-    public function myOrders()
+    public function myOrders(Request $request)
     {
         try {
             $userId = Auth::id();
-            $orders = $this->orderService->getMyOrders($userId);
 
-            return $this->successResponse($orders, 'Lấy danh sách đơn hàng thành công');
+            $filters = [
+                'code' => $request->get('code'),
+                'status' => $request->get('status'),
+                'start_date' => $request->get('start_date'),
+                'end_date' => $request->get('end_date'),
+            ];
+            $perPage = (int) $request->get('per_page', 10);
+
+            $orders = $this->orderService->getMyOrders($userId, $filters, $perPage);
+
+            return $this->paginatedResponse($orders, 'Lấy danh sách đơn hàng thành công');
         } catch (\Exception $e) {
-            return $this->errorResponse('Lỗi khi lấy danh sách đơn hàng', $e->getMessage());
+            return $this->errorResponse('Lỗi khi lấy danh sách đơn hàng', 400, $e->getMessage());
         }
     }
 

@@ -86,7 +86,6 @@ class AdminOrderService extends BaseService implements AdminOrderServiceInterfac
             'shipping'  => ['completed', 'failed'],
             'delivered' => ['completed'],
             'completed' => [], // Đã hoàn tất thì đóng băng
-            'cancelled' => ['new'], // Cho phép admin khôi phục lại đơn hủy thành đơn mới
             'failed'    => ['shipping', 'cancelled'], // Giao lại hoặc hủy
             // Nếu đơn bị hủy thì hoàn lại tồn kho đã trừ khi tạo hóa đơn
         ];

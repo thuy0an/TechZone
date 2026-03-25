@@ -23,7 +23,7 @@ class AuthController extends BaseApiController
             $data = $this->authService->register($request->validated());
             return $this->successResponse($data, 'Đăng ký tài khoản thành công', 201);
         } catch (\Exception $e) {
-            return $this->errorResponse('Đăng ký thất bại', $e->getMessage());
+            return $this->errorResponse($e->getMessage(), 401);
         }
     }
 
@@ -33,7 +33,7 @@ class AuthController extends BaseApiController
             $data = $this->authService->login($request->validated());
             return $this->successResponse($data, 'Đăng nhập thành công');
         } catch (\Exception $e) {
-            return $this->errorResponse('Đăng nhập thất bại', $e->getMessage(), 401);
+            return $this->errorResponse($e->getMessage(), 401);
         }
     }
 

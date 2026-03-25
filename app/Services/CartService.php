@@ -45,9 +45,13 @@ class CartService extends BaseService implements CartServiceInterface
 
             $item->setAttribute('current_price', $newPrice);
 
-            if (abs($newPrice - $savedPrice) > 0.00001) {
+            // KIỂM TRA SỰ THAY ĐỔI GIÁ
+            if (abs($savedPrice - $newPrice) > 0.00001) {
                 $item->setAttribute('is_price_changed', true);
                 $item->setAttribute('old_price', $savedPrice);
+
+                // Lưu mức giá mới vào DB ngay lập tức
+                $this->repository->updateCartItemPrice($item, $newPrice);
             }
         });
 

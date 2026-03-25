@@ -1,10 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Cấu hình
     const ITEMS_PER_PAGE = 10;
-
-    let allOrders = [];      // 
-    let filteredOrders = [];
     let currentPage = 1;
+    let currentOrders = [];
+    let paginationData = null;
 
     const container = document.getElementById('orders-container');
     const paginationContainer = document.getElementById('pagination-container');
@@ -41,12 +40,29 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        container.innerHTML = '<div class="loading text-center">Đang tải dữ liệu đơn hàng...</div>';
+
+        const codeFilter = document.getElementById('filter-code').value.trim();
+        const startDateFilter = document.getElementById('filter-start-date').value;
+        const endDateFilter = document.getElementById('filter-end-date').value;
+        const statusFilter = document.getElementById('filter-status').value;
+
+        const params = new URLSearchParams({
+            page: currentPage,
+            per_page: ITEMS_PER_PAGE
+        });
+
+        if (codeFilter) params.append('code', codeFilter);
+        if (startDateFilter) params.append('start_date', startDateFilter);
+        if (endDateFilter) params.append('end_date', endDateFilter);
+        if (statusFilter) params.append('status', statusFilter);
+
         try {
-            const result = await apiRequest(`/storefront/orders`)
+            const result = await apiRequest(`/storefront/orders?${params.toString()}`);
 
             if (result.success) {
-                allOrders = result.data;
-                filteredOrders = [...allOrders];
+                currentOrders = result.data;
+                paginationData = result.pagination;
                 renderPage();
             } else {
                 container.innerHTML = `<div class="empty-state error-text">${result.message || 'Không thể lấy dữ liệu đơn hàng.'}</div>`;
@@ -58,29 +74,25 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const renderPage = () => {
-        if (filteredOrders.length === 0) {
+        if (!currentOrders || currentOrders.length === 0) {
             container.innerHTML = `<div class="empty-state">Không tìm thấy đơn hàng nào phù hợp.</div>`;
             metaText.textContent = `0 đơn hàng`;
             paginationContainer.classList.add('is-hidden');
             return;
         }
 
-        metaText.textContent = `Hiển thị ${filteredOrders.length} đơn hàng`;
-
-        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        const endIndex = startIndex + ITEMS_PER_PAGE;
-        const ordersToShow = filteredOrders.slice(startIndex, endIndex);
+        metaText.textContent = `Trang ${paginationData.current_page}/${paginationData.last_page} • Tổng ${paginationData.total} đơn hàng`;
 
         let html = '';
-        ordersToShow.forEach(order => {
+        currentOrders.forEach(order => {
             const statusUI = getStatusUI(order.status);
 
             let detailsHtml = order.details.map(detail => `
                 <div class="order-item-row" style="border: none; padding: 10px 0; border-bottom: 1px dashed #e2e8f0; border-radius: 0;">
-                    <img src="${detail.product.image ? 'storage/' + detail.product.image : 'https://via.placeholder.com/64'}" alt="${detail.product.name}">
+                    <img src="${detail.product?.image ? 'storage/' + detail.product.image : 'https://via.placeholder.com/64'}" alt="${detail.product?.name || 'Sản phẩm'}">
                     <div>
-                        <div style="font-weight: 600; color: #1f2937;">${detail.product.name}</div>
-                        <div class="order-item-meta">Phân loại: ${detail.product.category_id} | SL: x${detail.quantity}</div>
+                        <div style="font-weight: 600; color: #1f2937;">${detail.product?.name || 'Sản phẩm không xác định'}</div>
+                        <div class="order-item-meta">SL: x${detail.quantity}</div>
                     </div>
                     <div class="order-item-total">${formatCurrency(detail.unit_price)}</div>
                 </div>
@@ -116,23 +128,22 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const renderPagination = () => {
-        const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
-
-        if (totalPages <= 1) {
+        if (!paginationData || paginationData.last_page <= 1) {
             paginationContainer.classList.add('is-hidden');
             return;
         }
 
         paginationContainer.classList.remove('is-hidden');
+        const { current_page, last_page } = paginationData;
         let html = '';
 
-        html += `<button class="page-btn ${currentPage === 1 ? 'disabled' : ''}" data-page="${currentPage - 1}">&#8592;</button>`;
+        html += `<button class="page-btn ${current_page <= 1 ? 'disabled' : ''}" data-page="${current_page - 1}">&#8592;</button>`;
 
-        for (let i = 1; i <= totalPages; i++) {
-            html += `<button class="page-btn ${currentPage === i ? 'active' : ''}" data-page="${i}">${i}</button>`;
+        for (let i = 1; i <= last_page; i++) {
+            html += `<button class="page-btn ${current_page === i ? 'active' : ''}" data-page="${i}">${i}</button>`;
         }
 
-        html += `<button class="page-btn ${currentPage === totalPages ? 'disabled' : ''}" data-page="${currentPage + 1}">&#8594;</button>`;
+        html += `<button class="page-btn ${current_page >= last_page ? 'disabled' : ''}" data-page="${current_page + 1}">&#8594;</button>`;
 
         paginationContainer.innerHTML = html;
 
@@ -142,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const newPage = parseInt(e.target.getAttribute('data-page'));
                 if (newPage && newPage !== currentPage) {
                     currentPage = newPage;
-                    renderPage();
+                    fetchOrders();
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
             });
@@ -150,34 +161,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     btnFilter.addEventListener('click', () => {
-        const codeFilter = document.getElementById('filter-code').value.trim().toLowerCase();
-        const startDateFilter = document.getElementById('filter-start-date').value;
-        const endDateFilter = document.getElementById('filter-end-date').value;
-        const statusFilter = document.getElementById('filter-status').value;
-
-        filteredOrders = allOrders.filter(order => {
-            let isValid = true;
-
-            if (codeFilter && !order.order_code.toLowerCase().includes(codeFilter)) {
-                isValid = false;
-            }
-            if (statusFilter && order.status !== statusFilter) {
-                isValid = false;
-            }
-
-            const orderDateOnly = order.order_date.split(' ')[0];
-            if (startDateFilter && orderDateOnly < startDateFilter) {
-                isValid = false;
-            }
-            if (endDateFilter && orderDateOnly > endDateFilter) {
-                isValid = false;
-            }
-
-            return isValid;
-        });
-
         currentPage = 1;
-        renderPage();
+        fetchOrders();
     });
 
     fetchOrders();

@@ -224,14 +224,7 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
 
     private function applyVisibleFilter(Builder $query): void
     {
-        if (Schema::hasColumn('products', 'is_hidden')) {
-            $query->where('is_hidden', 0);
-            return;
-        }
-
-        if (Schema::hasColumn('products', 'status')) {
-            $query->where('status', 'visible');
-        }
+        $query->where('status', 'visible');
     }
 
     public function getPriceHistories(int $productId, int $perPage = 15)

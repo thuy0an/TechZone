@@ -566,7 +566,12 @@ async function saveProduct() {
     
     try {
         await adminRequestFormData(url, formData);
-        showAdminToast('Thêm sản phẩm thành công ✅');
+        if (!editingId){
+            showAdminToast('Thêm sản phẩm thành công ✅');
+        }
+        else {
+            showAdminToast('Sửa sản phẩm thành công ✅');
+        }
         closeFormModal();
         loadProducts();
     } catch (err) {

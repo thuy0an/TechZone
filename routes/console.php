@@ -113,5 +113,5 @@ Artisan::command('report:daily {date?}', function ($date = null) {
 })->purpose('Gửi báo cáo doanh thu qua Telegram');
 
 // Thiết lập lịch chạy mỗi phút để test
-Schedule::command('report:daily')->everyMinute();
-// Schedule::command('report:daily')->dailyAt('23:59');
+// Schedule::command('report:daily')->everyMinute();
+Schedule::command('report:daily')->dailyAt('23:59');

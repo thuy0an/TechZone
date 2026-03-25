@@ -63,15 +63,15 @@ Route::prefix('storefront')->group(function () {
 // ============================================
 // PUBLIC Routes lấy dữ liệu bên thứ 3
 // ============================================
-Route::get('/public-config', function () {
-    return response()->json([
-        'status' => 'success',
-        'data' => [
-            'ghn_api_url' => config('services.ghn.url'),
-            'ghn_token'   => config('services.ghn.token'),
-        ]
-    ]);
-});
+// Route::get('/public-config', function () {
+//     return response()->json([
+//         'status' => 'success',
+//         'data' => [
+//             'ghn_api_url' => config('services.ghn.url'),
+//             'ghn_token'   => config('services.ghn.token'),
+//         ]
+//     ]);
+// });
 
 // ============================================
 // PUBLIC Routes cho danh muc dia chi noi bo
@@ -200,11 +200,6 @@ Route::prefix('admin')->group(function () {
         // KHUYẾN MÃI
         Route::apiResource('promotions', PromotionController::class);
         Route::patch('promotions/{id}/toggle-active', [PromotionController::class, 'toggleActive']);
-    });
-
-    Route::prefix('imports')->group(function () {
-        Route::post('/upload', [ProductImportController::class, 'upload']); //
-        Route::get('/{id}/status', [ProductImportController::class, 'status']); //
     });
 });
 

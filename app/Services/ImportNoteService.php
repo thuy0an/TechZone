@@ -103,59 +103,78 @@ class ImportNoteService extends BaseService implements ImportNoteServiceInterfac
     // THUẬT TOÁN HOÀN THÀNH PHIẾU NHẬP
     public function completeNote(int $id)
     {
-        $note = $this->repository->findByIdOrFail($id);
+        // Tìm phiếu nhập {id} và Eager load sản phẩm
+        $note = $this->repository->model
+            ->with(['details.product'])
+            ->findOrFail($id);
 
+        // Kiểm tra nếu đã Completed thì return lỗi
         if ($note->status === 'completed') {
             throw new \Exception('Phiếu nhập này đã được hoàn thành trước đó.');
         }
 
+        // Khởi tạo Database Transaction
         DB::beginTransaction();
         try {
+            // Lặp qua từng sản phẩm để xử lý
+            foreach ($note->details as $detail) {
+                $product = $detail->product;
+
+                if (!$product) {
+                    throw new \Exception("Không tìm thấy sản phẩm ID: {$detail->product_id}");
+                }
+
+                // Lấy dữ liệu hiện tại
+                $oldStock = $product->stock_quantity;
+                $oldPrice = $product->import_price;
+                $profitMargin = $product->profit_margin;
+
+                // Dữ liệu mới từ phiếu nhập
+                $newQty   = $detail->quantity;
+                $newPrice = $detail->import_price;
+
+                // Áp dụng Thuật toán Giá Bình Quân
+                $totalStock = $oldStock + $newQty;
+                if ($totalStock == 0) continue; // Bỏ qua nếu lỗi chia cho 0
+
+                $avgPrice = (($oldStock * $oldPrice) + ($newQty * $newPrice)) / $totalStock;
+
+                // Tính Giá Bán mới
+                $sellingPrice = $avgPrice * (1 + ($profitMargin / 100));
+
+                // Cập nhật Database (products)
+                $updateData = [
+                    'stock_quantity' => $totalStock,
+                    'import_price'   => $avgPrice,
+                    'selling_price'  => $sellingPrice
+                ];
+
+                // Nếu sản phẩm đang ở trạng thái hidden (có thể do hết hàng trước đó), tự động chuyển về visible
+                if ($product->status === 'hidden') {
+                    $updateData['status'] = 'visible';
+                }
+
+                $product->update($updateData);
+
+                // Ghi Lịch sử biến động giá
+                \App\Models\ProductPriceHistory::create([
+                    'product_id'     => $product->id,
+                    'import_note_id' => $note->id,
+                    'import_price'   => $avgPrice,
+                    'profit_margin'  => $profitMargin,
+                    'selling_price'  => $sellingPrice
+                ]);
+            }
+
+            // Chuyển status của phiếu nhập thành Completed
             $note->update([
                 'status' => 'completed',
                 'completed_at' => now()
             ]);
 
-            // Lấy danh sách chi tiết
-            foreach ($note->details as $detail) {
-                $product = Product::find($detail->product_id);
-
-                // 1. Lấy Tồn cũ & Giá cũ
-                $oldStock = $product->stock_quantity;
-                $oldPrice = $product->import_price;
-
-                // 2. Lấy Tồn mới & Giá nhập mới của đợt này
-                $newQty   = $detail->quantity;
-                $newPrice = $detail->import_price;
-
-                // 3. Tính Tổng tồn kho sau khi nhập
-                $totalStock = $oldStock + $newQty;
-
-                // 4. Thuật toán GIÁ BÌNH QUÂN GIA QUYỀN
-                $avgPrice = (($oldStock * $oldPrice) + ($newQty * $newPrice)) / $totalStock;
-
-                // 5. Tính Giá bán mới (dựa trên biên lợi nhuận mong muốn)
-                $sellingPrice = $avgPrice * (1 + ($product->profit_margin / 100));
-
-                // 6. Cập nhật vào Product
-                $product->update([
-                    'stock_quantity' => $totalStock,
-                    'import_price'   => $avgPrice,
-                    'selling_price'  => $sellingPrice
-                ]);
-
-                // 7. Ghi Lịch sử giá (Yêu cầu quan trọng của Đồ án)
-                ProductPriceHistory::create([
-                    'product_id'     => $product->id,
-                    'import_note_id' => $note->id,
-                    'import_price'   => $avgPrice,
-                    'profit_margin'  => $product->profit_margin,
-                    'selling_price'  => $sellingPrice
-                ]);
-            }
-
             $this->bumpStorefrontCacheVersion();
 
+            // Commit Transaction
             DB::commit();
             return $note;
         } catch (\Exception $e) {

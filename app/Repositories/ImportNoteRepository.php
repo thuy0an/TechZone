@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\ImportNote;
+use App\Models\ImportNotePayment;
 use App\Repositories\Interfaces\ImportNoteRepositoryInterface;
 
 class ImportNoteRepository extends BaseRepository implements ImportNoteRepositoryInterface
@@ -55,8 +56,11 @@ class ImportNoteRepository extends BaseRepository implements ImportNoteRepositor
         $totalTransactions = $query->count();
         $totalImported = $query->sum('total_cost');
 
-        // TÍNH TỔNG TIỀN ĐÃ TRẢ (Trực tiếp từ DB)
-        $totalPaid = $query->sum('paid_amount');
+        // Lấy danh sách ID phiếu nhập của Supplier này
+        $importNoteIds = $query->pluck('id');
+
+        // Tính tổng tiền đã trả chính xác từ bảng import_note_payments
+        $totalPaid = ImportNotePayment::whereIn('import_note_id', $importNoteIds)->sum('amount');
 
         // TÍNH CÔNG NỢ (Tổng nhập - Tổng trả)
         $totalDebt = $totalImported - $totalPaid;

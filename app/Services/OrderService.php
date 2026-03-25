@@ -43,44 +43,62 @@ class OrderService extends BaseService implements OrderServiceInterface
             throw new \Exception("Giỏ hàng của bạn đang trống.");
         }
 
+        // Lấy danh sách ID sản phẩm và sắp xếp để tránh Deadlock khi lock database
+        $productIds = $cart->items->pluck('product_id')->toArray();
+        sort($productIds);
+
         // TRANSACTION: Nếu có lỗi ở bất kỳ bước nào, DB sẽ không lưu gì cả.
         DB::beginTransaction();
 
         try {
+            // 1. KHÓA CÁC SẢN PHẨM TRONG GIỎ HÀNG (Chống Race Condition)
+            // Lệnh này sẽ yêu cầu MySQL lock các row sản phẩm này lại cho đến khi commit
+            $lockedProducts = \App\Models\Product::whereIn('id', $productIds)
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
             $cartTotal = 0;
             $discountAmount = 0;
 
-            // Tính tổng tiền & Kiểm tra tồn kho lần cuối
+            // KIỂM TRA TỒN KHO DỰA TRÊN DỮ LIỆU ĐÃ KHÓA
             foreach ($cart->items as $item) {
-                $product = $item->product;
-                if ($product->stock_quantity < $item->quantity) {
-                    throw new \Exception("Sản phẩm {$product->name} không đủ số lượng trong kho.");
+                $product = $lockedProducts->get($item->product_id);
+
+                // Kiểm tra xem sản phẩm có bị xóa hoặc tồn kho có đủ không
+                if (!$product || $product->stock_quantity < $item->quantity) {
+                    throw new \Exception("Sản phẩm {$item->product->name} không đủ số lượng trong kho.");
                 }
                 $cartTotal += ($item->price_at_addition * $item->quantity);
             }
 
+            // XỬ LÝ KHUYẾN MÃI
             if (!empty($data['promotion_id'])) {
                 $promotion = $this->promotionRepository->findActiveById(
                     (int) $data['promotion_id'],
-                    Carbon::now()
+                    \Carbon\Carbon::now()
                 );
 
                 if (!$promotion) {
                     throw new \Exception('Mã khuyến mãi không hợp lệ.');
                 }
 
-                $promotionResult = $this->calculatePromotionForCart($promotion, $cartTotal);
+                // THÊM: Load danh sách sản phẩm
+                $promotion->load('products');
+
+                // SỬA: Truyền thêm $cart->items
+                $promotionResult = $this->calculatePromotionForCart($promotion, $cartTotal, $cart->items);
                 $discountAmount = $promotionResult['discount_amount'];
                 $cartTotal = $promotionResult['final_total'];
             }
 
             $addressPayload = $this->resolveShippingAddressPayload($userId, $data);
 
-            // Tạo Đơn hàng (Order)
+            // TẠO ĐƠN HÀNG
             $order = $this->repository->create([
                 'user_id' => $userId,
                 'promotion_id' => $data['promotion_id'] ?? null,
-                'order_date' => Carbon::now(),
+                'order_date' => \Carbon\Carbon::now(),
                 'order_code' => $this->generateOrderCode(),
                 'status' => 'new',
                 'shipping_address' => $addressPayload['shipping_address'],
@@ -96,9 +114,9 @@ class OrderService extends BaseService implements OrderServiceInterface
                 'ward_name' => $addressPayload['ward_name'],
             ]);
 
-            // Tạo Chi tiết đơn hàng (OrderDetails) & Trừ Tồn Kho
+            // TẠO CHI TIẾT ĐƠN HÀNG VÀ TRỪ KHO AN TOÀN
             foreach ($cart->items as $item) {
-                OrderDetail::create([
+                \App\Models\OrderDetail::create([
                     'order_id' => $order->id,
                     'product_id' => $item->product_id,
                     'quantity' => $item->quantity,
@@ -106,15 +124,16 @@ class OrderService extends BaseService implements OrderServiceInterface
                     'discount_applied' => 0,
                 ]);
 
-                // Trừ tồn kho
-                $product = Product::find($item->product_id);
-                $product->decrement('stock_quantity', $item->quantity);
+                // Trừ tồn kho trực tiếp trên Model đã được lock
+                $product = $lockedProducts->get($item->product_id);
+                $product->stock_quantity -= $item->quantity;
+                $product->save();
             }
 
-            // Làm sạch giỏ hàng (Xóa các items đã mua)
+            // LÀM SẠCH GIỎ HÀNG
             $cart->items()->delete();
 
-            // LƯU TRANSACTION
+            // LƯU TRANSACTION VÀ MỞ KHÓA DỮ LIỆU
             DB::commit();
 
             return [
@@ -131,15 +150,15 @@ class OrderService extends BaseService implements OrderServiceInterface
                 ],
             ];
         } catch (\Exception $e) {
-            // HỦY TRANSACTION NẾU CÓ LỖI
+            // HỦY TRANSACTION VÀ MỞ KHÓA NẾU CÓ LỖI
             DB::rollBack();
             throw $e;
         }
     }
 
-    public function getMyOrders($userId)
+    public function getMyOrders($userId, array $filters = [], int $perPage = 10)
     {
-        return $this->repository->getUserOrders($userId);
+        return $this->repository->getUserOrders($userId, $filters, $perPage);
     }
 
     public function applyPromotion($userId, string $promotionCode): array
@@ -157,7 +176,9 @@ class OrderService extends BaseService implements OrderServiceInterface
             throw new \Exception('Mã khuyến mãi không hợp lệ.');
         }
 
-        $promotionResult = $this->calculatePromotionForCart($promotion, $cartTotal);
+        $promotion->load('products');
+
+        $promotionResult = $this->calculatePromotionForCart($promotion, $cartTotal, $cart->items);
 
         return [
             'promotion_id' => $promotion->id,
@@ -274,27 +295,58 @@ class OrderService extends BaseService implements OrderServiceInterface
         return $code;
     }
 
-    private function calculatePromotionForCart($promotion, float $cartTotal): array
+    // Lưu ý: Thêm tham số thứ 3 là $cartItems
+    private function calculatePromotionForCart($promotion, float $cartTotal, $cartItems): array
     {
         $minBillValue = (float) $promotion->min_bill_value;
         if ($cartTotal < $minBillValue) {
             throw new \Exception('Đơn hàng chưa đạt giá trị tối thiểu để áp dụng mã này');
         }
 
+        $eligibleTotal = $cartTotal; // Mặc định áp dụng trên tổng toàn đơn
+
+        // LOGIC MỚI: KIỂM TRA NẾU LÀ KHUYẾN MÃI THEO SẢN PHẨM
+        if ($promotion->type === 'discount_by_product') {
+            // Lấy mảng ID các sản phẩm được phép áp dụng mã này
+            $promoProductIds = $promotion->products->pluck('id')->toArray();
+
+            $eligibleTotal = 0;
+            $hasEligibleProduct = false;
+
+            // Duyệt qua giỏ hàng, chỉ cộng dồn tiền của những sản phẩm nằm trong danh sách KM
+            foreach ($cartItems as $item) {
+                if (in_array($item->product_id, $promoProductIds)) {
+                    $hasEligibleProduct = true;
+                    $eligibleTotal += ($item->price_at_addition * $item->quantity);
+                }
+            }
+
+            // Nếu giỏ hàng không có sản phẩm nào khớp, báo lỗi
+            if (!$hasEligibleProduct) {
+                throw new \Exception('Giỏ hàng không chứa sản phẩm được áp dụng mã khuyến mãi này.');
+            }
+        }
+
         $discountAmount = 0;
+
+        // Tính tiền giảm dựa trên $eligibleTotal (Tiền hợp lệ) thay vì $cartTotal
         if ($promotion->discount_unit === 'percent') {
-            $discountAmount = $cartTotal * ((float) $promotion->discount_value / 100);
+            $discountAmount = $eligibleTotal * ((float) $promotion->discount_value / 100);
         }
 
         if ($promotion->discount_unit === 'amount') {
             $discountAmount = (float) $promotion->discount_value;
         }
 
+        // Kiểm tra giới hạn mức giảm tối đa
         if (!empty($promotion->max_discount_amount) && $discountAmount > (float) $promotion->max_discount_amount) {
             $discountAmount = (float) $promotion->max_discount_amount;
         }
 
-        $discountAmount = min($discountAmount, $cartTotal);
+        // Đảm bảo số tiền giảm không vượt quá số tiền của các sản phẩm được áp dụng
+        $discountAmount = min($discountAmount, $eligibleTotal);
+
+        // Tổng tiền cuối cùng của đơn hàng
         $finalTotal = max(0, $cartTotal - $discountAmount);
 
         return [

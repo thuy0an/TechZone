@@ -272,9 +272,9 @@ CREATE TABLE order_details (
 );
 
 CREATE TABLE `import_note_payments` (
-  `id` BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  `import_note_id` BIGINT UNSIGNED NOT NULL,
-  `admin_id` BIGINT UNSIGNED NOT NULL,
+  `id` INT PRIMARY KEY AUTO_INCREMENT,
+  `import_note_id` INT NOT NULL,
+  `admin_id` INT NOT NULL,
   `amount` DECIMAL(15,2) NOT NULL,
   `created_at` TIMESTAMP NULL DEFAULT NULL,
   `updated_at` TIMESTAMP NULL DEFAULT NULL,

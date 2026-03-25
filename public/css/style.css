@@ -39,6 +39,10 @@ body {
     line-height: 1.6;
 }
 
+button, select, input, option{
+    cursor: pointer;
+}
+
 .product-detail-overlay {
     position: fixed;
     inset: 0;
