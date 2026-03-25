@@ -22,13 +22,12 @@
     </header>
 
     <main class="section">
-        <div class="container" style="max-width: 450px; margin: 0 auto;">
-            <div style="background: var(--white); padding: 40px; border-radius: var(--radius); box-shadow: var(--shadow-lg); text-align: center;">
-                <h1 style="margin-bottom: 10px; color: var(--primary-color);">Đăng nhập</h1>
-                <p style="color: var(--text-light); margin-bottom: 30px;">Chào mừng trở lại TechZone</p>
+        <div class="container auth-shell">
+            <div class="card auth-card" style="text-align: center;">
+                <h1 class="auth-title" style="margin-bottom: 10px;">Đăng nhập</h1>
+                <p class="auth-subtitle" style="margin-bottom: 30px;">Chào mừng trở lại TechZone</p>
 
-                <div id="login-alert" style="display:none; background: #fef2f2; color: #ef4444; border: 1px solid #fca5a5; padding: 10px; border-radius: var(--radius); margin-bottom: 20px; text-align: left; font-size: 0.9rem;">
-                </div>
+                <div id="login-alert" class="alert alert-danger" style="margin-bottom: 20px;"></div>
 
                 <form id="login-form" onsubmit="event.preventDefault(); handleLogin();">
                     <div class="form-group">

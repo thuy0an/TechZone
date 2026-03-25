@@ -11,15 +11,14 @@
     <div id="storefront-header-root"></div>
 
     <main class="section">
-        <div class="container" style="max-width: 500px; margin: 0 auto;">
-            <div style="background: var(--white); padding: 40px; border-radius: var(--radius); box-shadow: var(--shadow-lg);">
+        <div class="container auth-shell">
+            <div class="card auth-card">
                 <div style="text-align: center; margin-bottom: 30px;">
-                    <h1 style="color: var(--primary-color);">Tạo tài khoản</h1>
-                    <p style="color: var(--text-light);">Tham gia cùng TechZone ngay hôm nay</p>
+                    <h1 class="auth-title">Tạo tài khoản</h1>
+                    <p class="auth-subtitle">Tham gia cùng TechZone ngay hôm nay</p>
                 </div>
 
-                <div id="register-alert" class="form-error" style="background: #fef2f2; padding: 12px; border-radius: var(--radius); margin-bottom: 20px; border: 1px solid #fca5a5;">
-                </div>
+                <div id="register-alert" class="alert alert-danger" style="margin-bottom: 20px;"></div>
 
                 <form id="register-form" onsubmit="event.preventDefault(); handleRegister();">
                     <div class="form-group">

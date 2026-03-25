@@ -11,9 +11,18 @@
     <div id="storefront-header-root"></div>
 
     <main class="section products-shell">
-        <div class="container products-desktop-layout">
+        <div class="container">
+            <div class="page-header">
+                <div>
+                    <h1>Lịch sử mua hàng</h1>
+                    <p>Theo dõi tình trạng các đơn hàng của bạn.</p>
+                </div>
+                <span class="products-meta" id="orders-meta">Đang tải...</span>
+            </div>
+
+            <div class="products-desktop-layout">
             
-            <aside class="products-sidebar">
+            <aside class="products-sidebar card">
                 <h3 class="panel-title">Lọc đơn hàng</h3>
                 <p class="sidebar-note">Tìm kiếm lịch sử mua hàng</p>
 
@@ -49,11 +58,7 @@
                 <button id="btn-filter" class="btn btn-login-form filter-reset-btn">Áp dụng lọc</button>
             </aside>
 
-            <div class="products-main">
-                <div class="products-topline">
-                    <h1 class="section-title">Lịch sử mua hàng</h1>
-                    <span class="products-meta" id="orders-meta">Đang tải...</span>
-                </div>
+            <div class="products-main card">
 
                 <div id="orders-container" class="order-items-list">
                     <div class="loading text-center">Đang tải dữ liệu đơn hàng...</div>
@@ -62,6 +67,7 @@
                 <div id="pagination-container" class="pagination-wrapper pagination-right is-hidden"></div>
             </div>
 
+        </div>
         </div>
     </main>
 
