@@ -144,7 +144,17 @@ function formatPayment(method) {
 }
 
 function formatStatus(status) {
-    return status ? status.toUpperCase() : 'NEW';
+    const map = {
+        new: 'Chờ xác nhận',
+        confirmed: 'Đã xác nhận',
+        shipping: 'Đang giao hàng',
+        delivered: 'Đã giao thành công',
+        completed: 'Đã giao thành công',
+        failed: 'Giao thất bại',
+        cancelled: 'Đã hủy',
+    };
+    if (!status) return 'Chờ xác nhận';
+    return map[status] || status.toUpperCase();
 }
 
 function resolveImageUrl(image) {

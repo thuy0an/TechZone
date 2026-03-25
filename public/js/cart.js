@@ -1,5 +1,6 @@
 let cartSubtotalValue = 0;
 let addressBook = [];
+let promotionClearTimer = null;
 let promotionState = {
     code: null,
     promotionId: null,
@@ -67,6 +68,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 handleApplyPromotion(code, 'manual');
             }
         });
+    }
+
+    const saveNewAddressBtn = document.getElementById('new-address-save-btn');
+    if (saveNewAddressBtn) {
+        saveNewAddressBtn.addEventListener('click', handleCreateNewAddress);
     }
 
     loadCart({ showStatus: true });
@@ -315,7 +321,7 @@ function toggleAddressForm() {
     }
 }
 
-async function loadUserAddresses() {
+async function loadUserAddresses(selectedAddressId = null) {
     try {
         const response = await apiRequest('/storefront/addresses', { method: 'GET' });
 
@@ -361,6 +367,13 @@ async function loadUserAddresses() {
 
             document.getElementById('opt_existing').disabled = false;
             document.getElementById('opt_existing').click();
+
+            if (selectedAddressId) {
+                const selectedRadio = document.getElementById(`addr_${selectedAddressId}`);
+                if (selectedRadio) {
+                    selectedRadio.checked = true;
+                }
+            }
         }
     } catch (error) {
         console.error("Lỗi khi tải địa chỉ:", error);
@@ -512,6 +525,11 @@ async function handleApplyPromotion(code, source = 'manual') {
         const response = await applyPromotion(cleanCode);
         const payload = response.data || response;
 
+        if (promotionClearTimer) {
+            clearTimeout(promotionClearTimer);
+            promotionClearTimer = null;
+        }
+
         promotionState = {
             code: cleanCode,
             promotionId: payload.promotion_id,
@@ -526,6 +544,17 @@ async function handleApplyPromotion(code, source = 'manual') {
         const message = error?.data?.errors || error?.data?.message || error?.message || 'Không thể áp dụng mã khuyến mãi.';
         clearPromotionState();
         setPromotionFeedback(message, 'error');
+
+        const promotionInput = document.getElementById('promotion-code-input');
+        if (promotionInput) {
+            if (promotionClearTimer) {
+                clearTimeout(promotionClearTimer);
+            }
+            promotionClearTimer = window.setTimeout(() => {
+                promotionInput.value = '';
+                promotionClearTimer = null;
+            }, 2000);
+        }
     } finally {
         if (applyBtn) {
             applyBtn.disabled = false;
@@ -753,6 +782,94 @@ function getSelectedAddress() {
     return {
         user_address_id: selectedId,
     };
+}
+
+function buildNewAddressPayload() {
+    const receiverName = document.getElementById('new_receiver_name')?.value?.trim();
+    const receiverPhone = document.getElementById('new_phone')?.value?.trim();
+    const addressLine = document.getElementById('new_address')?.value?.trim();
+    const cityEl = document.getElementById('new_city');
+    const districtEl = document.getElementById('new_district');
+    const wardEl = document.getElementById('new_ward');
+
+    const cityName = cityEl?.selectedOptions?.[0]?.text || '';
+    const districtName = districtEl?.selectedOptions?.[0]?.text || '';
+    const wardName = wardEl?.selectedOptions?.[0]?.text || '';
+    const provinceId = cityEl?.value || null;
+    const districtId = districtEl?.value || null;
+    const wardCode = wardEl?.value || null;
+
+    if (!receiverName || !receiverPhone || !addressLine || !provinceId || !districtId || !wardCode) {
+        return { error: 'Vui lòng nhập đầy đủ thông tin địa chỉ mới (tỉnh, quận, phường, địa chỉ).' };
+    }
+
+    const fullAddress = [addressLine, wardName, districtName, cityName].filter(Boolean).join(', ');
+    return {
+        receiver_name: receiverName,
+        receiver_phone: receiverPhone,
+        address: fullAddress,
+    };
+}
+
+function resetNewAddressForm() {
+    const fields = ['new_receiver_name', 'new_phone', 'new_address'];
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+
+    const cityEl = document.getElementById('new_city');
+    const districtEl = document.getElementById('new_district');
+    const wardEl = document.getElementById('new_ward');
+    if (cityEl) cityEl.value = '';
+    if (districtEl) {
+        districtEl.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+        districtEl.disabled = true;
+    }
+    if (wardEl) {
+        wardEl.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+        wardEl.disabled = true;
+    }
+}
+
+async function handleCreateNewAddress() {
+    const payload = buildNewAddressPayload();
+    if (payload.error) {
+        showNotification(payload.error, 'error');
+        return;
+    }
+
+    const saveBtn = document.getElementById('new-address-save-btn');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Đang lưu...';
+    }
+
+    try {
+        const response = await apiRequest('/storefront/addresses', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
+
+        const created = response.data || response;
+        showNotification('Đã lưu địa chỉ mới.');
+        resetNewAddressForm();
+        await loadUserAddresses(created?.id || null);
+
+        const existingOption = document.getElementById('opt_existing');
+        if (existingOption) {
+            existingOption.checked = true;
+        }
+        toggleAddressForm();
+    } catch (error) {
+        const message = error?.data?.message || error?.message || 'Không thể lưu địa chỉ mới.';
+        showNotification(message, 'error');
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Lưu địa chỉ';
+        }
+    }
 }
 
 async function handleCheckout() {

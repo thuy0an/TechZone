@@ -60,8 +60,8 @@
                                 <option value="new">Mới</option>
                                 <option value="confirmed">Đã xác nhận</option>
                                 <option value="shipping">Đang giao hàng</option>
-                                <option value="delivered">Đã giao hàng</option>
-                                <option value="completed">Hoàn thành</option>
+                                <option value="delivered">Đã giao</option>
+                                <option value="completed">Đã giao thành công</option>
                                 <option value="cancelled">Đã hủy</option>
                                 <option value="failed">Thất bại</option>
                             </select>
@@ -222,8 +222,8 @@ function getStatusConfig(status) {
         'new':       { label: 'Mới', class: 'secondary' },
         'confirmed': { label: 'Đã xác nhận', class: 'info' },
         'shipping':  { label: 'Đang giao', class: 'processing' },
-        'delivered': { label: 'Đã giao hàng', class: 'warning' },
-        'completed': { label: 'Hoàn thành', class: 'success' },
+        'delivered': { label: 'Đã giao', class: 'warning' },
+        'completed': { label: 'Đã giao thành công', class: 'success' },
         'cancelled': { label: 'Đã hủy', class: 'danger' },
         'failed':    { label: 'Thất bại', class: 'danger' }
     };
@@ -327,8 +327,8 @@ async function openOrderModal(id) {
         const workflowMap = {
             'new':       ['confirmed', 'cancelled'],
             'confirmed': ['shipping', 'cancelled'],
-            'shipping':  ['delivered', 'failed'],
-            'delivered': [],
+            'shipping':  ['completed', 'failed'],
+            'delivered': ['completed'],
             'completed': [],
             'cancelled': ['new'],
             'failed':    ['shipping', 'cancelled']
@@ -339,8 +339,8 @@ async function openOrderModal(id) {
             'new':       'Mới',
             'confirmed': 'Xác nhận đơn',
             'shipping':  'Bắt đầu giao hàng (nhân viên kho xác nhận)',
-            'delivered': 'Đã giao hàng (Chờ xác nhận)',
-            'completed': 'Hoàn thành đơn hàng',
+            'delivered': 'Đã giao',
+            'completed': 'Đã giao thành công',
             'cancelled': 'Hủy đơn hàng',
             'failed':    'Giao hàng thất bại'
         };
@@ -369,12 +369,11 @@ async function openOrderModal(id) {
         const saveBtn = document.getElementById('save-btn');
         const statusHint = document.getElementById('status-hint');
 
-        if(currentStatus === 'delivered'){
-            saveBtn.disabled = true;
-            statusHint.textContent = 'Đơn hàng này đã được giao, chỉ được đợi khách hàng xác nhận hoàn thành.';
-            statusHint.style.color = 'var(--admin-success)';
-        }
-        else if (nextAllowed.length === 0) {
+        if (currentStatus === 'delivered' && nextAllowed.length > 0) {
+            saveBtn.disabled = false;
+            statusHint.textContent = 'Đơn hàng đang ở trạng thái cũ, vui lòng xác nhận đã giao thành công.';
+            statusHint.style.color = 'var(--text-secondary)';
+        } else if (nextAllowed.length === 0) {
             saveBtn.disabled = true;
             statusHint.textContent = 'Đơn hàng này đã kết thúc, không thể thay đổi thêm.';
             statusHint.style.color = 'var(--admin-danger)';

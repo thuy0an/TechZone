@@ -110,11 +110,14 @@ Route::prefix('storefront')->middleware('auth:sanctum')->group(function () {
     // ĐỊA CHỈ NHẬN HÀNG
     Route::get('/addresses', [AddressController::class, 'index']);
     Route::post('/addresses', [AddressController::class, 'store']);
+    Route::put('/addresses/{id}', [AddressController::class, 'update']);
+    Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
 
 
     // HỒ SƠ KHÁCH HÀNG
     Route::get('/profile', [ProfileController::class, 'myInfo']);
     Route::put('/profile', [ProfileController::class, 'updateInfo']);
+    Route::put('/profile/password', [ProfileController::class, 'changePassword']);
 
     // ĐĂNG XUẤT
     Route::post('/logout', [AuthController::class, 'logout']);

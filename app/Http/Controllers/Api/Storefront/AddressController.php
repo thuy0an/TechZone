@@ -45,4 +45,31 @@ class AddressController extends BaseApiController
             return $this->errorResponse('Thêm địa chỉ thất bại', $e->getMessage(), 400);
         }
     }
+
+    // Cập nhật địa chỉ
+    public function update(StoreUserAddressRequest $request, int $id)
+    {
+        try {
+            $validated = $request->validated();
+            $userId = Auth::id();
+
+            $address = $this->addressService->updateUserAddress($userId, $id, $validated);
+            return $this->successResponse($address, 'Cập nhật địa chỉ thành công');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Cập nhật địa chỉ thất bại', $e->getMessage(), 400);
+        }
+    }
+
+    // Xóa địa chỉ
+    public function destroy(int $id)
+    {
+        try {
+            $userId = Auth::id();
+            $this->addressService->deleteUserAddress($userId, $id);
+
+            return $this->successResponse(null, 'Xóa địa chỉ thành công');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Xóa địa chỉ thất bại', $e->getMessage(), 400);
+        }
+    }
 }

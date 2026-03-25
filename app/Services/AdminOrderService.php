@@ -83,7 +83,7 @@ class AdminOrderService extends BaseService implements AdminOrderServiceInterfac
         $validMap = [
             'new'       => ['confirmed', 'cancelled'],
             'confirmed' => ['shipping', 'cancelled'],
-            'shipping'  => ['delivered', 'failed'],
+            'shipping'  => ['completed', 'failed'],
             'delivered' => ['completed'],
             'completed' => [], // Đã hoàn tất thì đóng băng
             'cancelled' => ['new'], // Cho phép admin khôi phục lại đơn hủy thành đơn mới

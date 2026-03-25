@@ -38,4 +38,41 @@ class UserAddressService extends BaseService implements UserAddressServiceInterf
 
         return $this->repository->create($data);
     }
+
+    public function updateUserAddress($userId, $addressId, array $data)
+    {
+        $address = $this->repository->findUserAddress($userId, $addressId);
+        if (!$address) {
+            throw new \Exception('Không tìm thấy địa chỉ.');
+        }
+
+        if (array_key_exists('is_default', $data) && $data['is_default'] == true) {
+            $this->repository->clearDefaultAddress($userId);
+        } elseif (!array_key_exists('is_default', $data)) {
+            unset($data['is_default']);
+        }
+
+        $address->update($data);
+        return $address->fresh();
+    }
+
+    public function deleteUserAddress($userId, $addressId)
+    {
+        $address = $this->repository->findUserAddress($userId, $addressId);
+        if (!$address) {
+            throw new \Exception('Không tìm thấy địa chỉ.');
+        }
+
+        $wasDefault = (bool) $address->is_default;
+        $address->delete();
+
+        if ($wasDefault) {
+            $other = $this->repository->getUserAddresses($userId)->first();
+            if ($other) {
+                $other->update(['is_default' => true]);
+            }
+        }
+
+        return true;
+    }
 }

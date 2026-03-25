@@ -25,8 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
             'new': { text: 'Chờ xác nhận', class: 'status-new' },
             'confirmed': { text: 'Đã xác nhận', class: 'status-confirmed' },
             'shipping': { text: 'Đang giao hàng', class: 'status-shipping' },
-            'delivered': { text: 'Đã giao', class: 'status-delivered' },
-            'completed': { text: 'Hoàn thành', class: 'status-completed' },
+            'delivered': { text: 'Đã giao thành công', class: 'status-completed' },
+            'completed': { text: 'Đã giao thành công', class: 'status-completed' },
             'failed': { text: 'Giao thất bại', class: 'status-failed' },
             'cancelled': { text: 'Đã hủy', class: 'status-cancelled' }
         };
