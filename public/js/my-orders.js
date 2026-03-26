@@ -1,20 +1,21 @@
 /**
  * TechZone – My Orders Page JS
- * Bổ sung: nút hủy đơn (trạng thái "new") + validation form lọc
+ * Đã gộp toàn bộ logic Hủy đơn (AJAX) vào chung để dễ quản lý và không cần reload trang.
  */
 document.addEventListener('DOMContentLoaded', () => {
     const ITEMS_PER_PAGE = 10;
     let currentPage = 1;
     let currentOrders = [];
-    let paginationData = null;
+    let cancelOrderId = null; // Biến lưu ID đơn đang muốn hủy
 
     const container = document.getElementById('orders-container');
     const paginationContainer = document.getElementById('pagination-container');
     const btnFilter = document.getElementById('btn-filter');
     const metaText = document.getElementById('orders-meta');
 
-    // ── Helpers ────────────────────────────────────────────────────────────────
-
+    // =========================================================================
+    // 1. CÁC HÀM TIỆN ÍCH (HELPERS)
+    // =========================================================================
     const formatCurrency = (amount) =>
         new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 
@@ -32,218 +33,277 @@ document.addEventListener('DOMContentLoaded', () => {
             'delivered': { text: 'Đã giao thành công', class: 'status-completed' },
             'completed': { text: 'Đã giao thành công', class: 'status-completed' },
             'failed': { text: 'Giao thất bại', class: 'status-failed' },
-            'cancelled': { text: 'Đã hủy', class: 'status-cancelled' },
+            'cancelled': { text: 'Đã hủy', class: 'status-cancelled' }
         };
-        return map[status] || { text: status, class: 'status-new' };
+        return map[status] || { text: status, class: 'status-default' };
     };
 
-    // ── Filter validation ──────────────────────────────────────────────────────
-
-    function validateFilters() {
-        const startEl = document.getElementById('filter-start-date');
-        const endEl = document.getElementById('filter-end-date');
-        const startErrEl = document.getElementById('filter-start-date-error');
-        const endErrEl = document.getElementById('filter-end-date-error');
-
-        // Clear errors
-        if (startErrEl) startErrEl.textContent = '';
-        if (endErrEl) endErrEl.textContent = '';
-        startEl?.classList.remove('input-invalid');
-        endEl?.classList.remove('input-invalid');
-
-        const startVal = startEl?.value;
-        const endVal = endEl?.value;
-
-        if (startVal && endVal && new Date(startVal) > new Date(endVal)) {
-            if (endErrEl) endErrEl.textContent = 'Ngày kết thúc phải sau ngày bắt đầu.';
-            endEl?.classList.add('input-invalid');
-            endEl?.focus();
-            return false;
-        }
-
-        return true;
+    function escapeHtmlAttr(str) {
+        return String(str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
     }
 
-    // ── Fetch & Render ─────────────────────────────────────────────────────────
+    // =========================================================================
+    // 2. LOGIC HỦY ĐƠN HÀNG (CANCEL ORDER)
+    // =========================================================================
 
-    const fetchOrders = async () => {
-        const token = localStorage.getItem('storefront_token');
+    // Tạo và chèn Modal Hủy Đơn vào HTML (Chỉ chạy 1 lần)
+    function injectCancelModal() {
+        if (document.getElementById('cancel-order-modal')) return;
 
-        if (!token) {
-            container.innerHTML = `<div class="empty-state">Vui lòng <a href="login.html" class="text-primary">đăng nhập</a> để xem lịch sử đơn hàng.</div>`;
-            return;
-        }
+        const modal = document.createElement('div');
+        modal.id = 'cancel-order-modal';
+        modal.className = 'cancel-modal-overlay';
+        modal.innerHTML = `
+            <div class="cancel-modal-box">
+                <div class="cancel-modal-icon">⚠️</div>
+                <h3 id="cancel-modal-title">Hủy đơn hàng</h3>
+                <p id="cancel-modal-desc">
+                    Bạn có chắc muốn hủy đơn <strong id="cancel-modal-code"></strong>?<br>
+                    Sau khi hủy, đơn hàng sẽ không thể khôi phục.
+                </p>
 
-        container.innerHTML = '<div class="loading text-center">Đang tải dữ liệu đơn hàng...</div>';
+                <div class="cancel-reason-group" style="margin: 15px 0; text-align: left;">
+                    <label for="cancel-reason-select" style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 5px;">Lý do hủy đơn <span style="color: red;">*</span></label>
+                    <select id="cancel-reason-select" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #d1d5db;">
+                        <option value="">-- Chọn lý do --</option>
+                        <option value="Thay đổi ý định mua">Thay đổi ý định mua</option>
+                        <option value="Thời gian giao hàng quá lâu">Thời gian giao hàng quá lâu</option>
+                        <option value="Tìm thấy giá rẻ hơn ở nơi khác">Tìm thấy giá rẻ hơn ở nơi khác</option>
+                        <option value="Đặt nhầm sản phẩm">Đặt nhầm sản phẩm</option>
+                        <option value="Lý do khác">Lý do khác</option>
+                    </select>
+                </div>
 
-        const codeFilter = document.getElementById('filter-code').value.trim();
-        const startDateFilter = document.getElementById('filter-start-date').value;
-        const endDateFilter = document.getElementById('filter-end-date').value;
-        const statusFilter = document.getElementById('filter-status').value;
+                <div class="cancel-modal-actions" style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                    <button class="btn" id="btn-cancel-modal-close">Không, Quay lại</button>
+                    <button class="btn btn-cancel-order"  id="btn-cancel-modal-confirm">Đồng ý Hủy</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
 
-        const params = new URLSearchParams({ page: currentPage, per_page: ITEMS_PER_PAGE });
+        // Nút Đóng modal
+        document.getElementById('btn-cancel-modal-close').addEventListener('click', () => {
+            document.getElementById('cancel-order-modal').style.display = 'none';
+        });
 
-        if (codeFilter) params.append('code', codeFilter);
-        if (startDateFilter) params.append('start_date', startDateFilter);
-        if (endDateFilter) params.append('end_date', endDateFilter);
-        if (statusFilter) params.append('status', statusFilter);
+        // Nút Xác nhận hủy
+        document.getElementById('btn-cancel-modal-confirm').addEventListener('click', confirmCancelOrder);
+    }
 
-        try {
-            const result = await apiRequest(`/storefront/orders?${params.toString()}`);
-
-            if (result.success) {
-                currentOrders = result.data;
-                paginationData = result.pagination;
-                renderPage();
-            } else {
-                container.innerHTML = `<div class="empty-state error-text">${result.message || 'Không thể lấy dữ liệu đơn hàng.'}</div>`;
-            }
-        } catch (error) {
-            console.error('Lỗi khi fetch orders:', error);
-            container.innerHTML = `<div class="empty-state error-text">Lỗi kết nối đến máy chủ.</div>`;
-        }
+    // Gắn hàm mở Modal vào window để gọi được từ inline HTML (onclick)
+    window.openCancelModal = function (orderId, orderCode) {
+        cancelOrderId = orderId;
+        document.getElementById('cancel-modal-code').textContent = orderCode;
+        document.getElementById('cancel-reason-select').value = '';
+        document.getElementById('cancel-order-modal').style.display = 'flex';
     };
 
-    const renderPage = () => {
-        if (!currentOrders || currentOrders.length === 0) {
-            container.innerHTML = `<div class="empty-state">Không tìm thấy đơn hàng nào phù hợp.</div>`;
-            if (metaText) metaText.textContent = `0 đơn hàng`;
-            paginationContainer.classList.add('is-hidden');
+    // Gọi API để hủy đơn
+    async function confirmCancelOrder() {
+        if (!cancelOrderId) return;
+
+        const reason = document.getElementById('cancel-reason-select').value;
+        console.log(reason)
+        if (!reason) {
+            showNotification('Vui lòng chọn lý do hủy đơn!', 'error');
             return;
         }
 
-        if (metaText) {
-            metaText.textContent = `Trang ${paginationData.current_page}/${paginationData.last_page} • Tổng ${paginationData.total} đơn hàng`;
+        const btn = document.getElementById('btn-cancel-modal-confirm');
+        btn.disabled = true;
+        btn.textContent = 'Đang xử lý...';
+
+        try {
+            await apiRequest(`/storefront/orders/${cancelOrderId}/cancel`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ cancel_reason: reason })
+            });
+
+            document.getElementById('cancel-order-modal').style.display = 'none';
+            showNotification('Hủy đơn hàng thành công', 'success');
+
+            // Cập nhật lại danh sách đơn hàng
+            fetchOrders();
+
+        } catch (error) {
+            showNotification(error.message || 'Lỗi khi hủy đơn. Vui lòng thử lại.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Đồng ý Hủy';
+            cancelOrderId = null;
         }
+    }
 
-        let html = '';
-        currentOrders.forEach(order => {
+    // =========================================================================
+    // 3. LOGIC LẤY & HIỂN THỊ DANH SÁCH ĐƠN HÀNG
+    // =========================================================================
+    async function fetchOrders() {
+        container.innerHTML = '<div class="loading text-center">Đang tải dữ liệu đơn hàng...</div>';
+
+        try {
+            const params = new URLSearchParams({
+                page: currentPage,
+                per_page: ITEMS_PER_PAGE
+            });
+
+            // Gắn params lọc (nếu có)
+            const code = document.getElementById('filter-code')?.value.trim();
+            const status = document.getElementById('filter-status')?.value;
+            const startDate = document.getElementById('filter-start-date')?.value;
+            const endDate = document.getElementById('filter-end-date')?.value;
+
+            if (code) params.append('order_code', code);
+            if (status) params.append('status', status);
+            if (startDate) params.append('start_date', startDate);
+            if (endDate) params.append('end_date', endDate);
+
+            const data = await apiRequest(`/storefront/orders?${params.toString()}`);
+
+            if (data.data && data.data.length > 0) {
+                currentOrders = data.data;
+                metaText.textContent = `Hiển thị ${data.data.length} đơn hàng`;
+                renderOrders(currentOrders);
+                renderPagination(data.pagination);
+            } else {
+                container.innerHTML = '<div class="text-center" style="padding: 40px; color: var(--text-light);">Không tìm thấy đơn hàng nào.</div>';
+                paginationContainer.classList.add('is-hidden');
+                metaText.textContent = '0 đơn hàng';
+            }
+        } catch (error) {
+            console.error('Lỗi khi tải đơn hàng:', error);
+            container.innerHTML = '<div class="text-center" style="padding: 40px; color: red;">Không thể tải danh sách đơn hàng. Vui lòng thử lại sau.</div>';
+        }
+    }
+
+    function renderOrders(orders) {
+        container.innerHTML = '';
+
+        orders.forEach(order => {
             const statusUI = getStatusUI(order.status);
-            const canCancel = order.status === 'new';
 
-            const detailsHtml = order.details.map(detail => `
-                <div class="order-item-row" style="border:none; padding:10px 0; border-bottom:1px dashed #e2e8f0; border-radius:0;">
-                    <img src="${detail.product?.image ? 'storage/' + detail.product.image : 'https://via.placeholder.com/64'}"
-                         alt="${detail.product?.name || 'Sản phẩm'}">
-                    <div>
-                        <div style="font-weight:600; color:#1f2937;">${detail.product?.name || 'Sản phẩm không xác định'}</div>
-                        <div class="order-item-meta">SL: x${detail.quantity}</div>
-                    </div>
-                    <div class="order-item-total">${formatCurrency(detail.unit_price)}</div>
-                </div>
-            `).join('');
-
-            // Nút hành động: hủy đơn (chỉ hiện khi status = "new") + xem chi tiết
-            const cancelBtn = canCancel ? `
-                <button
-                    class="btn-cancel-order"
-                    onclick="openCancelOrderModal(${order.id}, '${escapeHtmlAttr(order.order_code)}', onCancelSuccess)"
-                    title="Hủy đơn hàng này"
-                >
+            // Nút hủy chỉ hiện khi trạng thái là "new"
+            const cancelBtnHtml = order.status === 'new' ? `
+                <button class="btn-cancel-order" onclick="openCancelModal(${order.id}, '${escapeHtmlAttr(order.order_code)}')">
                     ✕ Hủy đơn
                 </button>
             ` : '';
 
-            html += `
-                <div class="order-history-card" id="order-card-${order.id}">
-                    <div class="order-history-header">
-                        <div>
-                            <span class="order-code">${order.order_code}</span>
-                            <span class="order-date">Ngày đặt: ${formatDate(order.order_date)}</span>
-                        </div>
-                        <div class="order-status ${statusUI.class}">${statusUI.text}</div>
+            // Render các sản phẩm trong đơn
+            const itemsHtml = order.details.map(item => `
+                <div class="order-item-detail" style="display: flex; gap: 15px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                    <img src="${item.product.image || 'img/no-image.png'}" alt="${item.product.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0; font-size: 0.95rem;">${item.product.name}</h4>
+                        <p style="margin: 5px 0 0; color: var(--text-light); font-size: 0.85rem;">Phân loại: ${item.product.unit || 'Mặc định'} x ${item.quantity}</p>
                     </div>
-
-                    <div class="order-history-body">
-                        ${detailsHtml}
+                    <div style="text-align: right; font-weight: 600;">
+                        ${formatCurrency(item.unit_price)}
                     </div>
+                </div>
+            `).join('');
 
-                    <div class="order-history-footer">
-                        <div>
-                            <span style="color:var(--text-light); font-size:0.9rem;">Tổng tiền:</span>
-                            <div class="order-total-price">${formatCurrency(order.total_amount)}</div>
+            const orderCard = document.createElement('div');
+            orderCard.className = 'order-card';
+            orderCard.style.cssText = 'border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 20px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);';
+            orderCard.innerHTML = `
+                <div class="order-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div>
+                        <strong style="font-size: 1.1rem; color: var(--primary-color);">#${order.order_code}</strong>
+                        <span style="color: var(--text-light); font-size: 0.85rem; margin-left: 10px;">Ngày đặt: ${formatDate(order.order_date)}</span>
+                    </div>
+                    <span class="badge ${statusUI.class}" style="padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">${statusUI.text}</span>
+                </div>
+                
+                <div class="order-card-body">
+                    ${itemsHtml}
+                </div>
+
+                <div class="order-card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border-color);">
+                    <div style="font-size: 0.9rem; color: var(--text-light);">
+                        Thanh toán: <strong>${order.payment_method === 'cod' ? 'Thanh toán khi nhận hàng' : order.payment_method}</strong>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="font-size: 1.1rem;">
+                            Tổng tiền: <strong style="color: var(--secondary-color); font-size: 1.2rem;">${formatCurrency(order.total_amount)}</strong>
                         </div>
-                        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                            ${cancelBtn}
-                            <a href="order-summary.html?id=${order.id}&myOrder=true"
-                               class="btn btn-secondary"
-                               style="padding:8px 20px;">
-                               Xem chi tiết
-                            </a>
-                        </div>
+                        ${cancelBtnHtml}
                     </div>
                 </div>
             `;
+            container.appendChild(orderCard);
         });
+    }
 
-        container.innerHTML = html;
-        renderPagination();
-    };
-
-    // ── Callback khi hủy thành công ────────────────────────────────────────────
-    window.onCancelSuccess = function (res) {
-        const orderId = res?.data?.order_id;
-        if (!orderId) { fetchOrders(); return; }
-
-        // Cập nhật UI ngay lập tức không cần reload toàn bộ trang
-        const card = document.getElementById(`order-card-${orderId}`);
-        if (card) {
-            // Cập nhật badge trạng thái
-            const badge = card.querySelector('.order-status');
-            if (badge) {
-                badge.className = 'order-status status-cancelled';
-                badge.textContent = 'Đã hủy';
-            }
-
-            // Ẩn nút hủy
-            const cancelBtn = card.querySelector('.btn-cancel-order');
-            if (cancelBtn) cancelBtn.remove();
-
-            // Thêm visual cue: mờ card đi nhẹ
-            card.style.opacity = '0.75';
-            card.style.transition = 'opacity 0.4s';
-        }
-    };
-
-    // ── Pagination ─────────────────────────────────────────────────────────────
-    const renderPagination = () => {
-        if (!paginationData || paginationData.last_page <= 1) {
+    function renderPagination(pagination) {
+        if (!pagination || pagination.last_page <= 1) {
             paginationContainer.classList.add('is-hidden');
             return;
         }
 
         paginationContainer.classList.remove('is-hidden');
-        const { current_page, last_page } = paginationData;
-        let html = '';
+        paginationContainer.innerHTML = '';
 
-        html += `<button class="page-btn ${current_page <= 1 ? 'disabled' : ''}" data-page="${current_page - 1}">&#8592;</button>`;
-        for (let i = 1; i <= last_page; i++) {
-            html += `<button class="page-btn ${current_page === i ? 'active' : ''}" data-page="${i}">${i}</button>`;
-        }
-        html += `<button class="page-btn ${current_page >= last_page ? 'disabled' : ''}" data-page="${current_page + 1}">&#8594;</button>`;
+        // Nút Prev
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'page-btn';
+        prevBtn.innerHTML = '&laquo;';
+        prevBtn.disabled = pagination.current_page === 1;
+        prevBtn.onclick = () => {
+            if (currentPage > 1) {
+                currentPage--;
+                fetchOrders();
+            }
+        };
+        paginationContainer.appendChild(prevBtn);
 
-        paginationContainer.innerHTML = html;
-
-        paginationContainer.querySelectorAll('.page-btn:not(.disabled)').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const newPage = parseInt(e.target.getAttribute('data-page'));
-                if (newPage && newPage !== currentPage) {
-                    currentPage = newPage;
+        // Các nút số trang
+        for (let i = 1; i <= pagination.last_page; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.className = `page-btn ${i === pagination.current_page ? 'active' : ''}`;
+            pageBtn.textContent = i;
+            pageBtn.onclick = () => {
+                if (currentPage !== i) {
+                    currentPage = i;
                     fetchOrders();
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
-            });
+            };
+            paginationContainer.appendChild(pageBtn);
+        }
+
+        // Nút Next
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'page-btn';
+        nextBtn.innerHTML = '&raquo;';
+        nextBtn.disabled = pagination.current_page === pagination.last_page;
+        nextBtn.onclick = () => {
+            if (currentPage < pagination.last_page) {
+                currentPage++;
+                fetchOrders();
+            }
+        };
+        paginationContainer.appendChild(nextBtn);
+    }
+
+    // =========================================================================
+    // 4. SỰ KIỆN LỌC & KHỞI CHẠY (INIT)
+    // =========================================================================
+    if (btnFilter) {
+        btnFilter.addEventListener('click', () => {
+            currentPage = 1;
+            fetchOrders();
         });
-    };
+    }
 
-    // ── Event: nút lọc ─────────────────────────────────────────────────────────
-    btnFilter.addEventListener('click', () => {
-        if (!validateFilters()) return;
-        currentPage = 1;
-        fetchOrders();
-    });
-
-    // ── Inject error span cho date filters nếu chưa có ────────────────────────
     function ensureFilterErrorSpans() {
         ['filter-start-date', 'filter-end-date'].forEach(id => {
             const el = document.getElementById(id);
@@ -256,7 +316,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 span.style.cssText = 'font-size:0.78rem; color:#ef4444; margin-top:3px; min-height:16px;';
                 el.parentNode.insertBefore(span, el.nextSibling);
             }
-            // Clear khi user thay đổi
             el.addEventListener('change', () => {
                 el.classList.remove('input-invalid');
                 const errEl = document.getElementById(errId);
@@ -265,18 +324,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Khởi chạy các hàm cần thiết khi load trang
     ensureFilterErrorSpans();
-
-    // ── Khởi động ──────────────────────────────────────────────────────────────
+    injectCancelModal();
     fetchOrders();
 });
-
-// ── Utility ────────────────────────────────────────────────────────────────────
-function escapeHtmlAttr(str) {
-    return String(str || '')
-        .replace(/&/g, '&amp;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-}
