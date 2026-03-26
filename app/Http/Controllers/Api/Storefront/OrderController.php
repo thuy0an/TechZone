@@ -6,7 +6,7 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\CreateOrderRequest;
 use App\Http\Requests\ApplyPromotionRequest;
 use App\Services\Interfaces\OrderServiceInterface;
-use Illuminate\Http\Client\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class OrderController extends BaseApiController
@@ -45,6 +45,34 @@ class OrderController extends BaseApiController
         } catch (\Exception $e) {
             return $this->errorResponse('Đặt hàng thất bại', 400, $e->getMessage());
         }
+    }
+
+    public function activePromotions()
+    {
+        $promotions = \App\Models\Promotion::where('is_active', true)
+            ->where(function ($q) {
+                $q->whereNull('start_date')->orWhere('start_date', '<=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', now());
+            })
+            ->with('products:id')
+            ->get(['id', 'name', 'code', 'type', 'discount_value', 'discount_unit', 'min_bill_value', 'max_discount_amount'])
+            ->map(function ($p) {
+                return [
+                    'id'                  => $p->id,
+                    'name'                => $p->name,
+                    'code'                => $p->code,
+                    'type'                => $p->type,
+                    'discount_value'      => $p->discount_value,
+                    'discount_unit'       => $p->discount_unit,
+                    'min_bill_value'      => $p->min_bill_value,
+                    'max_discount_amount' => $p->max_discount_amount,
+                    'product_ids'         => $p->products->pluck('id')->values(),
+                ];
+            });
+
+        return $this->successResponse($promotions, 'Lấy danh sách khuyến mãi thành công');
     }
 
     public function applyPromotion(ApplyPromotionRequest $request)

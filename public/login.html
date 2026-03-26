@@ -47,10 +47,44 @@
 
                 <p style="margin-top: 25px; font-size: 0.95rem;">
                     Chưa có tài khoản? <a href="register.html" style="color: var(--primary-color); font-weight: 600;">Đăng ký ngay</a>
+                    &nbsp;·&nbsp;
+                    <a href="#" id="forgot-link" style="color: var(--text-light); font-weight: 500;">Quên mật khẩu?</a>
                 </p>
             </div>
         </div>
     </main>
+
+    <!-- Modal quên mật khẩu -->
+    <div id="forgot-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
+        <div class="card" style="width:100%; max-width:420px; margin:auto; padding:32px; position:relative;">
+            <button id="forgot-close" type="button" style="position:absolute; top:14px; right:16px; background:none; border:none; font-size:1.4rem; cursor:pointer; color:var(--text-light);">✕</button>
+            <h2 style="margin-bottom:6px; font-size:1.2rem;">Quên mật khẩu</h2>
+            <p style="font-size:0.88rem; color:var(--text-light); margin-bottom:20px;">Nhập email và số điện thoại đã đăng ký để đặt lại mật khẩu.</p>
+
+            <div id="forgot-alert" class="alert alert-danger" style="display:none; margin-bottom:16px;"></div>
+            <div id="forgot-success" style="display:none; background:rgba(16,185,129,0.12); color:#047857; border:1px solid rgba(16,185,129,0.35); border-radius:10px; padding:12px 14px; margin-bottom:16px; font-size:0.9rem;"></div>
+
+            <form id="forgot-form" onsubmit="event.preventDefault(); handleForgotPassword();">
+                <div class="form-group">
+                    <label for="forgot-email">Email</label>
+                    <input type="email" id="forgot-email" class="form-control" placeholder="Email đã đăng ký" required>
+                </div>
+                <div class="form-group">
+                    <label for="forgot-phone">Số điện thoại</label>
+                    <input type="tel" id="forgot-phone" class="form-control" placeholder="Số điện thoại đã đăng ký" required>
+                </div>
+                <div class="form-group">
+                    <label for="forgot-newpass">Mật khẩu mới</label>
+                    <input type="password" id="forgot-newpass" class="form-control" placeholder="Tối thiểu 6 ký tự" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="forgot-confirm">Xác nhận mật khẩu mới</label>
+                    <input type="password" id="forgot-confirm" class="form-control" placeholder="Nhập lại mật khẩu mới" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary" id="forgot-submit" style="width:100%; margin-top:6px;">Đặt lại mật khẩu</button>
+            </form>
+        </div>
+    </div>
 
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
@@ -75,26 +109,77 @@
             const btn = document.getElementById('btn-submit');
             const alertBox = document.getElementById('login-alert');
 
-            // Reset UI
             alertBox.style.display = 'none';
             btn.disabled = true;
             btn.textContent = 'Đang xử lý...';
 
             try {
                 await loginCustomer(email, password);
-                
                 const redirectTo = sessionStorage.getItem('post_login_redirect') || '/';
                 sessionStorage.removeItem('post_login_redirect');
                 await checkAddressAndRedirect(redirectTo);
-
                 alert('Đăng nhập thành công!');
-                
             } catch (err) {
                 alertBox.textContent = err.data?.message || err.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
                 alertBox.style.display = 'block';
             } finally {
                 btn.disabled = false;
                 btn.textContent = 'Đăng nhập';
+            }
+        }
+
+        // ── Forgot password modal ──
+        const overlay = document.getElementById('forgot-overlay');
+
+        document.getElementById('forgot-link').addEventListener('click', e => {
+            e.preventDefault();
+            overlay.style.display = 'flex';
+        });
+
+        document.getElementById('forgot-close').addEventListener('click', () => {
+            overlay.style.display = 'none';
+            document.getElementById('forgot-form').reset();
+            document.getElementById('forgot-alert').style.display = 'none';
+            document.getElementById('forgot-success').style.display = 'none';
+        });
+
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay) document.getElementById('forgot-close').click();
+        });
+
+        async function handleForgotPassword() {
+            const email     = document.getElementById('forgot-email').value.trim();
+            const phone     = document.getElementById('forgot-phone').value.trim();
+            const newPass   = document.getElementById('forgot-newpass').value;
+            const confirm   = document.getElementById('forgot-confirm').value;
+            const alertBox  = document.getElementById('forgot-alert');
+            const successBox = document.getElementById('forgot-success');
+            const btn       = document.getElementById('forgot-submit');
+
+            alertBox.style.display = 'none';
+            successBox.style.display = 'none';
+
+            if (newPass !== confirm) {
+                alertBox.textContent = 'Mật khẩu xác nhận không khớp.';
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Đang xử lý...';
+
+            try {
+                const res = await forgotPassword(email, phone, newPass);
+                successBox.textContent = res.message || 'Đổi mật khẩu thành công. Vui lòng đăng nhập lại.';
+                successBox.style.display = 'block';
+                document.getElementById('forgot-form').reset();
+                setTimeout(() => document.getElementById('forgot-close').click(), 1000);
+            } catch (err) {
+                alertBox.textContent = err.data?.message || err.message || 'Thông tin không đúng. Vui lòng kiểm tra lại.';
+                alertBox.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Đặt lại mật khẩu';
             }
         }
     </script>

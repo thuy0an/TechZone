@@ -223,7 +223,7 @@ async function renderHomeCategorySections() {
                     <div class="home-category-carousel">
                         <button class="carousel-btn prev" type="button" data-carousel="cat-${category.id}" aria-label="Xem truoc">‹</button>
                         <div class="home-category-track" id="home-category-grid-${category.id}">
-                            <div class="loading">Dang tai san pham...</div>
+                            <div class="loading">Đang tải sản phẩm...</div>
                         </div>
                         <button class="carousel-btn next" type="button" data-carousel="cat-${category.id}" aria-label="Xem tiep">›</button>
                     </div>
@@ -231,13 +231,13 @@ async function renderHomeCategorySections() {
             `;
         }).join('');
 
-        container.innerHTML = sectionHtml || '<div class="loading">Khong co danh muc phu hop.</div>';
+        container.innerHTML = sectionHtml || '<div class="loading">Không có danh mục phù hợp.</div>';
 
         await Promise.all(limitedCategories.map(category => loadHomeCategoryProducts(category.id)));
 
         limitedCategories.forEach(category => setupHomeCategoryCarousel(category.id));
     } catch (error) {
-        container.innerHTML = '<div class="loading">Khong the tai danh muc.</div>';
+        container.innerHTML = '<div class="loading">Không thể tải danh mục.</div>';
     }
 }
 
@@ -285,13 +285,13 @@ async function loadHomeCategoryProducts(categoryId) {
         const products = response.data || [];
 
         if (products.length === 0) {
-            grid.innerHTML = '<div class="loading">Khong co san pham phu hop.</div>';
+            grid.innerHTML = '<div class="loading">Không có sản phẩm phù hợp.</div>';
             return;
         }
 
         renderProducts(grid, transformProductsForDisplay(products));
     } catch (error) {
-        grid.innerHTML = '<div class="loading">Khong the tai san pham.</div>';
+        grid.innerHTML = '<div class="loading">Không thể tải sản phẩm.</div>';
     }
 }
 

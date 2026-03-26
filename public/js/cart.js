@@ -1,4 +1,5 @@
 let cartSubtotalValue = 0;
+let cartProductIds = [];
 let addressBook = [];
 let promotionClearTimer = null;
 let promotionState = {
@@ -18,16 +19,26 @@ const BANK_INFO = {
     account_owner: 'CONG TY TECHZONE',
 };
 
-const promotionSuggestions = [
-    {
-        code: 'SALE10',
-        label: 'Giảm 10% toàn đơn',
-    },
-    {
-        code: 'LAPTOP500K',
-        label: 'Giảm 500k Laptop',
-    },
-];
+const promotionSuggestions = [];
+
+async function loadPromotionSuggestions() {
+    try {
+        const res = await fetchActivePromotions();
+        const list = res.data || res;
+        promotionSuggestions.length = 0;
+        list.forEach(p => promotionSuggestions.push({
+            code: p.code,
+            label: p.name,
+            type: p.type,
+            discount_value: p.discount_value,
+            discount_unit: p.discount_unit,
+            min_bill_value: p.min_bill_value,
+            product_ids: p.product_ids || [],
+        }));
+    } catch (e) {
+        // fallback: giữ rỗng, không crash
+    }
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
     initStorefrontLayout({ activePage: 'cart' });
@@ -50,22 +61,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     setupOrderSuccessModal();
 
-    const promotionApplyBtn = document.getElementById('promotion-apply-btn');
-    if (promotionApplyBtn) {
-        promotionApplyBtn.addEventListener('click', () => {
-            const input = document.getElementById('promotion-code-input');
-            const code = input?.value?.trim();
-            handleApplyPromotion(code, 'manual');
-        });
-    }
-
-    const promotionInput = document.getElementById('promotion-code-input');
-    if (promotionInput) {
-        promotionInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                const code = promotionInput.value?.trim();
-                handleApplyPromotion(code, 'manual');
+    const promotionSelect = document.getElementById('promotion-select');
+    if (promotionSelect) {
+        promotionSelect.addEventListener('change', () => {
+            const code = promotionSelect.value?.trim();
+            if (code) {
+                handleApplyPromotion(code);
+            } else {
+                clearPromotionState();
             }
         });
     }
@@ -75,9 +78,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         saveNewAddressBtn.addEventListener('click', handleCreateNewAddress);
     }
 
-    loadCart({ showStatus: true });
     loadUserAddresses();
-    renderPromotionSuggestions();
+    await loadPromotionSuggestions();
+    loadCart({ showStatus: true });
     bindPaymentMethodListener();
 
     loadProvinces();
@@ -178,8 +181,10 @@ function renderCart(cart) {
     }).join('');
 
     cartSubtotalValue = subtotal;
+    cartProductIds = items.map(item => item.product?.id).filter(Boolean);
     updateTotals(subtotal, promotionState.discount || 0, subtotalElement, totalElement);
     toggleCheckoutAvailability(true);
+    renderPromotionSelect();
 }
 
 async function changeQuantity(productId, delta) {
@@ -247,8 +252,10 @@ function updateTotalsFromDom() {
     });
 
     cartSubtotalValue = subtotal;
+    cartProductIds = Array.from(items).map(item => Number(item.dataset.productId)).filter(Boolean);
     updateTotals(subtotal, promotionState.discount || 0, subtotalElement, totalElement);
     toggleCheckoutAvailability(items.length > 0);
+    renderPromotionSelect();
 
     const itemsContainer = document.getElementById('cart-items');
     if (items.length === 0 && itemsContainer) {
@@ -452,31 +459,55 @@ async function loadWards() {
     }
 }
 
-function renderPromotionSuggestions() {
-    const container = document.getElementById('promotion-suggestions');
-    if (!container) return;
+function renderPromotionSelect() {
+    const select = document.getElementById('promotion-select');
+    if (!select) return;
 
-    container.innerHTML = promotionSuggestions.map(promo => `
-        <button class="promotion-chip" type="button" data-code="${promo.code}">
-            ${promo.label} (${promo.code})
-        </button>
-    `).join('');
+    const currentCode = select.value;
+    select.innerHTML = '<option value="">-- Chọn mã khuyến mãi --</option>';
 
-    container.querySelectorAll('.promotion-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-            const code = chip.dataset.code;
-            const input = document.getElementById('promotion-code-input');
-            if (input) input.value = code;
-            handleApplyPromotion(code, 'chip');
-        });
+    promotionSuggestions.forEach(promo => {
+        const eligible = isPromotionEligible(promo);
+        const opt = document.createElement('option');
+        opt.value = promo.code;
+        opt.disabled = !eligible;
+
+        const discountText = promo.discount_unit === 'percent'
+            ? `${promo.discount_value}%`
+            : formatPrice(promo.discount_value);
+        const minHint = !eligible && promo.min_bill_value > 0
+            ? ` | Đơn tối thiểu ${formatPrice(promo.min_bill_value)}`
+            : '';
+        const lockIcon = !eligible ? ' 🔒' : '';
+
+        opt.textContent = `${promo.label} — Giảm ${discountText}${minHint} (${promo.code})${lockIcon}`;
+        select.appendChild(opt);
     });
+
+    if (currentCode) select.value = currentCode;
+}
+
+function isPromotionEligible(promo) {
+    // Check min_bill_value
+    if (promo.min_bill_value > 0 && cartSubtotalValue < promo.min_bill_value) return false;
+
+    // Với discount_by_product: phải có ít nhất 1 sản phẩm trong giỏ khớp
+    if (promo.type === 'discount_by_product') {
+        if (!promo.product_ids || promo.product_ids.length === 0) return false;
+        return promo.product_ids.some(id => cartProductIds.includes(Number(id)));
+    }
+
+    return true;
 }
 
 function setActivePromotionChip(code) {
-    const chips = document.querySelectorAll('.promotion-chip');
-    chips.forEach(chip => {
-        chip.classList.toggle('active', chip.dataset.code === code);
-    });
+    const select = document.getElementById('promotion-select');
+    if (!select) return;
+    if (!code) {
+        select.value = '';
+    } else {
+        select.value = code;
+    }
 }
 
 function setPromotionFeedback(message, type = 'success') {
@@ -508,27 +539,19 @@ function clearPromotionState(message) {
     updateTotals(cartSubtotalValue, 0, document.getElementById('cart-subtotal'), document.getElementById('cart-total'));
 }
 
-async function handleApplyPromotion(code, source = 'manual') {
+async function handleApplyPromotion(code) {
     const cleanCode = String(code || '').trim();
     if (!cleanCode) {
-        setPromotionFeedback('Vui lòng nhập mã khuyến mãi để áp dụng.', 'error');
+        setPromotionFeedback('Vui lòng chọn mã khuyến mãi để áp dụng.', 'error');
         return;
     }
 
-    const applyBtn = document.getElementById('promotion-apply-btn');
-    if (applyBtn) {
-        applyBtn.disabled = true;
-        applyBtn.textContent = 'Đang áp dụng...';
-    }
+    const select = document.getElementById('promotion-select');
+    if (select) select.disabled = true;
 
     try {
         const response = await applyPromotion(cleanCode);
         const payload = response.data || response;
-
-        if (promotionClearTimer) {
-            clearTimeout(promotionClearTimer);
-            promotionClearTimer = null;
-        }
 
         promotionState = {
             code: cleanCode,
@@ -544,22 +567,8 @@ async function handleApplyPromotion(code, source = 'manual') {
         const message = error?.data?.errors || error?.data?.message || error?.message || 'Không thể áp dụng mã khuyến mãi.';
         clearPromotionState();
         setPromotionFeedback(message, 'error');
-
-        const promotionInput = document.getElementById('promotion-code-input');
-        if (promotionInput) {
-            if (promotionClearTimer) {
-                clearTimeout(promotionClearTimer);
-            }
-            promotionClearTimer = window.setTimeout(() => {
-                promotionInput.value = '';
-                promotionClearTimer = null;
-            }, 2000);
-        }
     } finally {
-        if (applyBtn) {
-            applyBtn.disabled = false;
-            applyBtn.textContent = 'Áp dụng';
-        }
+        if (select) select.disabled = false;
     }
 }
 

@@ -110,3 +110,10 @@ async function checkAddressAndRedirect(redirectTo = '/') {
         window.location.href = redirectTo || 'index.html';
     }
 }
+
+async function forgotPassword(email, phone, newPassword) {
+    return await apiRequest('/storefront/forgot-password', {
+        method: 'POST',
+        body: JSON.stringify({ email, phone, new_password: newPassword }),
+    });
+}

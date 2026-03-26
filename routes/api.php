@@ -57,6 +57,7 @@ Route::prefix('storefront')->group(function () {
     // ĐĂNG NHẬP,ĐĂNG KÝ
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 });
 
 
@@ -104,6 +105,7 @@ Route::prefix('storefront')->middleware('require.client.login')->group(function 
 
 Route::prefix('storefront')->middleware('auth:sanctum')->group(function () {
     // ĐẶT HÀNG (CHECKOUT)
+    Route::get('/promotions/active', [OrderController::class, 'activePromotions']); // danh sách mã KM đang hoạt động
     Route::post('/checkout/apply-promotion', [OrderController::class, 'applyPromotion']); // áp dụng khuyến mãi
     Route::get('/orders', [OrderController::class, 'myOrders']); // lịch sử đơn hàng
 

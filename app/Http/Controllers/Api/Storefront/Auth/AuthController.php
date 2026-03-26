@@ -37,6 +37,28 @@ class AuthController extends BaseApiController
         }
     }
 
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email'        => 'required|email',
+            'phone'        => 'required|string',
+            'new_password' => 'required|string|min:6',
+        ]);
+
+        $user = \App\Models\User::where('email', $request->email)
+            ->where('phone', $request->phone)
+            ->first();
+
+        if (!$user) {
+            return $this->errorResponse('Email hoặc số điện thoại không đúng.', 422);
+        }
+
+        $user->password = bcrypt($request->new_password);
+        $user->save();
+
+        return $this->successResponse(null, 'Đổi mật khẩu thành công. Vui lòng đăng nhập lại.');
+    }
+
     public function logout(Request $request)
     {
         try {

@@ -268,6 +268,10 @@ async function applyPromotion(promotionCode) {
     });
 }
 
+async function fetchActivePromotions() {
+    return await apiRequest('/storefront/promotions/active', { method: 'GET' });
+}
+
 /**
  * Gửi yêu cầu checkout
  * @param {object} payload

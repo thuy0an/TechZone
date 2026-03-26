@@ -161,13 +161,22 @@ VALUES
 (3,6,'TBP11','Lenovo Tab P11','tabp11.jpg','Tablet Lenovo','Chiếc',17,8000000,18,9440000,'visible',NOW(),NOW());
 
 INSERT INTO promotions 
-(name, start_date, end_date, type, discount_value, discount_unit, min_bill_value, max_discount_amount, created_at, updated_at)
+(name, code, start_date, end_date, type, discount_value, discount_unit, min_bill_value, max_discount_amount, created_at, updated_at)
 VALUES
-('Giảm 10% toàn đơn', NOW(), DATE_ADD(NOW(), INTERVAL 30 DAY), 'discount_bill', 10, 'percent', 5000000, 1000000, NOW(), NOW()),
-('Giảm 500k Laptop', NOW(), DATE_ADD(NOW(), INTERVAL 60 DAY), 'discount_by_product', 500000, 'amount', 0, 500000, NOW(), NOW());
+('Giảm 10% toàn đơn', 'SALE10', DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL 7 DAY), 'discount_bill', 10, 'percent', 5000000, 1000000, NOW(), NOW()),
+('Giảm 500k Laptop', 'LAPTOP500K', DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL 7 DAY), 'discount_by_product', 500000, 'amount', 0, 500000, NOW(), NOW()),
+('Giảm 15% toàn đơn từ 10 triệu', 'MEGA15', DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL 7 DAY), 'discount_bill', 15, 'percent', 10000000, 2000000, NOW(), NOW()),
+('Giảm 200k đơn từ 3 triệu', 'SAVE200K', DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL 7 DAY), 'discount_bill', 200000, 'amount', 3000000, 200000, NOW(), NOW()),
+('Giảm 20% Phone', 'PHONE20', DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL 7 DAY), 'discount_by_product', 20, 'percent', 0, 1500000, NOW(), NOW()),
+('Giảm 1 triệu Laptop', 'LAPTOP1M', DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL 7 DAY), 'discount_by_product', 1000000, 'amount', 15000000, 1000000, NOW(), NOW()),
+('Flash Sale 5%', 'FLASH5', DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL 7 DAY), 'discount_bill', 5, 'percent', 0, 500000, NOW(), NOW());
 
 INSERT INTO promotion_product (promotion_id, product_id) VALUES
-(2,2);
+(2,2),
+-- PHONE20 (id=5): áp dụng cho các điện thoại category_id=1
+(5,1),(5,5),(5,6),(5,7),(5,8),(5,9),
+-- LAPTOP1M (id=6): áp dụng cho các laptop category_id=2
+(6,2),(6,10),(6,11),(6,12),(6,13),(6,14),(6,29);
 
 
 
