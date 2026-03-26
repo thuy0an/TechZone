@@ -24,19 +24,38 @@ const promotionSuggestions = [];
 async function loadPromotionSuggestions() {
     try {
         const res = await fetchActivePromotions();
+        // API trả về { success, data: [...] } hoặc trực tiếp array
         const list = res.data || res;
+
         promotionSuggestions.length = 0;
-        list.forEach(p => promotionSuggestions.push({
-            code: p.code,
-            label: p.name,
-            type: p.type,
-            discount_value: p.discount_value,
-            discount_unit: p.discount_unit,
-            min_bill_value: p.min_bill_value,
-            product_ids: p.product_ids || [],
-        }));
+
+        if (!Array.isArray(list)) return;
+
+        list.forEach(p => {
+            // API trả về quan hệ products là mảng object { id, name, code }
+            // Cần lấy mảng ID từ đó
+            let productIds = [];
+            if (Array.isArray(p.products) && p.products.length > 0) {
+                // Trường hợp API trả về products là [{id, name, code}, ...]
+                productIds = p.products.map(prod => Number(prod.id || prod));
+            } else if (Array.isArray(p.product_ids)) {
+                // Trường hợp API trả về product_ids trực tiếp là [1, 2, 3]
+                productIds = p.product_ids.map(Number);
+            }
+
+            promotionSuggestions.push({
+                code: p.code,
+                label: p.name,
+                type: p.type,
+                discount_value: p.discount_value,
+                discount_unit: p.discount_unit,
+                min_bill_value: Number(p.min_bill_value || 0),
+                product_ids: productIds,
+            });
+        });
     } catch (e) {
-        // fallback: giữ rỗng, không crash
+        // Fallback: giữ rỗng, không crash
+        console.warn('Không thể tải danh sách khuyến mãi:', e);
     }
 }
 
@@ -78,11 +97,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         saveNewAddressBtn.addEventListener('click', handleCreateNewAddress);
     }
 
+    // Tải địa chỉ và promotions song song; cart tải sau khi có promotions
+    // để renderPromotionSelect() có dữ liệu ngay từ đầu
     loadUserAddresses();
     await loadPromotionSuggestions();
     loadCart({ showStatus: true });
     bindPaymentMethodListener();
-
     loadProvinces();
 });
 
@@ -465,6 +485,14 @@ function renderPromotionSelect() {
 
     const currentCode = select.value;
     select.innerHTML = '<option value="">-- Chọn mã khuyến mãi --</option>';
+
+    if (promotionSuggestions.length === 0) {
+        const opt = document.createElement('option');
+        opt.disabled = true;
+        opt.textContent = '(Không có mã khuyến mãi đang hoạt động)';
+        select.appendChild(opt);
+        return;
+    }
 
     promotionSuggestions.forEach(promo => {
         const eligible = isPromotionEligible(promo);

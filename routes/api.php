@@ -108,6 +108,7 @@ Route::prefix('storefront')->middleware('auth:sanctum')->group(function () {
     Route::get('/promotions/active', [OrderController::class, 'activePromotions']); // danh sách mã KM đang hoạt động
     Route::post('/checkout/apply-promotion', [OrderController::class, 'applyPromotion']); // áp dụng khuyến mãi
     Route::get('/orders', [OrderController::class, 'myOrders']); // lịch sử đơn hàng
+    Route::patch('/orders/{id}/cancel', [OrderController::class, 'cancelOrder']);
 
     // ĐỊA CHỈ NHẬN HÀNG
     Route::get('/addresses', [AddressController::class, 'index']);

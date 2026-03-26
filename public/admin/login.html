@@ -13,7 +13,7 @@
 
 <div class="login-page">
     <div class="login-card">
-
+form.addEventListener('submit'
         <!-- Header -->
         <div class="login-header">
             <div class="login-logo">🛡️</div>
@@ -89,6 +89,7 @@
 <script src="../js/admin/admin-token.js"></script>
 <script src="../js/admin/admin-api.js"></script>
 <script src="../js/admin/admin-auth.js"></script>
+<script src="../js/admin/admin-validator.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // Nếu đã login thì về dashboard
@@ -127,30 +128,19 @@ document.addEventListener('DOMContentLoaded', () => {
         hideAlert();
     });
 
+    const loginSchema = {
+        'email':    ['required', 'email'],
+        'password': ['required', 'minLength:6'],
+    };
+
     // Form submit
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        if (!AdminValidator.run(loginSchema)) return;
+
         const email    = emailInput.value.trim();
         const password = pwInput.value;
-
-        // Client-side validation
-        let hasError = false;
-
-        if (!email) {
-            showFieldError('email', 'Email là bắt buộc');
-            hasError = true;
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            showFieldError('email', 'Email không hợp lệ');
-            hasError = true;
-        }
-
-        if (!password) {
-            showFieldError('password', 'Mật khẩu là bắt buộc');
-            hasError = true;
-        }
-
-        if (hasError) return;
 
         // Loading state
         setLoading(true);

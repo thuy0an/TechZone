@@ -5,9 +5,13 @@ namespace App\Http\Controllers\Api\Storefront;
 use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\CreateOrderRequest;
 use App\Http\Requests\ApplyPromotionRequest;
+use App\Http\Requests\CancelOrderRequest;
 use App\Services\Interfaces\OrderServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Order;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends BaseApiController
 {
@@ -121,6 +125,76 @@ class OrderController extends BaseApiController
                 return $this->forbiddenResponse('Bạn không có quyền xem đơn hàng này.');
             }
             return $this->errorResponse('Lỗi khi lấy tóm tắt đơn hàng', 400, $e->getMessage());
+        }
+    }
+
+    public function cancelOrder(CancelOrderRequest $request, int $id)
+    {
+        // Validate input
+        $request->validate([
+            'cancel_reason' => 'required|string|min:5|max:500',
+        ], [
+            'cancel_reason.required' => 'Vui lòng chọn lý do hủy đơn.',
+            'cancel_reason.min'      => 'Lý do hủy phải có ít nhất 5 ký tự.',
+            'cancel_reason.max'      => 'Lý do hủy không được vượt quá 500 ký tự.',
+        ]);
+
+        $userId = $request->user()->id;
+
+        // Tìm đơn hàng
+        $order = Order::with('details.product')
+            ->where('id', $id)
+            ->where('user_id', $userId)
+            ->first();
+
+        if (!$order) {
+            return $this->notFoundResponse('Không tìm thấy đơn hàng hoặc bạn không có quyền thực hiện thao tác này.');
+        }
+
+        // Kiểm tra trạng thái – chỉ cho phép hủy khi đơn đang "new"
+        if ($order->status !== 'new') {
+            $statusLabels = [
+                'confirmed' => 'đã được xác nhận',
+                'shipping'  => 'đang được giao',
+                'delivered' => 'đã giao đến bạn',
+                'completed' => 'đã hoàn thành',
+                'cancelled' => 'đã bị hủy trước đó',
+                'failed'    => 'đã thất bại',
+            ];
+            $label = $statusLabels[$order->status] ?? $order->status;
+            return $this->errorResponse(
+                "Không thể hủy đơn hàng này. Đơn hàng {$label} nên không thể hủy.",
+                422
+            );
+        }
+
+        // Thực hiện hủy trong transaction
+        DB::beginTransaction();
+        try {
+            // Hoàn lại tồn kho
+            foreach ($order->details as $detail) {
+                if ($detail->product) {
+                    $detail->product->increment('stock_quantity', $detail->quantity);
+                }
+            }
+
+            // Cập nhật trạng thái
+            $order->update([
+                'status' => 'cancelled',
+            ]);
+
+            DB::commit();
+
+            return $this->successResponse([
+                'order_id'      => $order->id,
+                'order_code'    => $order->order_code,
+                'status'        => 'cancelled',
+                'cancel_reason' => $request->cancel_reason,
+            ], 'Đơn hàng đã được hủy thành công.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('CancelOrder failed: ' . $e->getMessage());
+            return $this->serverErrorResponse('Không thể hủy đơn hàng. Vui lòng thử lại.');
         }
     }
 }
