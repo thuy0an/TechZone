@@ -123,8 +123,13 @@ class ProductService extends BaseService implements ProductServiceInterface
             $data['image'] = $this->cloudinaryService->upload($data['image_file']);
         }
 
-        // Khi mới tạo, chưa nhập kho nên giá nhập = 0, kéo theo giá bán = 0
-        $data['selling_price'] = 0;
+        // Khi mới tạo: số lượng luôn = 0, giá nhập = 0, giá bán = 0
+        // Số lượng chỉ tăng khi nhập kho qua phiếu nhập
+        $data['initial_quantity'] = 0;
+        $data['stock_quantity']   = 0;
+        $data['import_price']     = 0;
+        $data['selling_price']    = 0;
+
         $product = $this->repository->create($data);
         $this->bumpStorefrontCacheVersion();
         return $product;
