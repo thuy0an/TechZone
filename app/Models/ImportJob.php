@@ -13,25 +13,28 @@ class ImportJob extends BaseModel
     const STATUS_PENDING    = 'pending';
     const STATUS_PROCESSING = 'processing';
     const STATUS_COMPLETED  = 'completed';
+    const STATUS_COMPLETED_ERRORS = 'completed_with_errors'; 
     const STATUS_FAILED     = 'failed';
 
     /**
      * Các cột có thể gán giá trị hàng loạt (Mass Assignable)
      */
     protected $fillable = [
+        'file_name',
         'file_path',
+        'status',
         'total_rows',
         'processed_rows',
-        'status',
         'error_message',
+        'errors',
     ];
-
     /**
      * Ép kiểu dữ liệu cho các cột đặc biệt
      */
     protected $casts = [
         'total_rows'     => 'integer',
         'processed_rows' => 'integer',
+        'errors' => 'array',
     ];
 
     /**

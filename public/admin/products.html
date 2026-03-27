@@ -882,8 +882,9 @@ dropzone.addEventListener('drop', (e) => {
 
 async function startImport() {
     const fileInput = document.getElementById('import-file');
-    if (!fileInput.files[0]) {
-        return showAdminToast('Vui lòng chọn file CSV', 'error');
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        showAdminToast('Vui lòng chọn file CSV', 'error');
+        return; 
     }
 
     const formData = new FormData();
@@ -918,14 +919,32 @@ async function pollImportStatus(jobId) {
             document.getElementById('import-progress-bar').style.width = `${job.progress}%`;
             document.getElementById('import-progress-text').textContent = `Đang xử lý: ${job.progress}% (${job.processed}/${job.total} dòng)`;
 
-            if (job.status === 'completed') {
+            if (job.status === 'completed' || job.status === 'completed_with_errors') {
                 clearInterval(importPollingInterval);
-                showAdminToast('Nhập dữ liệu thành công! ✅');
-                setTimeout(() => {
-                    closeImportModal();
-                    currentPage = 1;
-                    loadProducts(); // Reload lại bảng sản phẩm
-                }, 1000);
+                
+                // Nếu có lỗi từng dòng
+                if (job.status === 'completed_with_errors' && job.errors && job.errors.length > 0) {
+                    showAdminToast('Nhập hoàn tất nhưng có một số dòng bị lỗi!', 'error');
+                    
+                    // Hiển thị danh sách lỗi lên modal
+                    const errDiv = document.getElementById('import-error');
+                    errDiv.innerHTML = `<strong>Hoàn tất với lỗi ở các dòng sau:</strong><br><ul style="text-align:left; margin-top:5px; font-size:0.85rem">` 
+                                       + job.errors.map(err => `<li>${err}</li>`).join('')
+                                       + `</ul>`;
+                    errDiv.style.display = 'block';
+                    
+                    document.getElementById('btn-start-import').disabled = false;
+                    document.getElementById('btn-start-import').textContent = 'Nhập file khác';
+                    
+                } else {
+                    // Thành công 100%
+                    showAdminToast('Nhập dữ liệu thành công! ✅', 'success');
+                    setTimeout(() => {
+                        closeImportModal();
+                        currentPage = 1;
+                        loadProducts(); 
+                    }, 1000);
+                }
             } else if (job.status === 'failed') {
                 clearInterval(importPollingInterval);
                 document.getElementById('import-error').textContent = `Lỗi: ${job.error_message}`;

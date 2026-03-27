@@ -2,113 +2,132 @@
 
 namespace App\Jobs;
 
+use App\Models\ImportJob;
+use App\Models\Product;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use App\Models\ImportJob;
-use App\Models\Product;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Exception;
+use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class ProcessBulkProductImport implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * Thời gian tối đa Job được phép chạy (10 phút)
-     */
-    public $timeout = 600;
+    protected $filePath;
+    protected $importJobId;
 
-    protected $importJob;
-
-    public function __construct(ImportJob $importJob)
+    public function __construct($filePath, $importJobId)
     {
-        $this->importJob = $importJob;
+        $this->filePath = $filePath;
+        $this->importJobId = $importJobId;
     }
 
-    public function handle(): void
+    public function handle()
     {
-        $this->importJob->update(['status' => ImportJob::STATUS_PROCESSING]);
+        $importJob = ImportJob::find($this->importJobId);
 
-        $relativePath = $this->importJob->file_path;
+        if (!$importJob) {
+            Log::error("Import job not found: {$this->importJobId}");
+            return;
+        }
 
-        if (!Storage::disk('local')->exists($relativePath)) {
-            $this->importJob->update([
-                'status' => ImportJob::STATUS_FAILED,
-                'error_message' => "Không tìm thấy file tại hệ thống lưu trữ: " . $relativePath
+        $importJob->update(['status' => 'processing']);
+
+        if (!Storage::disk('local')->exists($this->filePath)) {
+            $importJob->update([
+                'status' => 'failed',
+                'error_message' => 'Không tìm thấy file CSV trên hệ thống.'
             ]);
             return;
         }
 
-        $fullPath = Storage::disk('local')->path($relativePath);
-        $file = fopen($fullPath, 'r');
+        $fullPath = Storage::disk('local')->path($this->filePath);
+        $handle = fopen($fullPath, 'r');
 
-        fgetcsv($file); // Bỏ qua dòng Header đầu tiên của file CSV
-
-        $chunkSize = 50; // Nhóm 500 dòng để insert 1 lần (tối ưu hiệu năng)
-        $batchData = [];
+        $rowNum = 0;
         $processedCount = 0;
+        $errorList = []; // Mảng chứa chi tiết lỗi từng dòng
 
-        try {
-            DB::beginTransaction();
+        while (($row = fgetcsv($handle, 1000, ',')) !== false) {
+            $rowNum++;
 
-            while (($row = fgetcsv($file)) !== false) {
-                if (count($row) < 9) continue;
+            // Bỏ qua dòng tiêu đề
+            if ($rowNum === 1) continue;
+            // Bỏ qua dòng trống
+            if (empty(array_filter($row))) continue;
 
-                $profitMargin = (float) $row[5];
+            $data = [
+                'code'                => $row[0] ?? null,
+                'name'                => $row[1] ?? null,
+                'category_id'         => $row[2] ?? null,
+                'brand_id'            => $row[3] ?? null,
+                'unit'                => $row[4] ?? null,
+                'profit_margin'       => $row[5] ?? null,
+                'low_stock_threshold' => $row[6] ?? null,
+            ];
 
-                $batchData[] = [
-                    'code'                => $row[0],
-                    'name'                => $row[1],
-                    'category_id'         => $row[2],
-                    'brand_id'            => $row[3],
-                    'unit'                => !empty($row[4]) ? $row[4] : 'Chiếc', // Mặc định là 'Chiếc' nếu để trống
-                    'import_price'        => 0,
-                    'profit_margin'       => $profitMargin,
-                    'selling_price'       => 0,
-                    'low_stock_threshold' => !empty($row[6]) ? (int) $row[6] : 5, // Mặc định báo kho ở mức 5
-                    'status'              => 'visible', // Mặc định hiển thị
-                    'created_at'          => now(),
-                    'updated_at'          => now(),
-                ];
+            $validator = Validator::make($data, [
+                'code'                => 'required|string|max:50|unique:products,code',
+                'name'                => 'required|string|max:255',
+                'category_id'         => 'required|integer|exists:categories,id',
+                'brand_id'            => 'required|integer|exists:brands,id',
+                'unit'                => 'required|string|max:50',
+                'profit_margin'       => 'required|numeric|min:0',
+                'low_stock_threshold' => 'required|integer|min:0',
+            ]);
+
+            if ($validator->fails()) {
+                // Ghi log Terminal cho Dev
+                $errString = implode("; ", $validator->errors()->all());
+                Log::channel('import')->warning("Lỗi Dòng {$rowNum}: {$errString}");
+
+                // Lưu vào danh sách lỗi
+                $errorList[] = "Dòng {$rowNum}: {$errString}";
 
                 $processedCount++;
-
-                // Khi đủ 50 dòng, thực hiện Bulk Insert
-                if (count($batchData) === $chunkSize) {
-                    Product::insert($batchData);
-                    $batchData = [];
-
-                    $this->importJob->update(['processed_rows' => $processedCount]);
-                }
+                $importJob->update(['processed_rows' => $processedCount]);
+                continue;
             }
 
-            // Insert nốt những dòng còn dư cuối cùng
-            if (!empty($batchData)) {
-                Product::insert($batchData);
-                $this->importJob->update(['processed_rows' => $processedCount]);
+            try {
+                Product::create([
+                    'code'                => $data['code'],
+                    'name'                => $data['name'],
+                    'category_id'         => $data['category_id'],
+                    'brand_id'            => $data['brand_id'],
+                    'unit'                => $data['unit'],
+                    'profit_margin'       => $data['profit_margin'],
+                    'low_stock_threshold' => $data['low_stock_threshold'],
+                    'import_price'        => 0,
+                    'stock_quantity'      => 0,
+                    'status'              => 'visible',
+                ]);
+            } catch (Throwable $e) {
+                Log::channel('import')->error("Exception Dòng {$rowNum}: " . $e->getMessage());
+                $errorList[] = "Dòng {$rowNum}: Lỗi hệ thống khi lưu - " . $e->getMessage();
             }
 
-            DB::commit();
-            fclose($file);
+            $processedCount++;
 
-            // Kích hoạt xóa Cache Storefront để cập nhật hàng mới
-            Cache::increment('storefront:products:version');
-
-            // Đánh dấu hoàn thành
-            $this->importJob->update(['status' => ImportJob::STATUS_COMPLETED]);
-        } catch (Exception $e) {
-            DB::rollBack();
-            if (isset($file)) fclose($file);
-
-            $this->importJob->update([
-                'status' => ImportJob::STATUS_FAILED,
-                'error_message' => 'Lỗi dòng ' . $processedCount . ': ' . $e->getMessage()
-            ]);
+            if ($processedCount % 10 == 0) {
+                $importJob->update(['processed_rows' => $processedCount]);
+            }
         }
+
+        fclose($handle);
+
+        // Quyết định trạng thái cuối cùng
+        $finalStatus = count($errorList) > 0 ? 'completed_with_errors' : 'completed';
+
+        $importJob->update([
+            'status' => $finalStatus,
+            'processed_rows' => $processedCount,
+            'errors' => $errorList // Lưu mảng lỗi vào DB
+        ]);
     }
 }

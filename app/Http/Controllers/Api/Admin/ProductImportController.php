@@ -13,41 +13,63 @@ class ProductImportController extends BaseApiController
 {
     public function upload(Request $request)
     {
-        $request->validate(['file' => 'required|mimes:csv,txt|max:10240']); // Max 10MB
+        try {
+            $request->validate([
+                'file' => 'required|mimes:csv,txt|max:2048',
+            ]);
 
-        $path = $request->file('file')->store('imports', 'local');
+            $file = $request->file('file');
+            $path = $file->store('imports', 'local');
 
-        $fullPath = Storage::disk('local')->path($path);
+            $totalRows = count(file(storage_path('app/' . $path))) - 1;
 
-        if (!file_exists($fullPath)) {
-            return response()->json(['error' => 'Không thể truy cập file sau khi lưu'], 500);
+            $importJob = \App\Models\ImportJob::create([
+                'file_name' => $file->getClientOriginalName(),
+                'file_path' => $path,
+                'status' => 'pending',
+                'total_rows' => $totalRows > 0 ? $totalRows : 0,
+                'processed_rows' => 0,
+            ]);
+
+            \App\Jobs\ProcessBulkProductImport::dispatch($path, $importJob->id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'File uploaded successfully. Processing started.',
+                'data' => [
+                    'job_id' => $importJob->id
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Import Upload Error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Đã xảy ra lỗi hệ thống khi tải file lên. Vui lòng thử lại sau!'
+            ], 500);
         }
-
-        $totalRows = count(file($fullPath)) - 1;
-
-        $importJob = ImportJob::create([
-            'file_path'  => $path,
-            'total_rows' => $totalRows,
-            'status'     => ImportJob::STATUS_PENDING
-        ]);
-
-        // Ném vào Queue
-        ProcessBulkProductImport::dispatch($importJob);
-
-        return $this->successResponse([
-            'job_id'  => $importJob->id
-        ], 'File đang được xử lý ngầm!', 202); // 202 Accepted: Đã tiếp nhận nhưng chưa xử lý xong
     }
 
     public function status($id)
     {
         $job = ImportJob::findOrFail($id);
-        return $this->successResponse([
-            'status'         => $job->status,
-            'processed'      => $job->processed_rows,
-            'total'          => $job->total_rows,
-            'progress'       => $job->total_rows > 0 ? round(($job->processed_rows / $job->total_rows) * 100) : 0,
-            'error_message'  => $job->error_message
-        ], 'Thành công');
+
+        $progress = 0;
+        if ($job->total_rows > 0) {
+            $progress = round(($job->processed_rows / $job->total_rows) * 100);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $job->id,
+                'status' => $job->status,
+                'progress' => $progress,
+                'processed' => $job->processed_rows,
+                'total' => $job->total_rows,
+                'error_message' => $job->error_message,
+                'errors' => $job->errors
+            ]
+        ]);
     }
 }

@@ -10,11 +10,13 @@ return new class extends Migration
     {
         Schema::create('import_jobs', function (Blueprint $table) {
             $table->id();
+            $table->string('file_name')->nullable(); // KHẮC PHỤC: Thêm cột file_name
             $table->string('file_path');
             $table->integer('total_rows')->default(0);
             $table->integer('processed_rows')->default(0);
-            $table->enum('status', ['pending', 'processing', 'completed', 'failed'])->default('pending');
+            $table->enum('status', ['pending', 'processing', 'completed', 'completed_with_errors', 'failed'])->default('pending');
             $table->text('error_message')->nullable();
+            $table->json('errors')->nullable(); 
             $table->timestamps();
         });
     }
