@@ -28,15 +28,15 @@
                                 <input type="text" id="search-input" placeholder="Tìm tên hoặc mã SP...">
                             </div>
                             
-                            <select id="filter-category" class="form-control cursor-pointer" style="width:250px;" onchange="currentPage=1; loadProducts()">
+                            <select id="filter-category" class="form-control" onchange="currentPage=1; loadProducts()">
                                 <option value="">Tất cả danh mục</option>
                             </select>
 
-                            <select id="filter-brand" class="form-control cursor-pointer" style="width:250px;" onchange="currentPage=1; loadProducts()">
+                            <select id="filter-brand" class="form-control" onchange="currentPage=1; loadProducts()">
                                 <option value="">Tất cả thương hiệu</option>
                             </select>
 
-                            <select id="filter-status" class="form-control cursor-pointer" style="width:250px;" onchange="currentPage=1; loadProducts()">
+                            <select id="filter-status" class="form-control" onchange="currentPage=1; loadProducts()">
                                 <option value="">Trạng thái</option>
                                 <option value="visible">Đang hiển thị</option>
                                 <option value="hidden">Đang ẩn</option>
@@ -756,7 +756,6 @@ function makeSelectSearchable(selectId) {
     // Tạo thẻ div bao bọc bên ngoài
     const wrapper = document.createElement('div');
     wrapper.style.position = 'relative';
-    wrapper.style.width = select.style.width || '100%';
     wrapper.className = 'searchable-wrapper';
 
     // Tạo ô Input để người dùng gõ tìm kiếm
