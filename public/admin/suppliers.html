@@ -76,7 +76,7 @@
                     
                     <div class="form-group">
                         <label>Số điện thoại</label>
-                        <input type="text" id="supplier-phone" class="form-control" placeholder="VD: 0901234567">
+                        <input type="tel" id="supplier-phone" class="form-control" placeholder="VD: 0901234567">
                     </div>
                 </div>
                 
@@ -345,12 +345,21 @@ async function saveSupplier(e) {
     const id = document.getElementById('supplier-id').value;
     const btnSave = document.getElementById('btn-save');
     
-    const payload = {
-        name: document.getElementById('supplier-name').value.trim(),
-        phone: document.getElementById('supplier-phone').value.trim(),
-        email: document.getElementById('supplier-email').value.trim(),
-        address: document.getElementById('supplier-address').value.trim()
-    };
+    const name = document.getElementById('supplier-name').value.trim();
+    const phone = document.getElementById('supplier-phone').value.trim();
+    const email = document.getElementById('supplier-email').value.trim();
+    const address = document.getElementById('supplier-address').value.trim();
+
+    if (phone) {
+        const phoneRegex = /^(0|\+84)[3|5|7|8|9][0-9]{8}$/;
+        if (!phoneRegex.test(phone)) {
+            showAdminToast('Số điện thoại không đúng định dạng!', 'error');
+            document.getElementById('supplier-phone').focus();
+            return;
+        }
+    }
+
+    const payload = { name, phone, email, address };
 
     btnSave.disabled = true;
     btnSave.textContent = 'Đang lưu...';
@@ -359,7 +368,7 @@ async function saveSupplier(e) {
         const endpoint = id ? `/suppliers/${id}` : '/suppliers';
         const method = id ? 'PUT' : 'POST';
         
-        await adminRequest(endpoint, { //
+        await adminRequest(endpoint, { 
             method: method,
             body: JSON.stringify(payload)
         });
@@ -368,13 +377,12 @@ async function saveSupplier(e) {
         closeFormModal();
         loadSuppliers();
     } catch (err) {
-        showAdminToast(err.data?.message || 'Lỗi khi lưu dữ liệu', 'error');
+        showAdminToast(err.data?.message || 'Tên nhà cung cấp đã tồn tại hoặc lỗi dữ liệu', 'error');
     } finally {
         btnSave.disabled = false;
         btnSave.textContent = 'Lưu lại';
     }
 }
-
 // ==========================================
 // XÓA (Modal)
 // ==========================================

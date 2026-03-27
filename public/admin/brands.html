@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================================
 async function loadBrands() {
     const search = document.getElementById('search-input').value.trim();
-    const params = new URLSearchParams({ page: currentPage, per_page: 2 });
+    const params = new URLSearchParams({ page: currentPage, per_page: 5 });
     if (search) params.append('search', search);
 
     setTableLoading(true);

@@ -1,0 +1,406 @@
+﻿code,name,category_id,brand_id,unit,profit_margin,low_stock_threshold
+SP1,Sản phẩm test 1,4,5,Chiếc,10,5
+SP2,Sản phẩm test 2,5,1,Chiếc,25,5
+SP3,Sản phẩm test 3,3,4,Chiếc,22,5
+SP4,Sản phẩm test 4,5,5,Chiếc,18,5
+SP5,Sản phẩm test 5,5,4,Chiếc,15,5
+SP6,Sản phẩm test 6,2,2,Chiếc,22,5
+SP7,Sản phẩm test 7,3,2,Chiếc,12,5
+SP8,Sản phẩm test 8,3,5,Chiếc,25,5
+SP9,Sản phẩm test 9,3,4,Chiếc,12,5
+SP10,Sản phẩm test 10,5,1,Cái,10,5
+SP11,Sản phẩm test 11,4,5,Chiếc,12,5
+SP12,Sản phẩm test 12,3,2,Chiếc,10,5
+SP13,Sản phẩm test 13,5,2,Chiếc,12,5
+SP14,Sản phẩm test 14,2,5,Chiếc,15,5
+SP15,Sản phẩm test 15,4,4,Chiếc,22,5
+SP16,Sản phẩm test 16,2,2,Chiếc,15,5
+SP17,Sản phẩm test 17,4,4,Chiếc,22,5
+SP18,Sản phẩm test 18,5,2,Chiếc,12,5
+SP19,Sản phẩm test 19,1,2,Chiếc,20,5
+SP20,Sản phẩm test 20,4,3,Chiếc,20,5
+SP21,Sản phẩm test 21,2,2,Chiếc,20,5
+SP22,Sản phẩm test 22,5,1,Chiếc,18,5
+SP23,Sản phẩm test 23,4,5,Chiếc,22,5
+SP24,Sản phẩm test 24,1,5,Cái,22,5
+SP25,Sản phẩm test 25,1,4,Chiếc,22,5
+SP26,Sản phẩm test 26,3,2,Cái,10,5
+SP27,Sản phẩm test 27,3,1,Chiếc,20,5
+SP28,Sản phẩm test 28,2,4,Chiếc,10,5
+SP29,Sản phẩm test 29,4,3,Chiếc,22,5
+SP30,Sản phẩm test 30,4,4,Chiếc,12,5
+SP31,Sản phẩm test 31,3,4,Cái,12,5
+SP32,Sản phẩm test 32,4,2,Chiếc,25,5
+SP33,Sản phẩm test 33,4,3,Chiếc,25,5
+SP34,Sản phẩm test 34,1,4,Chiếc,20,5
+SP35,Sản phẩm test 35,3,1,Chiếc,10,5
+SP36,Sản phẩm test 36,5,1,Chiếc,20,5
+SP37,Sản phẩm test 37,3,5,Chiếc,10,5
+SP38,Sản phẩm test 38,5,3,Cái,15,5
+SP39,Sản phẩm test 39,1,3,Chiếc,22,5
+SP40,Sản phẩm test 40,2,5,Chiếc,25,5
+SP41,Sản phẩm test 41,4,4,Chiếc,22,5
+SP42,Sản phẩm test 42,1,3,Chiếc,18,5
+SP43,Sản phẩm test 43,4,1,Cái,20,5
+SP44,Sản phẩm test 44,2,1,Chiếc,12,5
+SP45,Sản phẩm test 45,2,2,Chiếc,10,5
+SP46,Sản phẩm test 46,1,3,Chiếc,12,5
+SP47,Sản phẩm test 47,2,4,Chiếc,22,5
+SP48,Sản phẩm test 48,5,5,Chiếc,25,5
+SP49,Sản phẩm test 49,2,5,Chiếc,10,5
+SP50,Sản phẩm test 50,4,4,Cái,25,5
+SP51,Sản phẩm test 51,4,2,Chiếc,18,5
+SP52,Sản phẩm test 52,4,5,Chiếc,25,5
+SP53,Sản phẩm test 53,4,3,Chiếc,10,5
+SP54,Sản phẩm test 54,5,2,Cái,15,5
+SP55,Sản phẩm test 55,3,3,Chiếc,25,5
+SP56,Sản phẩm test 56,1,1,Chiếc,22,5
+SP57,Sản phẩm test 57,4,2,Chiếc,15,5
+SP58,Sản phẩm test 58,2,5,Chiếc,15,5
+SP59,Sản phẩm test 59,4,2,Chiếc,15,5
+SP60,Sản phẩm test 60,2,2,Chiếc,12,5
+SP61,Sản phẩm test 61,2,2,Chiếc,10,5
+SP62,Sản phẩm test 62,4,2,Chiếc,18,5
+SP63,Sản phẩm test 63,5,3,Chiếc,22,5
+SP64,Sản phẩm test 64,2,1,Chiếc,22,5
+SP65,Sản phẩm test 65,2,4,Cái,10,5
+SP66,Sản phẩm test 66,4,2,Chiếc,25,5
+SP67,Sản phẩm test 67,2,5,Cái,12,5
+SP68,Sản phẩm test 68,2,2,Cái,15,5
+SP69,Sản phẩm test 69,4,5,Chiếc,18,5
+SP70,Sản phẩm test 70,4,3,Chiếc,12,5
+SP71,Sản phẩm test 71,1,5,Chiếc,25,5
+SP72,Sản phẩm test 72,5,4,Chiếc,25,5
+SP73,Sản phẩm test 73,5,1,Cái,20,5
+SP74,Sản phẩm test 74,2,5,Chiếc,25,5
+SP75,Sản phẩm test 75,5,5,Cái,22,5
+SP76,Sản phẩm test 76,2,1,Cái,12,5
+SP77,Sản phẩm test 77,1,4,Cái,12,5
+SP78,Sản phẩm test 78,4,2,Chiếc,20,5
+SP79,Sản phẩm test 79,4,5,Chiếc,12,5
+SP80,Sản phẩm test 80,4,1,Chiếc,15,5
+SP81,Sản phẩm test 81,5,3,Chiếc,15,5
+SP82,Sản phẩm test 82,1,1,Chiếc,18,5
+SP83,Sản phẩm test 83,5,3,Chiếc,20,5
+SP84,Sản phẩm test 84,5,4,Cái,22,5
+SP85,Sản phẩm test 85,1,2,Cái,20,5
+SP86,Sản phẩm test 86,1,1,Cái,12,5
+SP87,Sản phẩm test 87,1,5,Chiếc,22,5
+SP88,Sản phẩm test 88,1,4,Cái,10,5
+SP89,Sản phẩm test 89,4,1,Cái,12,5
+SP90,Sản phẩm test 90,3,5,Chiếc,10,5
+SP91,Sản phẩm test 91,3,1,Chiếc,12,5
+SP92,Sản phẩm test 92,1,3,Chiếc,22,5
+SP93,Sản phẩm test 93,3,1,Chiếc,15,5
+SP94,Sản phẩm test 94,3,1,Chiếc,12,5
+SP95,Sản phẩm test 95,1,1,Chiếc,22,5
+SP96,Sản phẩm test 96,3,4,Chiếc,18,5
+SP97,Sản phẩm test 97,5,1,Cái,12,5
+SP98,Sản phẩm test 98,2,5,Cái,10,5
+SP99,Sản phẩm test 99,2,3,Chiếc,22,5
+SP100,Sản phẩm test 100,1,3,Cái,18,5
+SP101,Sản phẩm test 101,4,1,Cái,20,5
+SP102,Sản phẩm test 102,1,4,Chiếc,22,5
+SP103,Sản phẩm test 103,4,4,Chiếc,15,5
+SP104,Sản phẩm test 104,2,5,Cái,12,5
+SP105,Sản phẩm test 105,1,1,Chiếc,15,5
+SP106,Sản phẩm test 106,5,3,Chiếc,18,5
+SP107,Sản phẩm test 107,3,4,Cái,18,5
+SP108,Sản phẩm test 108,4,1,Chiếc,15,5
+SP109,Sản phẩm test 109,3,4,Chiếc,15,5
+SP110,Sản phẩm test 110,3,4,Chiếc,20,5
+SP111,Sản phẩm test 111,1,3,Chiếc,12,5
+SP112,Sản phẩm test 112,3,2,Chiếc,18,5
+SP113,Sản phẩm test 113,5,5,Chiếc,25,5
+SP114,Sản phẩm test 114,3,5,Chiếc,22,5
+SP115,Sản phẩm test 115,1,3,Chiếc,10,5
+SP116,Sản phẩm test 116,5,4,Chiếc,10,5
+SP117,Sản phẩm test 117,2,1,Chiếc,22,5
+SP118,Sản phẩm test 118,3,4,Chiếc,20,5
+SP119,Sản phẩm test 119,1,3,Chiếc,18,5
+SP120,Sản phẩm test 120,2,5,Cái,18,5
+SP121,Sản phẩm test 121,2,4,Chiếc,25,5
+SP122,Sản phẩm test 122,4,5,Chiếc,15,5
+SP123,Sản phẩm test 123,5,1,Chiếc,25,5
+SP124,Sản phẩm test 124,3,5,Chiếc,10,5
+SP125,Sản phẩm test 125,1,5,Chiếc,22,5
+SP126,Sản phẩm test 126,4,2,Chiếc,25,5
+SP127,Sản phẩm test 127,5,2,Chiếc,18,5
+SP128,Sản phẩm test 128,4,2,Chiếc,12,5
+SP129,Sản phẩm test 129,5,5,Chiếc,15,5
+SP130,Sản phẩm test 130,5,3,Chiếc,25,5
+SP131,Sản phẩm test 131,3,5,Chiếc,15,5
+SP132,Sản phẩm test 132,5,3,Cái,12,5
+SP133,Sản phẩm test 133,4,3,Chiếc,22,5
+SP134,Sản phẩm test 134,5,2,Chiếc,22,5
+SP135,Sản phẩm test 135,3,4,Chiếc,18,5
+SP136,Sản phẩm test 136,3,1,Chiếc,10,5
+SP137,Sản phẩm test 137,4,2,Chiếc,18,5
+SP138,Sản phẩm test 138,2,2,Chiếc,25,5
+SP139,Sản phẩm test 139,2,4,Chiếc,10,5
+SP140,Sản phẩm test 140,5,1,Cái,25,5
+SP141,Sản phẩm test 141,1,5,Chiếc,22,5
+SP142,Sản phẩm test 142,5,5,Chiếc,25,5
+SP143,Sản phẩm test 143,4,2,Cái,18,5
+SP144,Sản phẩm test 144,4,1,Chiếc,22,5
+SP145,Sản phẩm test 145,4,2,Chiếc,18,5
+SP146,Sản phẩm test 146,4,3,Cái,22,5
+SP147,Sản phẩm test 147,4,2,Cái,25,5
+SP148,Sản phẩm test 148,3,2,Chiếc,15,5
+SP149,Sản phẩm test 149,2,5,Chiếc,25,5
+SP150,Sản phẩm test 150,4,5,Chiếc,18,5
+SP151,Sản phẩm test 151,1,5,Chiếc,22,5
+SP152,Sản phẩm test 152,1,3,Chiếc,12,5
+SP153,Sản phẩm test 153,1,5,Chiếc,25,5
+SP154,Sản phẩm test 154,1,1,Chiếc,18,5
+SP155,Sản phẩm test 155,3,4,Chiếc,22,5
+SP156,Sản phẩm test 156,1,1,Chiếc,10,5
+SP157,Sản phẩm test 157,4,1,Chiếc,10,5
+SP158,Sản phẩm test 158,5,5,Chiếc,20,5
+SP159,Sản phẩm test 159,1,4,Chiếc,20,5
+SP160,Sản phẩm test 160,3,4,Cái,10,5
+SP161,Sản phẩm test 161,3,4,Chiếc,15,5
+SP162,Sản phẩm test 162,1,3,Chiếc,10,5
+SP163,Sản phẩm test 163,5,5,Chiếc,25,5
+SP164,Sản phẩm test 164,1,4,Cái,15,5
+SP165,Sản phẩm test 165,3,3,Chiếc,15,5
+SP166,Sản phẩm test 166,2,2,Chiếc,18,5
+SP167,Sản phẩm test 167,4,2,Chiếc,22,5
+SP168,Sản phẩm test 168,3,3,Cái,18,5
+SP169,Sản phẩm test 169,1,3,Chiếc,20,5
+SP170,Sản phẩm test 170,4,5,Cái,25,5
+SP171,Sản phẩm test 171,1,5,Chiếc,10,5
+SP172,Sản phẩm test 172,1,2,Chiếc,15,5
+SP173,Sản phẩm test 173,2,4,Chiếc,25,5
+SP174,Sản phẩm test 174,4,2,Chiếc,15,5
+SP175,Sản phẩm test 175,4,4,Chiếc,15,5
+SP176,Sản phẩm test 176,2,4,Chiếc,12,5
+SP177,Sản phẩm test 177,3,5,Chiếc,18,5
+SP178,Sản phẩm test 178,1,1,Cái,18,5
+SP179,Sản phẩm test 179,5,1,Chiếc,12,5
+SP180,Sản phẩm test 180,1,3,Chiếc,22,5
+SP181,Sản phẩm test 181,1,5,Chiếc,12,5
+SP182,Sản phẩm test 182,3,4,Chiếc,12,5
+SP183,Sản phẩm test 183,1,1,Cái,20,5
+SP184,Sản phẩm test 184,2,4,Cái,12,5
+SP185,Sản phẩm test 185,2,1,Chiếc,18,5
+SP186,Sản phẩm test 186,4,1,Chiếc,25,5
+SP187,Sản phẩm test 187,5,1,Chiếc,25,5
+SP188,Sản phẩm test 188,1,5,Chiếc,15,5
+SP189,Sản phẩm test 189,1,2,Chiếc,15,5
+SP190,Sản phẩm test 190,3,4,Chiếc,10,5
+SP191,Sản phẩm test 191,2,5,Chiếc,22,5
+SP192,Sản phẩm test 192,5,5,Chiếc,10,5
+SP193,Sản phẩm test 193,4,5,Chiếc,20,5
+SP194,Sản phẩm test 194,2,5,Cái,15,5
+SP195,Sản phẩm test 195,4,5,Chiếc,10,5
+SP196,Sản phẩm test 196,3,3,Chiếc,20,5
+SP197,Sản phẩm test 197,3,4,Chiếc,25,5
+SP198,Sản phẩm test 198,1,5,Cái,22,5
+SP199,Sản phẩm test 199,5,4,Chiếc,20,5
+SP200,Sản phẩm test 200,4,3,Chiếc,25,5
+SP201,Sản phẩm test 201,2,3,Cái,15,5
+SP202,Sản phẩm test 202,3,4,Chiếc,12,5
+SP203,Sản phẩm test 203,1,1,Chiếc,18,5
+SP204,Sản phẩm test 204,1,2,Chiếc,22,5
+SP205,Sản phẩm test 205,4,1,Chiếc,25,5
+SP206,Sản phẩm test 206,3,1,Chiếc,20,5
+SP207,Sản phẩm test 207,5,1,Chiếc,25,5
+SP208,Sản phẩm test 208,3,5,Chiếc,12,5
+SP209,Sản phẩm test 209,4,3,Chiếc,25,5
+SP210,Sản phẩm test 210,4,1,Chiếc,10,5
+SP211,Sản phẩm test 211,3,3,Chiếc,25,5
+SP212,Sản phẩm test 212,4,4,Chiếc,20,5
+SP213,Sản phẩm test 213,3,2,Chiếc,10,5
+SP214,Sản phẩm test 214,2,4,Chiếc,22,5
+SP215,Sản phẩm test 215,3,4,Cái,18,5
+SP216,Sản phẩm test 216,3,5,Chiếc,10,5
+SP217,Sản phẩm test 217,4,2,Chiếc,25,5
+SP218,Sản phẩm test 218,4,4,Cái,10,5
+SP219,Sản phẩm test 219,1,4,Chiếc,12,5
+SP220,Sản phẩm test 220,1,2,Chiếc,15,5
+SP221,Sản phẩm test 221,2,2,Chiếc,22,5
+SP222,Sản phẩm test 222,1,4,Chiếc,25,5
+SP223,Sản phẩm test 223,3,2,Chiếc,18,5
+SP224,Sản phẩm test 224,4,4,Chiếc,22,5
+SP225,Sản phẩm test 225,1,4,Chiếc,25,5
+SP226,Sản phẩm test 226,1,5,Chiếc,18,5
+SP227,Sản phẩm test 227,2,1,Cái,20,5
+SP228,Sản phẩm test 228,2,4,Chiếc,18,5
+SP229,Sản phẩm test 229,3,3,Cái,25,5
+SP230,Sản phẩm test 230,4,1,Chiếc,25,5
+SP231,Sản phẩm test 231,2,1,Chiếc,25,5
+SP232,Sản phẩm test 232,1,1,Chiếc,12,5
+SP233,Sản phẩm test 233,4,5,Chiếc,10,5
+SP234,Sản phẩm test 234,4,4,Cái,22,5
+SP235,Sản phẩm test 235,1,5,Chiếc,18,5
+SP236,Sản phẩm test 236,2,4,Chiếc,18,5
+SP237,Sản phẩm test 237,1,5,Cái,22,5
+SP238,Sản phẩm test 238,4,5,Chiếc,22,5
+SP239,Sản phẩm test 239,5,3,Chiếc,25,5
+SP240,Sản phẩm test 240,5,5,Cái,15,5
+SP241,Sản phẩm test 241,3,2,Chiếc,18,5
+SP242,Sản phẩm test 242,1,3,Chiếc,18,5
+SP243,Sản phẩm test 243,1,5,Chiếc,10,5
+SP244,Sản phẩm test 244,3,1,Chiếc,18,5
+SP245,Sản phẩm test 245,3,2,Chiếc,10,5
+SP246,Sản phẩm test 246,3,2,Chiếc,22,5
+SP247,Sản phẩm test 247,4,2,Chiếc,25,5
+SP248,Sản phẩm test 248,1,3,Chiếc,20,5
+SP249,Sản phẩm test 249,4,5,Chiếc,18,5
+SP250,Sản phẩm test 250,3,5,Chiếc,20,5
+SP251,Sản phẩm test 251,1,1,Chiếc,12,5
+SP252,Sản phẩm test 252,4,1,Chiếc,18,5
+SP253,Sản phẩm test 253,4,2,Chiếc,20,5
+SP254,Sản phẩm test 254,3,1,Chiếc,18,5
+SP255,Sản phẩm test 255,1,3,Chiếc,18,5
+SP256,Sản phẩm test 256,3,5,Chiếc,18,5
+SP257,Sản phẩm test 257,1,2,Chiếc,10,5
+SP258,Sản phẩm test 258,5,1,Chiếc,12,5
+SP259,Sản phẩm test 259,2,3,Chiếc,10,5
+SP260,Sản phẩm test 260,2,3,Chiếc,10,5
+SP261,Sản phẩm test 261,2,1,Chiếc,15,5
+SP262,Sản phẩm test 262,3,5,Chiếc,12,5
+SP263,Sản phẩm test 263,5,1,Chiếc,15,5
+SP264,Sản phẩm test 264,1,2,Cái,12,5
+SP265,Sản phẩm test 265,4,1,Chiếc,10,5
+SP266,Sản phẩm test 266,1,3,Chiếc,20,5
+SP267,Sản phẩm test 267,4,1,Chiếc,10,5
+SP268,Sản phẩm test 268,1,5,Chiếc,25,5
+SP269,Sản phẩm test 269,5,4,Chiếc,15,5
+SP270,Sản phẩm test 270,4,1,Chiếc,15,5
+SP271,Sản phẩm test 271,3,5,Chiếc,25,5
+SP272,Sản phẩm test 272,1,5,Chiếc,10,5
+SP273,Sản phẩm test 273,1,3,Cái,12,5
+SP274,Sản phẩm test 274,4,5,Chiếc,20,5
+SP275,Sản phẩm test 275,3,5,Chiếc,10,5
+SP276,Sản phẩm test 276,3,5,Chiếc,20,5
+SP277,Sản phẩm test 277,5,5,Cái,15,5
+SP278,Sản phẩm test 278,3,2,Chiếc,20,5
+SP279,Sản phẩm test 279,3,2,Cái,15,5
+SP280,Sản phẩm test 280,3,3,Chiếc,20,5
+SP281,Sản phẩm test 281,2,1,Chiếc,15,5
+SP282,Sản phẩm test 282,5,5,Cái,25,5
+SP283,Sản phẩm test 283,1,1,Chiếc,25,5
+SP284,Sản phẩm test 284,4,1,Cái,15,5
+SP285,Sản phẩm test 285,1,3,Cái,20,5
+SP286,Sản phẩm test 286,5,5,Chiếc,22,5
+SP287,Sản phẩm test 287,4,5,Chiếc,22,5
+SP288,Sản phẩm test 288,5,4,Chiếc,12,5
+SP289,Sản phẩm test 289,3,1,Chiếc,12,5
+SP290,Sản phẩm test 290,4,1,Chiếc,10,5
+SP291,Sản phẩm test 291,3,2,Chiếc,15,5
+SP292,Sản phẩm test 292,1,4,Chiếc,15,5
+SP293,Sản phẩm test 293,1,2,Chiếc,15,5
+SP294,Sản phẩm test 294,4,2,Chiếc,10,5
+SP295,Sản phẩm test 295,4,2,Cái,20,5
+SP296,Sản phẩm test 296,5,3,Chiếc,15,5
+SP297,Sản phẩm test 297,5,3,Chiếc,15,5
+SP298,Sản phẩm test 298,3,2,Chiếc,18,5
+SP299,Sản phẩm test 299,4,4,Chiếc,12,5
+SP300,Sản phẩm test 300,1,1,Chiếc,12,5
+IP15PM,iPhone 15 Pro Max 256GB,5,4,Chiếc,15,5
+IP15P,iPhone 15 Pro 128GB,5,5,Chiếc,15,5
+IP15S,iPhone 15 Plus 256GB,1,3,Chiếc,15,5
+SS24U,Samsung Galaxy S24 Ultra 512GB,5,1,Chiếc,18,5
+SS24P,Samsung Galaxy S24+ 256GB,3,1,Chiếc,18,5
+SSA55,Samsung Galaxy A55 5G,4,5,Chiếc,20,10
+SSA35,Samsung Galaxy A35 5G,1,5,Chiếc,22,10
+XM14P,Xiaomi 14 Pro 512GB,4,2,Chiếc,18,5
+XM14U,Xiaomi 14 Ultra 512GB,5,3,Chiếc,18,5
+RENO12P,OPPO Reno12 Pro 5G,5,3,Chiếc,20,5
+NOVA12,Huawei Nova 12 Ultra,1,4,Chiếc,15,5
+VIVO V30,vivo V30 5G 256GB,3,2,Chiếc,22,5
+PIXEL8P,Google Pixel 8 Pro,2,2,Chiếc,15,3
+PIXEL8A,Google Pixel 8a,1,2,Chiếc,18,5
+MACM3P,MacBook Pro M3 14 inch,2,2,Chiếc,12,3
+MACM3A,MacBook Air M3 13 inch,2,3,Chiếc,15,3
+MACM3AM,MacBook Air M3 15 inch,3,3,Chiếc,15,3
+XPSN15,Dell XPS 15 OLED,2,2,Chiếc,15,3
+XPS15,Dell XPS 15 9530,2,4,Chiếc,18,3
+IXL15,Dell Inspiron 15 3520,3,1,Chiếc,20,5
+TPX1E,ThinkPad X1 Extreme Gen5,2,1,Chiếc,12,3
+TPE14,ThinkPad E14 Gen5,2,4,Chiếc,18,5
+HPELITEX,HP EliteBook 840 G10,2,2,Chiếc,15,3
+HPENV16,HP Envy 16 2024,1,3,Chiếc,18,3
+HPPV15,HP Pavilion 15 i5,1,1,Chiếc,22,5
+ROGG14A,Asus ROG Zephyrus G14 2024,1,5,Chiếc,15,3
+ROGF16,Asus ROG Flow X16 2024,3,5,Chiếc,15,3
+VBPRO15,Vivobook Pro 15 OLED,5,4,Chiếc,20,5
+ASWIFT5,Acer Swift 5 Ultra,2,2,Chiếc,18,5
+ASASPI,Acer Aspire 5 A515,2,1,Chiếc,22,5
+MSIMOD15,MSI Modern 15 i7,3,2,Chiếc,20,5
+MSICAT15,MSI Katana 15 B12,2,1,Chiếc,18,5
+SURFP9,Microsoft Surface Pro 9,1,4,Chiếc,15,3
+SURFL5,Microsoft Surface Laptop 5,5,4,Chiếc,15,3
+IPAD11M4,iPad Pro 11 M4 256GB,4,5,Chiếc,12,3
+IPAD13M4,iPad Pro 13 M4 256GB,2,2,Chiếc,12,3
+IPADA6,iPad Air 6 M2 256GB,1,5,Chiếc,15,5
+IPAD10,iPad Gen 10 64GB WiFi,4,2,Chiếc,18,5
+IPADM9,iPad mini 6 64GB,5,5,Chiếc,15,5
+TABS9P,Samsung Galaxy Tab S9 Plus,4,3,Chiếc,15,3
+TABS9FE,Samsung Galaxy Tab S9 FE,1,3,Chiếc,20,5
+TABS9U,Samsung Galaxy Tab S9 Ultra,4,3,Chiếc,12,3
+MIPD6P,Xiaomi Pad 6 Pro,3,3,Chiếc,20,5
+MIPD6MAX,Xiaomi Pad 6 Max 14,4,1,Chiếc,18,5
+SURPRO10,Microsoft Surface Pro 10,2,3,Chiếc,12,3
+LENP12P,Lenovo Tab P12 Pro,2,4,Chiếc,20,5
+LENM9,Lenovo Tab M9,3,4,Chiếc,25,10
+REALPAD2,Realme Pad 2,1,1,Chiếc,25,10
+AW9P45,Apple Watch Series 9 41mm,2,3,Chiếc,15,5
+AW9P49,Apple Watch Series 9 45mm,5,3,Chiếc,15,5
+AWULTRA,Apple Watch Ultra 2,2,3,Chiếc,12,3
+AWSE3,Apple Watch SE 3,2,5,Chiếc,18,5
+GW7C44,Samsung Galaxy Watch 7 44mm,1,2,Chiếc,18,5
+GW7U47,Samsung Galaxy Watch Ultra 47mm,4,5,Chiếc,15,3
+GWF6P,Samsung Galaxy Watch FE,2,2,Chiếc,22,5
+HWGT4P,Huawei Watch GT 4 46mm,3,3,Chiếc,20,5
+HWWATCH4,Huawei Watch 4 Pro,4,3,Chiếc,18,5
+XMW2P,Xiaomi Watch 2 Pro,5,5,Chiếc,22,5
+GARPIX7,Garmin Forerunner 165,1,5,Chiếc,20,5
+GARVER2,Garmin Venu 3,5,2,Chiếc,18,5
+FITCHR6,Fitbit Charge 6,4,4,Chiếc,25,10
+APP2G2,AirPods Pro 2nd Gen,4,2,Hộp,18,10
+AP4,AirPods 4,4,5,Hộp,20,10
+APMAX,AirPods Max USB-C,5,5,Hộp,12,5
+GALBUDS2P,Samsung Galaxy Buds2 Pro,4,1,Hộp,20,10
+GALBFE,Samsung Galaxy Buds FE,5,5,Hộp,25,10
+SONYXM5,Sony WH-1000XM5,4,1,Hộp,18,5
+SONYWF5,Sony WF-1000XM5,3,4,Hộp,18,5
+JBLF6P,JBL Flip 6 Plus,4,2,Cái,25,10
+JBLCH2,JBL Charge 5,5,2,Cái,22,10
+JBLEXT,JBL Xtreme 4,2,1,Cái,20,5
+ANK73W,Anker 735 GaN 65W,4,2,Cái,30,15
+ANK100W,Anker Prime 100W,2,5,Cái,28,15
+ANK10K,Anker PowerCore 10000,3,3,Cái,30,15
+ANK20K,Anker PowerCore 20000,1,1,Cái,28,15
+MXMAS3,Logitech MX Master 3S,3,2,Cái,22,10
+MXKEYS,Logitech MX Keys,4,1,Cái,22,10
+GPROG305,Logitech G305 Lightspeed,2,1,Cái,30,15
+LOGI920,Logitech C920s HD Pro,2,3,Cái,22,10
+BSEAT1,Belkin 65W USB-C PD 3.0,5,5,Cái,30,15
+UGREEN65W,Ugreen 65W GaN Charger,2,1,Cái,30,15
+CBASEUS,Baseus 100W Cable USB-C,5,2,Cái,35,20
+SPIDER65,Spigen Rugged Case iPhone 15,1,4,Cái,40,15
+SPARMOR,Spigen ArmorFlex Screen Protector,4,1,Cái,50,20
+RAYVIPER,Razer Viper V3 Pro,5,1,Cái,20,5
+CORSKROS,Corsair K70 Max RGB,1,3,Cái,22,5
+STEADSIB,SteelSeries Arctis Nova Pro,2,5,Hộp,20,5
+ROGSTRIX2024,Asus ROG Strix SCAR 16 2024,2,4,Chiếc,12,3
+MSIGTITAN,MSI GT Titan 18 HX,1,2,Chiếc,10,2
+RAIBLD16,Razer Blade 16 2024,2,4,Chiếc,10,2
+ALEPREDG16,Acer Predator Helios 16,1,2,Chiếc,15,3
+LENLEGION5,Lenovo Legion 5 Pro 16,5,5,Chiếc,18,5
+LENLEGO9,Lenovo Legion 9i,5,2,Chiếc,10,2
+SSA15,Samsung Galaxy A15,1,3,Chiếc,25,10
+SSA05,Samsung Galaxy A05,5,3,Chiếc,28,15
+REALC65,Realme C65,5,3,Chiếc,28,10
+REALNARZO70P,Realme Narzo 70 Pro,5,3,Chiếc,22,10
+TECNO50P,Tecno POVA 6 Pro,3,4,Chiếc,25,10
+INFHOT50P,Infinix Hot 50 Pro,4,5,Chiếc,28,10
+DELLP2723,"Dell P2723DE 27"" Monitor",2,2,Cái,15,3
+LG27IPS,"LG 27GP850-B 27"" IPS",3,2,Cái,18,3
+SAMG32,"Samsung Odyssey G3 32""",5,3,Cái,20,5
+SPDISK2T,Seagate Portable 2TB,1,3,Cái,25,10
+WDPASS1T,WD Passport 1TB,5,1,Cái,25,10
+SAMSSD1T,Samsung T7 SSD 1TB,4,5,Cái,22,10

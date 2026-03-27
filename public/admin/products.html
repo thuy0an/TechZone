@@ -180,11 +180,11 @@
 <div class="modal-overlay" id="delete-modal">
     <div class="modal-box">
         <div class="modal-icon">🗑️</div>
-        <div class="modal-title">Xác nhận xóa</div>
+        <div class="modal-title">Xác nhận ẩn sản phẩm</div>
         <div class="modal-message">
-            Bạn có chắc muốn xóa sản phẩm
+            Bạn có chắc muốn ẩn sản phẩm
             <strong id="delete-name"></strong>?<br>
-            <small style="color:var(--text-secondary)">Nếu sản phẩm đã có đơn hàng, hệ thống sẽ tự động chuyển sang trạng thái Đang ẩn.</small>
+            <small style="color:var(--text-secondary)">Nếu sản phẩm đã có đơn hàng, sản phẩm chỉ bị ẩn đi mà không thực sự bị xóa.</small>
         </div>
         <div class="modal-actions">
             <button class="btn btn-cancel" onclick="closeDeleteModal()">Hủy</button>
@@ -302,7 +302,7 @@
 </div>
 
 <div class="modal-overlay-form" id="import-modal">
-    <div class="modal-form-box" style="max-width: 500px;">
+    <div class="modal-form-box" style="max-width: 800px;">
         <div class="modal-form-header">
             <span class="modal-form-title">Nhập dữ liệu sản phẩm</span>
             <button class="modal-close-btn" onclick="closeImportModal()">✕</button>
@@ -321,9 +321,14 @@
             
             <div id="import-error" class="field-error" style="display:none; text-align:center; margin-top:10px;"></div>
             
-            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 20px; text-align: center;">
-                File CSV cần có cấu trúc 6 cột theo thứ tự: <br>
-                <strong>Mã SP | Tên SP | ID Danh mục | ID Thương hiệu | Giá Nhập | Tồn kho</strong>
+            <div style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 20px; text-align: center; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1;">
+                File CSV cần có cấu trúc <strong>7 cột</strong> theo đúng thứ tự sau:<br>
+                <div style="margin-top: 8px; font-family: monospace; color: var(--admin-primary); font-size: 0.95rem;">
+                    Mã SP | Tên SP | ID Danh mục | ID Thương hiệu | Đơn vị tính | Biên lợi nhuận (%) | Cảnh báo kho
+                </div>
+                <div style="margin-top: 8px; font-family: monospace; color: var(--admin-primary); font-size: 0.95rem;">
+                    Trạng thái sản phẩm nhập vào mặc định là <b>'hiển thị'</b> và giá nhập là <b>0đ</b>
+                </div>
             </div>
         </div>
         <div class="modal-form-footer">
@@ -465,7 +470,7 @@ function renderTable(items) {
                     <div class="td-actions">
                         <button class="btn-view" onclick="openViewModal(${p.id})">Xem</button>
                         <button class="btn-edit" onclick="openEditModal(${p.id})">✏️ Sửa</button>
-                        <button class="btn-delete" onclick="openDeleteModal(${p.id}, '${escJs(p.name)}')">🗑️ Xóa</button>
+                        <button class="btn-delete" onclick="openDeleteModal(${p.id}, '${escJs(p.name)}')">Ngừng kinh doanh</button>
                     </div>
                 </td>
             </tr>
@@ -937,8 +942,12 @@ async function pollImportStatus(jobId) {
 
 function resetFilter() {
     document.getElementById('search-input').value = '';
-    document.getElementById('category-filter').value = '';
-    document.getElementById('brand-filter').value = '';
+    document.getElementById('filter-status').value = '';
+    document.getElementById('filter-category').value = '';
+    document.getElementById('filter-brand').value = '';
+    document.getElementById('filter-min-price').value = '';
+    document.getElementById('filter-max-price').value = '';
+    document.getElementById('filter-low-stock').checked = false;
     
     currentPage = 1;
     loadProducts();
