@@ -58,6 +58,7 @@
                             <div class="flex-row">
                                 <button class="btn btn-add" onclick="openImportModal()">📥 Nhập CSV</button>
                                 <button class="btn-add" onclick="openAddModal()">＋ Thêm sản phẩm</button>
+                                <button type="button" class="btn-filter-reset" onclick="resetFilter()">↻ Xóa lọc</button>
                             </div>
                         </div>
                     </div>
@@ -932,6 +933,15 @@ async function pollImportStatus(jobId) {
             document.getElementById('import-error').style.display = 'block';
         }
     }, 2000); // Mỗi 2 giây hỏi lại 1 lần
+}
+
+function resetFilter() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('category-filter').value = '';
+    document.getElementById('brand-filter').value = '';
+    
+    currentPage = 1;
+    loadProducts();
 }
 
 </script>

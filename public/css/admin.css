@@ -1941,6 +1941,18 @@ table.data-table tbody tr:hover {
     transition: width 0.3s ease;
 }
 
+.btn-filter-reset{
+    background: #f1f5f9; 
+    border: 1px solid #cbd5e1; 
+    color: #475569; 
+    padding: 8px 16px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-weight: 600; 
+    margin-left: 8px; 
+    transition: 0.2s;
+}
+
 
 /* ---- Responsive ---- */
 @media (max-width: 768px) {

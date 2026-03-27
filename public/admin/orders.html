@@ -65,6 +65,8 @@
                                 <option value="cancelled">Đã hủy</option>
                                 <option value="failed">Thất bại</option>
                             </select>
+
+                            <button type="button" onclick="resetFilter()" class="btn-filter-reset">↻ Xóa lọc</button>
                         </div>
                     </div>
                 </div>
@@ -495,6 +497,20 @@ function showTableError(msg) {
 
 function closeFormModal() {
     document.getElementById('form-modal').classList.remove('show');
+}
+
+function resetFilter() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('filter-status').value = '';
+    document.getElementById('filter-payment').value = ''; 
+    document.getElementById('filter-start-date').value = '';
+    document.getElementById('filter-end-date').value = '';
+    document.getElementById('filter-province').value = '';
+    document.getElementById('filter-district').value = '';
+    document.getElementById('filter-ward').value = '';
+    
+    currentPage = 1;
+    loadOrders();
 }
 </script>
 </body>

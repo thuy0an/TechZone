@@ -56,6 +56,8 @@
                                 <label style="font-size: 0.8rem; color: var(--text-secondary);">Đến:</label>
                                 <input type="date" id="filter-to-date" class="form-control cursor-pointer" title="Đến ngày" onchange="currentPage=1; loadImportNotes()">
                             </div>
+
+                            <button type="button" onclick="resetFilter()" class="btn-filter-reset">↻ Xóa lọc</button>
                             
                             <div style="flex-grow: 1;"></div>
                             <button class="btn-add" onclick="openFormModal()">
@@ -642,6 +644,16 @@ function setTableLoading(on) {
 function showTableError(msg) {
     document.getElementById('note-table-body').innerHTML = `<tr><td colspan="7" class="table-empty text-danger">${msg}</td></tr>`;
     document.getElementById('pagination-bar').style.display = 'none';
+}
+
+function resetFilter() {
+    document.getElementById('filter-status').value= '';
+    document.getElementById('filter-supplier').value= '';
+    document.getElementById('filter-from-date').value= '';
+    document.getElementById('filter-to-date').value= '';
+
+    currentPage = 1;
+    loadImportNotes();
 }
 </script>
 </body>
