@@ -30,7 +30,7 @@
                     <h1>Tạo Phiếu Nhập Mới</h1>
                     <p>Tìm kiếm sản phẩm và lập danh sách nhập kho</p>
                 </div>
-                <a href="import-notes.html" class="centered btn btn-cancel">
+                <a href="import-notes.html" class="centered btn btn-cancel" onclick="handleCancel(); return false;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                         <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
                     </svg> Trở về danh sách
@@ -77,7 +77,7 @@
                                 </select>
                             </div>
 
-                            <div class="table-wrapper" style="max-height: 300px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+                            <div class="table-wrapper" style="height: 500px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
                                 <table class="data-table" style="margin: 0;">
                                     <thead style="position: sticky; top: 0; z-index: 10;">
                                         <tr>
@@ -121,12 +121,27 @@
                     </div>
                     
                     <div style="padding: 20px; background: #f8fafc; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; border-radius: 0 0 10px 10px;">
-                        <button type="button" class="btn btn-cancel" onclick="window.location.href='import-notes.html'">Hủy</button>
+                        <button type="button" class="btn btn-cancel" onclick="handleCancel()">Hủy</button>
                         <button type="submit" class="btn-edit" id="btn-submit" style="min-width: 150px;">💾 Lưu Bản Nháp</button>
                     </div>
                 </div>
             </form>
         </main>
+    </div>
+</div>
+
+<div class="modal-overlay" id="unsaved-modal" style="z-index: 9999;">
+    <div class="modal-box">
+        <div class="modal-icon" style="font-size: 3rem; margin-bottom: 15px;">⚠️</div>
+        <div class="modal-title">Bạn có thay đổi chưa lưu!</div>
+        <div class="modal-message" style="margin-bottom: 25px;">
+            Nếu bạn rời đi bây giờ, các dữ liệu vừa nhập (thêm/bớt sản phẩm, số lượng, giá...) sẽ bị mất. Bạn muốn làm gì?
+        </div>
+        <div class="modal-actions" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button class="btn btn-cancel" onclick="closeUnsavedModal()">Ở lại trang</button>
+            <button class="btn btn-danger" style="background-color: #ef4444;" onclick="unsavedDiscard()">Rời đi (Không lưu)</button>
+            <button class="btn btn-success" id="btn-unsaved-save" style="background-color: #10b981; color: white;" onclick="unsavedSaveAndLeave()">Lưu & Rời đi</button>
+        </div>
     </div>
 </div>
 
@@ -143,6 +158,7 @@
     let currentAvailableProducts = []; // Lưu danh sách SP đang hiển thị ở bảng trên
     let availableCurrentPage = 1;
     let searchTimeout = null;
+    let isDirty = false;
 
     document.addEventListener('DOMContentLoaded', async () => {
         requireAdminAuth();
@@ -154,6 +170,9 @@
         } else {
             initAdminLayout({ title: 'Tạo Phiếu Nhập', activePage: 'import-notes' });
         }
+
+        document.getElementById('supplier_id').addEventListener('change', () => { isDirty = true; });
+        document.getElementById('import_date').addEventListener('change', () => { isDirty = true; });
         
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -216,7 +235,7 @@
         const categoryId = document.getElementById('filter-category').value;
         const brandId = document.getElementById('filter-brand').value;
 
-        const params = new URLSearchParams({ page: availableCurrentPage, per_page: 5 }); // Mỗi trang 5 SP cho gọn
+        const params = new URLSearchParams({ page: availableCurrentPage, per_page: 8 }); // Mỗi trang 8 SP cho gọn
         if (search) params.append('search', search);
         if (categoryId) params.append('category_id', categoryId);
         if (brandId) params.append('brand_id', brandId);
@@ -308,6 +327,8 @@
             renderSelectedTable();
             renderAvailableProducts();
 
+            setTimeout(() => { isDirty = false; }, 200);
+
         } catch (e) {
             showAdminToast('Không thể lấy dữ liệu phiếu nhập để sửa', 'error');
         }
@@ -326,6 +347,8 @@
             import_price: defaultPrice // Mặc định lấy giá nhập cũ (nếu có)
         });
 
+        isDirty = true;
+
         // Reset ô tìm kiếm
         document.getElementById('product-search').value = '';
 
@@ -335,6 +358,7 @@
 
     function removeProduct(id) {
         selectedProducts = selectedProducts.filter(p => p.id !== id);
+        isDirty = true;
         renderSelectedTable();
         renderAvailableProducts();
     }
@@ -347,6 +371,7 @@
             if (numVal < 0) numVal = 0;
             
             product[field] = numVal;
+            isDirty = true;
             renderSelectedTable(); // Render lại để cập nhật Thành tiền và Tổng tiền
         }
     }
@@ -393,17 +418,16 @@
     // ==========================================
     // SUBMIT FORM (GỌI API TẠO PHIẾU)
     // ==========================================
-    async function saveImportNote() {
+    async function saveImportNote(isAutoSave = false) {
         if (selectedProducts.length === 0) {
             showAdminToast('Vui lòng chọn ít nhất 1 sản phẩm để nhập kho!', 'error');
-            return;
+            return false; 
         }
 
         const btn = document.getElementById('btn-submit');
         btn.disabled = true;
         btn.textContent = '⏳ Đang lưu...';
 
-        // Build Payload chuẩn khớp với Request
         const payload = {
             supplier_id: document.getElementById('supplier_id').value,
             import_date: document.getElementById('import_date').value,
@@ -423,18 +447,87 @@
                 body: JSON.stringify(payload)
             });
 
-            showAdminToast('Tạo phiếu nhập Draft thành công!', 'success');
+            isDirty = false; 
+
+            if (!isAutoSave) {
+                showAdminToast('Lưu bản nháp thành công!', 'success');
+                setTimeout(() => {
+                    window.location.href = 'import-notes.html';
+                }, 800);
+            }
+            return true; 
             
-            // Chuyển hướng về trang danh sách sau 1 giây
-            setTimeout(() => {
-                window.location.href = 'import-notes.html';
-            }, 1000);
         } catch (err) {
             showAdminToast(err.data?.message || 'Lỗi khi tạo phiếu nhập', 'error');
             btn.disabled = false;
             btn.textContent = '💾 Lưu Bản Nháp';
+            return false; 
         }
     }
+
+    // ==========================================
+    // XỬ LÝ CHUYỂN TRANG VỚI CUSTOM MODAL
+    // ==========================================
+    
+    let pendingTargetUrl = ''; 
+
+    function openUnsavedModal(url) {
+        pendingTargetUrl = url;
+        document.getElementById('unsaved-modal').classList.add('show');
+    }
+
+    function closeUnsavedModal() {
+        pendingTargetUrl = '';
+        document.getElementById('unsaved-modal').classList.remove('show');
+    }
+
+    function unsavedDiscard() {
+        isDirty = false; 
+        window.location.href = pendingTargetUrl;
+    }
+
+    async function unsavedSaveAndLeave() {
+        const btnSave = document.getElementById('btn-unsaved-save');
+        btnSave.disabled = true;
+        btnSave.textContent = '⏳ Đang xử lý...';
+
+        const isSuccess = await saveImportNote(true); 
+        
+        if (isSuccess) {
+            isDirty = false;
+            window.location.href = pendingTargetUrl; 
+        } else {
+            closeUnsavedModal();
+            btnSave.disabled = false;
+            btnSave.textContent = 'Lưu & Rời đi';
+        }
+    }
+
+    function handleCancel() {
+        if (isDirty) {
+            openUnsavedModal('import-notes.html');
+        } else {
+            window.location.href = 'import-notes.html';
+        }
+    }
+
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        
+        if (link && link.href && !link.href.includes('javascript:') && !link.getAttribute('href').startsWith('#')) {
+            if (isDirty) {
+                e.preventDefault(); 
+                openUnsavedModal(link.href); 
+            }
+        }
+    });
+
+    window.addEventListener('beforeunload', (e) => {
+        if (isDirty) {
+            e.preventDefault(); 
+            e.returnValue = ''; 
+        }
+    });
 </script>
 </body>
 </html>

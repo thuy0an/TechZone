@@ -883,29 +883,28 @@ dropzone.addEventListener('drop', (e) => {
 async function startImport() {
     const fileInput = document.getElementById('import-file');
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        showAdminToast('Vui lòng chọn file CSV', 'error');
-        return; 
+        return showAdminToast('Vui lòng chọn file CSV', 'error');
     }
 
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
 
-    // Khóa nút bấm và hiện thanh tiến trình
     document.getElementById('btn-start-import').disabled = true;
-    document.getElementById('import-progress-wrap').style.display = 'block';
-    document.getElementById('import-error').style.display = 'none';
-    document.getElementById('import-progress-text').textContent = 'Đang tải file lên...';
+    document.getElementById('btn-start-import').textContent = 'Đang đẩy lên server...';
 
     try {
-        // Gọi API Upload (Sử dụng hàm adminRequestFormData đã có sẵn trong admin-api.js)
         const res = await adminRequestFormData('/imports/upload', formData);
         
-        // Bắt đầu vòng lặp hỏi Server xem Job chạy đến đâu rồi
-        pollImportStatus(res.data.job_id);
+        trackJobGlobally(res.data.job_id);
+        
+        showAdminToast('File đã được đưa vào hàng đợi xử lý ngầm!', 'success');
+        closeImportModal(); 
+        
     } catch (err) {
         document.getElementById('import-error').textContent = err.data?.error || err.message || 'Lỗi upload file';
         document.getElementById('import-error').style.display = 'block';
         document.getElementById('btn-start-import').disabled = false;
+        document.getElementById('btn-start-import').textContent = 'Bắt đầu Import';
     }
 }
 

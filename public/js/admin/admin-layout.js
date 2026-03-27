@@ -157,3 +157,92 @@ function confirmLogout() {
 async function doLogout() {
     await adminLogout(); // từ admin-auth.js
 }
+
+// ==========================================
+// GLOBAL BACKGROUND TASK MANAGER
+// ==========================================
+
+let globalPollingInterval = null;
+
+// Hàm này được gọi khi khởi tạo Admin Layout
+function initGlobalTaskTracker() {
+    const activeJobs = JSON.parse(localStorage.getItem('active_import_jobs') || '[]');
+    if (activeJobs.length > 0) {
+        // Lấy job đầu tiên đang chạy để theo dõi (có thể mở rộng theo dõi nhiều job sau)
+        startGlobalPolling(activeJobs[0]);
+    }
+}
+
+// Hàm này gọi từ trang Import sau khi upload file thành công
+function trackJobGlobally(jobId) {
+    let jobs = JSON.parse(localStorage.getItem('active_import_jobs') || '[]');
+    if (!jobs.includes(jobId)) {
+        jobs.push(jobId);
+        localStorage.setItem('active_import_jobs', JSON.stringify(jobs));
+    }
+    startGlobalPolling(jobId);
+}
+
+// Bắt đầu vòng lặp ngầm
+function startGlobalPolling(jobId) {
+    // 1. Tạo HTML Widget nếu chưa có
+    let widget = document.getElementById('global-task-widget');
+    if (!widget) {
+        widget = document.createElement('div');
+        widget.id = 'global-task-widget';
+        widget.className = 'global-task-widget';
+        widget.innerHTML = `
+            <div class="task-header">
+                <span>🔄 Đang nhập dữ liệu (Job #${jobId})...</span>
+            </div>
+            <div class="task-progress-bg">
+                <div class="task-progress-fill" id="global-task-fill"></div>
+            </div>
+            <div class="task-status-text" id="global-task-text">Đang khởi động...</div>
+        `;
+        document.body.appendChild(widget);
+    }
+    widget.classList.add('show');
+
+    // Dọn dẹp interval cũ nếu có
+    if (globalPollingInterval) clearInterval(globalPollingInterval);
+
+    // 2. Bắt đầu polling
+    globalPollingInterval = setInterval(async () => {
+        try {
+            const res = await adminRequest(`/imports/${jobId}/status`);
+            const job = res.data;
+
+            document.getElementById('global-task-fill').style.width = `${job.progress}%`;
+            document.getElementById('global-task-text').textContent = `${job.progress}% (${job.processed}/${job.total} dòng)`;
+
+            if (job.status === 'completed' || job.status === 'completed_with_errors' || job.status === 'failed') {
+                clearInterval(globalPollingInterval);
+                removeJobFromStorage(jobId);
+
+                // Ẩn widget sau 2 giây
+                setTimeout(() => widget.classList.remove('show'), 2000);
+
+                if (job.status === 'completed' || job.status === 'completed_with_errors') {
+                    showAdminToast(`Import Job #${jobId} hoàn tất!`, 'success');
+                    // Tự động load lại bảng nếu user đang ở đúng trang quản lý sản phẩm
+                    if (typeof loadProducts === 'function') loadProducts();
+                } else {
+                    showAdminToast(`Import Job #${jobId} thất bại: ${job.error_message}`, 'error');
+                }
+            }
+        } catch (err) {
+            console.error("Lỗi polling job:", err);
+            // Không clear interval ngay, lỡ do mạng chập chờn
+        }
+    }, 2500); // 2.5 giây hỏi 1 lần
+}
+
+function removeJobFromStorage(jobId) {
+    let jobs = JSON.parse(localStorage.getItem('active_import_jobs') || '[]');
+    jobs = jobs.filter(id => id !== jobId);
+    localStorage.setItem('active_import_jobs', JSON.stringify(jobs));
+}
+
+// Chạy khởi tạo ngay khi file js được nạp
+document.addEventListener('DOMContentLoaded', initGlobalTaskTracker);

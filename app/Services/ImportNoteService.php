@@ -104,9 +104,7 @@ class ImportNoteService extends BaseService implements ImportNoteServiceInterfac
     public function completeNote(int $id)
     {
         // Tìm phiếu nhập {id} và Eager load sản phẩm
-        $note = $this->repository->model
-            ->with(['details.product'])
-            ->findOrFail($id);
+        $note = $this->repository->getDetailById($id);
 
         // Kiểm tra nếu đã Completed thì return lỗi
         if ($note->status === 'completed') {

@@ -91,6 +91,7 @@ class ProcessBulkProductImport implements ShouldQueue
 
                 $processedCount++;
                 $importJob->update(['processed_rows' => $processedCount]);
+                usleep(50000);
                 continue;
             }
 
@@ -114,9 +115,9 @@ class ProcessBulkProductImport implements ShouldQueue
 
             $processedCount++;
 
-            if ($processedCount % 10 == 0) {
-                $importJob->update(['processed_rows' => $processedCount]);
-            }
+            // if ($processedCount % 10 == 0) {
+            //     $importJob->update(['processed_rows' => $processedCount]);
+            // }
         }
 
         fclose($handle);

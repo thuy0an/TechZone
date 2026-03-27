@@ -44,8 +44,8 @@ function formatDate(iso) {
 //     Ví dụ: import AdminString.esc thay vì load toàn bộ utils.
 // ============================================================
 const AdminString = { esc: escHtml, escJs, date: formatDate };
-const AdminForm   = { showError: showFieldError, clearError: clearFieldError, clearErrors, setLoading: setSaveLoading };
-const AdminTable  = { renderPagination };
+const AdminForm = { showError: showFieldError, clearError: clearFieldError, clearErrors, setLoading: setSaveLoading };
+const AdminTable = { renderPagination };
 
 // ============================================================
 // Modal helpers
@@ -163,19 +163,19 @@ function clearErrors(...fieldIds) {
  * @param {object}  opts  – override id mặc định nếu cần
  */
 function setSaveLoading(on, {
-    btnId       = 'save-btn',
-    spinnerId   = 'save-spinner',
-    textId      = 'save-btn-text',
+    btnId = 'save-btn',
+    spinnerId = 'save-spinner',
+    textId = 'save-btn-text',
     loadingText = 'Đang lưu...',
-    idleText    = 'Lưu',
+    idleText = 'Lưu',
 } = {}) {
-    const btn     = document.getElementById(btnId);
+    const btn = document.getElementById(btnId);
     const spinner = document.getElementById(spinnerId);
-    const text    = document.getElementById(textId);
+    const text = document.getElementById(textId);
 
-    if (btn)     btn.disabled = on;
+    if (btn) btn.disabled = on;
     if (spinner) spinner.classList.toggle('show', on);
-    if (text)    text.textContent = on ? loadingText : idleText;
+    if (text) text.textContent = on ? loadingText : idleText;
 }
 
 // ============================================================
@@ -198,12 +198,12 @@ function setSaveLoading(on, {
 function renderPagination({
     meta,
     currentPage,
-    barId   = 'pagination-bar',
-    infoId  = 'pagination-info',
-    btnsId  = 'pagination-btns',
+    barId = 'pagination-bar',
+    infoId = 'pagination-info',
+    btnsId = 'pagination-btns',
     onPageChange,
 } = {}) {
-    const bar  = document.getElementById(barId);
+    const bar = document.getElementById(barId);
     const info = document.getElementById(infoId);
     const btns = document.getElementById(btnsId);
 
@@ -227,8 +227,7 @@ function renderPagination({
 
     // D: dùng data-page attribute thay vì onclick string hardcode tên hàm
     const mkBtn = (page, label, disabled = false, active = false) =>
-        `<button class="page-btn${active ? ' active' : ''}" ${
-            disabled ? 'disabled' : `data-page="${page}"`
+        `<button type="button" class="page-btn${active ? ' active' : ''}" ${disabled ? 'disabled' : `data-page="${page}"`
         }>${label}</button>`;
 
     let html = mkBtn(currentPage - 1, '‹', currentPage === 1);
