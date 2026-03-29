@@ -60,20 +60,6 @@ Route::prefix('storefront')->group(function () {
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 });
 
-
-// ============================================
-// PUBLIC Routes lấy dữ liệu bên thứ 3
-// ============================================
-// Route::get('/public-config', function () {
-//     return response()->json([
-//         'status' => 'success',
-//         'data' => [
-//             'ghn_api_url' => config('services.ghn.url'),
-//             'ghn_token'   => config('services.ghn.token'),
-//         ]
-//     ]);
-// });
-
 // ============================================
 // PUBLIC Routes cho danh muc dia chi noi bo
 // ============================================
@@ -94,7 +80,7 @@ Route::prefix('client')->group(function () {
 // ============================================
 // STOREFRONT Routes
 // Nhóm cần đăng nhập
-// ============================================
+// ============================================x    
 Route::prefix('storefront')->middleware('require.client.login')->group(function () {
     // GIỎ HÀNG
     Route::get('/cart', [CartController::class, 'index']); // xem giỏ hàng
@@ -115,7 +101,6 @@ Route::prefix('storefront')->middleware('auth:sanctum')->group(function () {
     Route::post('/addresses', [AddressController::class, 'store']);
     Route::put('/addresses/{id}', [AddressController::class, 'update']);
     Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
-
 
     // HỒ SƠ KHÁCH HÀNG
     Route::get('/profile', [ProfileController::class, 'myInfo']);
