@@ -16,6 +16,7 @@ const ADMIN_NAV = [
     { type: 'section', label: 'Tổng quan' },
     { type: 'item', page: 'dashboard', href: 'dashboard.html', icon: 'bx bx-grid-alt', label: 'Dashboard' },
     { type: 'item', page: 'reports', href: 'reports.html', icon: 'bx bx-line-chart', label: 'Báo cáo & Thống kê' },
+    { type: 'item', page: 'inventory', href: 'inventory.html', icon: 'bx bx-cabinet', label: 'Tồn kho' },
     { type: 'section', label: 'Danh mục' },
     { type: 'item', page: 'categories', href: 'categories.html', icon: 'bx bx-folder', label: 'Loại sản phẩm' },
     { type: 'item', page: 'brands', href: 'brands.html', icon: 'bx bx-purchase-tag', label: 'Thương hiệu' },

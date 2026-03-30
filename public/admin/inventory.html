@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Tồn kho - TechZone Admin</title>
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="icon" href="../favicon.ico">
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .stat-icon {
+            font-size: 2rem;
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: #f1f5f9;
+        }
+        .stat-icon.danger { background: transparent; }
+        .stat-icon.warning { background: transparent; }
+        .stat-icon.success { background: #f0fdf4; }
+        .stat-label { font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 4px; }
+        .stat-value { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); }
+        .stat-value.danger { color: var(--admin-danger); }
+        .stat-value.warning { color: #d97706; }
+        .stat-value.success { color: #16a34a; }
+        .stock-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+        .stock-badge.out_of_stock { background: #fee2e2; color: #b91c1c; }
+        .stock-badge.low_stock    { background: #fef3c7; color: #b45309; }
+        .stock-badge.normal       { background: #dcfce7; color: #15803d; }
+        .filter-stock-lt-wrap { display: flex; flex-direction: column; gap: 2px; }
+        .field-error-inline { font-size: 0.78rem; color: var(--admin-danger); min-height: 16px; }
+        .stat-note { font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px; }
+    </style>
+</head>
+<body>
+<div class="admin-layout">
+    <div id="admin-sidebar-root"></div>
+    <div class="admin-main">
+        <div id="admin-topbar-root"></div>
+
+        <main class="admin-content">
+            <div class="page-header">
+                <h1>Quản lý Tồn kho</h1>
+                <p>Theo dõi tình trạng tồn kho, phát hiện sản phẩm sắp hết hoặc hết hàng</p>
+            </div>
+
+            <!-- Stat Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📦</div>
+                    <div>
+                        <div class="stat-label">Tổng SP theo dõi</div>
+                        <div class="stat-value" id="stat-total">—</div>
+                        <div class="stat-note">Trang hiện tại</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚠️</div>
+                    <div>
+                        <div class="stat-label">Sắp hết</div>
+                        <div class="stat-value" id="stat-low">—</div>
+                        <div class="stat-note">0 &lt; tồn kho ≤ ngưỡng</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🚫</div>
+                    <div>
+                        <div class="stat-label">Hết hàng</div>
+                        <div class="stat-value" id="stat-out">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="toolbar" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                        <div class="flex-row" style="width:100%; align-items:flex-start;">
+                            <div class="search-box" style="width:320px;">
+                                <span>🔍</span>
+                                <input type="text" id="search-input" placeholder="Tìm tên hoặc mã SP...">
+                            </div>
+
+                            <select id="filter-category" class="form-control" onchange="currentPage=1; loadInventory()">
+                                <option value="">Tất cả danh mục</option>
+                            </select>
+
+                            <select id="filter-brand" class="form-control" onchange="currentPage=1; loadInventory()">
+                                <option value="">Tất cả thương hiệu</option>
+                            </select>
+
+                            <div class="filter-stock-lt-wrap" style="flex:1; min-width:0;">
+                                <input type="number" id="filter-stock-lt" class="form-control" style="width:100%;"
+                                    placeholder="Tồn kho nhỏ hơn" min="0" step="1">
+                                <div class="field-error-inline" id="stock-lt-error"></div>
+                            </div>
+
+                            <button type="button" class="btn-filter-reset" onclick="resetFilter()">↻ Xóa lọc</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:100px">Mã SP</th>
+                                <th>Tên sản phẩm</th>
+                                <th>Danh mục / Hãng</th>
+                                <th style="width:100px">Tồn kho</th>
+                                <th style="width:90px">Ngưỡng</th>
+                                <th style="width:130px">Giá vốn</th>
+                                <th style="width:120px">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body">
+                            <tr><td colspan="7" class="table-loading">⏳ Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination" id="pagination-bar" style="display:none">
+                    <div class="pagination-info" id="pagination-info"></div>
+                    <div class="pagination-btns" id="pagination-btns"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="../js/admin/admin-token.js"></script>
+<script src="../js/admin/admin-api.js"></script>
+<script src="../js/admin/admin-auth.js"></script>
+<script src="../js/admin/admin-layout.js"></script>
+<script src="../js/admin/admin-utils.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    initAdminLayout({ title: 'Quản lý Tồn kho', icon: '🗃️', activePage: 'inventory' });
+    loadSelectionData();
+    loadInventory(1);
+
+    let searchTimeout = null;
+    document.getElementById('search-input').addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => { currentPage = 1; loadInventory(); }, 400);
+    });
+
+    let stockLtTimeout = null;
+    document.getElementById('filter-stock-lt').addEventListener('input', () => {
+        clearTimeout(stockLtTimeout);
+        stockLtTimeout = setTimeout(() => { applyStockLtFilter(); }, 400);
+    });
+});
+
+// ── State ──────────────────────────────────────────────────
+let currentPage = 1;
+let activeStockLt = ''; // confirmed value after Enter
+
+// ── Pure functions ─────────────────────────────────────────
+function getStockStatus(stockQty, threshold) {
+    if (stockQty === 0)          return 'out_of_stock';
+    if (stockQty <= threshold)   return 'low_stock';
+    return 'normal';
+}
+
+function computeStats(products) {
+    return products.reduce((acc, p) => {
+        acc.total++;
+        const s = getStockStatus(p.stock_quantity, p.low_stock_threshold);
+        if (s === 'out_of_stock') acc.outOfStock++;
+        if (s === 'low_stock')    acc.lowStock++;
+        return acc;
+    }, { total: 0, outOfStock: 0, lowStock: 0 });
+}
+
+function validateStockLt(value) {
+    if (value === '') return { valid: true };
+    const n = Number(value);
+    if (!Number.isInteger(n) || n < 0)
+        return { valid: false, msg: 'Vui lòng nhập số nguyên không âm' };
+    return { valid: true };
+}
+
+function buildInventoryParams(page) {
+    const params = new URLSearchParams({ page, per_page: 15 });
+    const search  = document.getElementById('search-input').value.trim();
+    const catId   = document.getElementById('filter-category').value;
+    const brandId = document.getElementById('filter-brand').value;
+
+    if (search)        params.append('search', search);
+    if (catId)         params.append('category_id', catId);
+    if (brandId)       params.append('brand_id', brandId);
+    if (activeStockLt !== '') params.append('stock_lt', activeStockLt);
+    return params;
+}
+
+// ── Filter actions ─────────────────────────────────────────
+function applyStockLtFilter() {
+    const val = document.getElementById('filter-stock-lt').value.trim();
+    const result = validateStockLt(val);
+    const errEl = document.getElementById('stock-lt-error');
+    if (!result.valid) {
+        errEl.textContent = result.msg;
+        return;
+    }
+    errEl.textContent = '';
+    activeStockLt = val;
+    currentPage = 1;
+    loadInventory();
+}
+
+function resetFilter() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('filter-category').value = '';
+    document.getElementById('filter-brand').value = '';
+    document.getElementById('filter-stock-lt').value = '';
+    document.getElementById('stock-lt-error').textContent = '';
+    activeStockLt = '';
+    currentPage = 1;
+    loadInventory();
+}
+
+// ── Data loading ───────────────────────────────────────────
+async function loadInventory(page) {
+    if (page) currentPage = page;
+    const params = buildInventoryParams(currentPage);
+
+    document.getElementById('inventory-table-body').innerHTML =
+        '<tr><td colspan="7" class="table-loading">⏳ Đang tải...</td></tr>';
+    document.getElementById('pagination-bar').style.display = 'none';
+
+    try {
+        const res = await adminRequest('/products?' + params);
+        renderTable(res.data);
+        updateStatCards(computeStats(res.data));
+        renderPagination({
+            meta: res.pagination,
+            currentPage,
+            onPageChange: (p) => { currentPage = p; loadInventory(); }
+        });
+    } catch (err) {
+        document.getElementById('inventory-table-body').innerHTML =
+            '<tr><td colspan="7" class="table-loading" style="color:var(--admin-danger)">⚠️ Không thể tải dữ liệu. Vui lòng thử lại.</td></tr>';
+    }
+}
+
+// ── Render helpers ─────────────────────────────────────────
+function updateStatCards(stats) {
+    document.getElementById('stat-total').textContent = stats.total;
+    document.getElementById('stat-out').textContent   = stats.outOfStock;
+    document.getElementById('stat-low').textContent   = stats.lowStock;
+}
+
+function renderTable(items) {
+    const tbody = document.getElementById('inventory-table-body');
+    if (!items || items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="table-loading">Không tìm thấy sản phẩm phù hợp</td></tr>';
+        return;
+    }
+    tbody.innerHTML = items.map(p => {
+        const status = getStockStatus(p.stock_quantity, p.low_stock_threshold);
+        const statusLabel = { out_of_stock: 'Hết hàng', low_stock: 'Sắp hết', normal: 'Bình thường' }[status];
+        const importPrice = new Intl.NumberFormat('vi-VN').format(Number(p.import_price || 0));
+        return `
+            <tr>
+                <td class="td-id">${escHtml(p.code)}</td>
+                <td class="td-name">${escHtml(p.name)}</td>
+                <td style="font-size:0.82rem">${escHtml(p.category?.name ?? '—')} / ${escHtml(p.brand?.name ?? '—')}</td>
+                <td style="font-weight:700">${p.stock_quantity}</td>
+                <td>${p.low_stock_threshold}</td>
+                <td>${importPrice}đ</td>
+                <td><span class="stock-badge ${status}">${statusLabel}</span></td>
+            </tr>`;
+    }).join('');
+}
+
+// ── Selection dropdowns ────────────────────────────────────
+async function loadSelectionData() {
+    try {
+        const [cats, brands] = await Promise.all([
+            adminRequest('/categories'),
+            adminRequest('/brands'),
+        ]);
+        populateSelect('filter-category', cats.data, 'Tất cả danh mục');
+        populateSelect('filter-brand', brands.data, 'Tất cả thương hiệu');
+    } catch (_) { /* dropdowns stay empty, table still loads */ }
+}
+
+function populateSelect(id, items, placeholder) {
+    const sel = document.getElementById(id);
+    sel.innerHTML = `<option value="">${placeholder}</option>` +
+        (items || []).map(i => `<option value="${i.id}">${escHtml(i.name)}</option>`).join('');
+    sel.onchange = () => { currentPage = 1; loadInventory(); };
+}
+</script>
+</body>
+</html>

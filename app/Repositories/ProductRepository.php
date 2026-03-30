@@ -160,6 +160,10 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
             $query->whereColumn('stock_quantity', '<=', 'low_stock_threshold');
         }
 
+        if (isset($filters['stock_lt']) && is_numeric($filters['stock_lt'])) {
+            $query->where('stock_quantity', '<', (int) $filters['stock_lt']);
+        }
+
         return $query->orderBy('created_at', 'desc')->paginate($perPage);
     }
 

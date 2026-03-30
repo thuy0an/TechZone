@@ -111,6 +111,7 @@ class ProductService extends BaseService implements ProductServiceInterface
             'min_price'   => $request->input('min_price'),
             'max_price'   => $request->input('max_price'),
             'low_stock'   => $request->input('low_stock'),
+            'stock_lt'    => $request->input('stock_lt'),
         ];
         $perPage = $request->input('per_page', 15);
 
