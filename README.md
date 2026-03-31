@@ -1,9 +1,8 @@
 # TechZone
 
-TechZone là dự án website kinh doanh thiết bị điện tử, xây trên Laravel 12 (backend)
+Nền tảng thương mại điện tử bán thiết bị điện tử, xây dựng trên Laravel 12 (backend API) và Vanilla JS (frontend).
 
-
-## 👥 Thành Viên Nhóm
+## Thành viên nhóm
 
 | STT | Họ tên | MSSV |
 |-----|--------|------|
@@ -12,241 +11,328 @@ TechZone là dự án website kinh doanh thiết bị điện tử, xây trên L
 | 3 | Nguyễn Tuấn Vũ | 3122410483 |
 | 4 | Nguyễn Hoàng Ngọc Phong | 3122410310 |
 
+---
 
+## Truy cập nhanh
 
+| Trang | URL |
+|-------|-----|
+| Storefront | `http://127.0.0.1:8000/index.html` |
+| Admin Portal | `http://127.0.0.1:8000/admin/login.html` |
+| API Docs | `http://127.0.0.1:8000/docs/api` |
 
-## 1) Tổng quan
+---
 
-- **Mục tiêu:** Xây hệ thống bán hàng + quản trị cho ngành hàng điện tử.
-- **Trạng thái hiện tại:** Đã triển khai Admin Portal (xác thực, CRUD danh mục & thương hiệu) và nền tảng Storefront (xác thực khách hàng, giỏ hàng, đặt hàng). Backend theo kiến trúc Repository + Service. Frontend Admin theo chuẩn SOLID với các module dùng chung.
+## Tech Stack
 
-### Truy cập nhanh
+| Layer | Công nghệ |
+|-------|-----------|
+| Backend | PHP 8.2+, Laravel 12 |
+| Auth | Laravel Sanctum (token-based, tách biệt admin / storefront) |
+| Database | MySQL |
+| Cache / Queue | Redis (`predis/predis`) |
+| Image Upload | Cloudinary (`cloudinary/cloudinary_php`) |
+| Frontend | HTML5, CSS3, Vanilla JavaScript (không build step) |
+| Testing | Pest 3 + pest-plugin-laravel |
+| Code Style | Laravel Pint (PSR-12) |
 
-| Đối tượng | URL |
-|-----------|-----|
-| **Trang Admin** | `http://127.0.0.1:8000/admin/login.html` |
-| **Trang Khách hàng** | `http://127.0.0.1:8000/index.html` |
-| **Trang API Docs** | `http://127.0.0.1:8000/docs/api` |
+---
 
-## 2) Phạm vi theo SRS
-
-1. **Storefront (Khách hàng)**
-   - Đăng ký/đăng nhập
-   - Tìm kiếm/lọc sản phẩm
-   - Giỏ hàng, checkout, thanh toán
-   - Lịch sử mua hàng
-
-2. **Admin Portal (Quản trị)**
-   - Quản lý sản phẩm, danh mục, thương hiệu
-   - Nhập kho, tính giá bình quân, cập nhật giá bán
-   - Quản lý khuyến mãi, đơn hàng, báo cáo tồn kho
-   - Nghiệp vụ tồn kho theo sản phẩm/lô (mở rộng theo SRS)
-
-## 3) Mức độ triển khai hiện tại so với SRS
-
-### Đã hoàn thiện
-
-**Backend (API)**
-- Khung Laravel 12 + kiến trúc Repository/Service Pattern với base class cho tất cả module.
-- **Admin Auth:** đăng nhập, đăng xuất, Sanctum token (`/api/admin/login`, `/api/admin/logout`).
-- **Storefront Auth:** đăng ký, đăng nhập, đăng xuất khách hàng.
-- **Category (Admin):** CRUD đầy đủ, tìm kiếm, phân trang.
-- **Brand (Admin):** CRUD đầy đủ, upload logo Cloudinary, tìm kiếm, phân trang.
-- **Product (Admin/Storefront):** danh sách, chi tiết, quản lý sản phẩm.
-- **Cart:** xem, thêm, xóa sản phẩm khỏi giỏ.
-- **Order:** đặt hàng (checkout), lịch sử đơn hàng, quản lý đơn cho admin.
-
-**Frontend Admin** (`public/admin/`)
-- Kiến trúc SOLID — 5 module JS dùng chung:
-  - `admin-token.js` — quản lý localStorage token (S)
-  - `admin-api.js` — HTTP client (S)
-  - `admin-auth.js` — guards, login/logout (S)
-  - `admin-layout.js` — inject sidebar/topbar/modal tự động (O, D)
-  - `admin-utils.js` — tiện ích: escape, format, pagination (I, D)
-- Các trang: `login.html`, `dashboard.html`, `categories.html`, `brands.html`.
-
-### Chưa triển khai theo SRS
-
-- Trang sản phẩm admin (`products.html`) và trang đơn hàng admin (`orders.html`).
-- Quản lý nhập kho, tính giá bình quân, cập nhật giá bán.
-- Quản lý khuyến mãi/mã giảm giá.
-- Báo cáo tồn kho.
-- Giao diện Storefront chi tiết (tìm kiếm/lọc, giỏ hàng UI, checkout UI).
-
-## 4) Tech stack
-
-- **Backend:** PHP 8.2+, Laravel 12
-- **Frontend:** HTML5, CSS3, JavaScript (vanilla)
-- **Database:** MySQL (khuyến nghị chạy qua XAMPP)
-- **Test:** Pest/PHPUnit (mặc định từ Laravel skeleton)
-
-## 5) Cài đặt trên Windows + XAMPP
+## Cài đặt
 
 ### Yêu cầu
 
-- XAMPP (Apache + MySQL)
-- PHP 8.2+ (nên dùng bản PHP của XAMPP hoặc PHP hệ thống tương thích)
+- PHP 8.2+
 - Composer 2+
+- MySQL
+- Redis (tuỳ chọn — dùng cho cache và queue)
 
 ### Các bước
 
-1. Mở XAMPP Control Panel, **Start Apache** và **Start MySQL**.
-2. Tại thư mục dự án, cài dependency:
+```bash
+# 1. Cài dependencies
+composer install
 
-   `composer install`
+# 2. Tạo file môi trường
+cp .env.example .env
+php artisan key:generate
 
-3. Tạo file môi trường:
+# 3. Cấu hình .env
+# DB_DATABASE, DB_USERNAME, DB_PASSWORD
+# CLOUDINARY_URL (nếu dùng upload ảnh)
+# QUEUE_CONNECTION=redis (nếu dùng Redis)
 
-   - Sao chép `.env.example` thành `.env`
-   - Sinh key:
+# 4. Khởi tạo database (xem mục Database bên dưới)
 
-   `php artisan key:generate`
+# 5. Chạy server
+php artisan serve
 
-4. Cấu hình DB trong `.env` (DB_HOST/DB_PORT/DB_DATABASE/DB_USERNAME/DB_PASSWORD).
-5. Chạy ứng dụng:
+# 6. (Tuỳ chọn) Chạy queue worker cho import sản phẩm CSV
+php artisan queue:listen --tries=1
+```
 
-   `php artisan serve`
+---
 
-6. Truy cập:
+## Database
 
-   | Trang | URL |
-   |-------|-----|
-   | **Admin** (đăng nhập quản trị) | `http://127.0.0.1:8000/admin/login.html` |
-   | **Khách hàng** (storefront) | `http://127.0.0.1:8000/index.html` |
-   | API test | `http://127.0.0.1:8000/api/test` |
+Có 2 cách khởi tạo:
 
-> Tài khoản admin mặc định: xem file `database/seeders/AdminSeeder.php`.
+**A. Schema nghiệp vụ đầy đủ (khuyến nghị)**
 
-## 6) Tùy chọn cơ sở dữ liệu
+1. Import `TableOfProject.sql` — tạo DB `techzone_db` và toàn bộ bảng nghiệp vụ.
+2. Import `DataMock.sql` — dữ liệu mẫu.
+3. Đặt `DB_DATABASE=techzone_db` trong `.env`.
 
-Có 2 hướng khởi tạo DB:
+**B. Migration Laravel**
 
-### A. Dùng migration mặc định (nhanh để chạy skeleton)
+```bash
+php artisan migrate
+php artisan db:seed
+```
 
-1. Tạo DB rỗng (ví dụ `techzone`).
-2. Cập nhật `.env` trỏ đến DB đó.
-3. Chạy:
+> Tài khoản admin mặc định: xem `database/seeders/AdminSeeder.php`.
 
-   `php artisan migrate`
+---
 
-Kết quả: tạo các bảng mặc định Laravel (`users`, `sessions`, `cache`, `jobs`, ...), **chưa phải schema nghiệp vụ đầy đủ theo SRS**.
+## Cấu trúc dự án
 
-### B. Dùng schema nghiệp vụ + dữ liệu mẫu
+```
+TechZone/
+├── app/
+│   ├── Console/Commands/
+│   │   └── SendDailyRevenueReport.php      # Gửi báo cáo doanh thu hàng ngày
+│   ├── Http/
+│   │   ├── Controllers/Api/
+│   │   │   ├── Admin/                      # Controllers admin
+│   │   │   │   ├── Auth/AuthController.php
+│   │   │   │   ├── BrandController.php
+│   │   │   │   ├── CategoryController.php
+│   │   │   │   ├── ImportNoteController.php
+│   │   │   │   ├── OrderController.php
+│   │   │   │   ├── ProductController.php
+│   │   │   │   ├── ProductImportController.php
+│   │   │   │   ├── PromotionController.php
+│   │   │   │   ├── ReportController.php
+│   │   │   │   ├── SupplierController.php
+│   │   │   │   └── UserController.php
+│   │   │   └── Storefront/                 # Controllers storefront
+│   │   │       ├── Auth/AuthController.php
+│   │   │       ├── AddressController.php
+│   │   │       ├── BrandController.php
+│   │   │       ├── CartController.php
+│   │   │       ├── OrderController.php
+│   │   │       ├── ProductController.php
+│   │   │       └── ProfileController.php
+│   │   ├── Middleware/
+│   │   │   └── RequireClientLoginMiddleware.php
+│   │   └── Requests/                       # Form Request validation
+│   ├── Jobs/
+│   │   └── ProcessBulkProductImport.php    # Queue job import CSV
+│   ├── Models/
+│   │   ├── Admin, User, Brand, Category, Product
+│   │   ├── Cart, CartItem
+│   │   ├── Order, OrderDetail
+│   │   ├── ImportNote, ImportNoteDetail, ImportNotePayment, ImportJob
+│   │   ├── ProductPriceHistory
+│   │   ├── Promotion
+│   │   ├── Supplier
+│   │   └── UserAddress
+│   ├── Repositories/                       # Data access layer
+│   │   ├── Interfaces/                     # Contracts
+│   │   └── *.php                           # Implementations (extend BaseRepository)
+│   ├── Services/                           # Business logic layer
+│   │   ├── Interfaces/                     # Contracts
+│   │   ├── Admin/UserService.php
+│   │   └── *.php                           # Implementations (extend BaseService)
+│   └── Traits/
+│       └── ApiResponseTrait.php
+├── public/
+│   ├── index.html                          # Storefront home
+│   ├── products.html                       # Danh sách sản phẩm
+│   ├── cart.html                           # Giỏ hàng
+│   ├── login.html / register.html          # Auth storefront
+│   ├── my-orders.html                      # Lịch sử đơn hàng
+│   ├── order-summary.html                  # Xác nhận đơn hàng
+│   ├── profile.html                        # Hồ sơ khách hàng
+│   ├── setup-address.html                  # Quản lý địa chỉ
+│   ├── admin/
+│   │   ├── login.html                      # Đăng nhập admin
+│   │   ├── dashboard.html                  # Tổng quan
+│   │   ├── inventory.html                  # Quản lý tồn kho
+│   │   ├── reports.html                    # Báo cáo & thống kê
+│   │   ├── products.html                   # Quản lý sản phẩm
+│   │   ├── product-price-histories.html    # Lịch sử giá sản phẩm
+│   │   ├── categories.html                 # Quản lý danh mục
+│   │   ├── brands.html                     # Quản lý thương hiệu
+│   │   ├── suppliers.html                  # Quản lý nhà cung cấp
+│   │   ├── import-notes.html               # Phiếu nhập hàng
+│   │   ├── import-note-action.html         # Tạo / chỉnh sửa phiếu nhập
+│   │   ├── orders.html                     # Quản lý đơn hàng
+│   │   ├── promotions.html                 # Quản lý khuyến mãi
+│   │   ├── users.html                      # Quản lý khách hàng
+│   │   └── user-detail.html                # Chi tiết khách hàng
+│   ├── css/
+│   │   ├── admin.css
+│   │   └── style.css
+│   └── js/
+│       ├── admin/
+│       │   ├── admin-token.js              # Quản lý localStorage token
+│       │   ├── admin-api.js                # HTTP client (adminRequest)
+│       │   ├── admin-auth.js               # Auth guard + login/logout
+│       │   ├── admin-layout.js             # Inject sidebar/topbar tự động
+│       │   ├── admin-utils.js              # Tiện ích: escape, format, pagination
+│       │   ├── admin-validator.js          # Validation helpers
+│       │   ├── admin-users.js              # Logic trang quản lý khách hàng
+│       │   └── admin-user-detail.js        # Logic trang chi tiết khách hàng
+│       ├── api.js                          # HTTP client storefront
+│       ├── app.js / app-layout.js          # Layout storefront
+│       ├── auth.js                         # Auth storefront
+│       ├── cart.js                         # Logic giỏ hàng
+│       ├── my-orders.js                    # Logic lịch sử đơn hàng
+│       ├── order-summary.js                # Logic xác nhận đơn
+│       └── profile.js                      # Logic hồ sơ
+├── routes/
+│   ├── api.php
+│   └── web.php
+├── database/
+│   ├── migrations/
+│   └── seeders/
+├── TableOfProject.sql                      # Schema nghiệp vụ đầy đủ
+└── DataMock.sql                            # Dữ liệu mẫu
+```
 
-1. Import `TableOfProject.sql` (script sẽ tạo DB `techzone_db` và các bảng nghiệp vụ).
-2. Import tiếp `DataMock.sql` để có dữ liệu mẫu.
-3. Cập nhật `.env`:
+---
 
-   - `DB_DATABASE=techzone_db`
+## Kiến trúc Backend
 
-4. Không chạy `migrate` lên cùng DB này nếu chưa rà soát xung đột schema.
+Mọi module đều theo luồng: `Controller → Service → Repository → Model`
 
-## 7) Endpoints hiện có
+- **Controllers** extend `BaseApiController`, trả về JSON chuẩn qua `successResponse`, `paginatedResponse`, `createdResponse`, `handleException`.
+- **Services** extend `BaseService`, inject Repository interface, bọc write trong DB transaction.
+- **Repositories** extend `BaseRepository`, inject Eloquent Model, override `applyFilters()` cho query tuỳ chỉnh.
+- **Interfaces** nằm trong `Repositories/Interfaces/` và `Services/Interfaces/` — luôn code against interface.
 
-### Web
+**Chuẩn response API:**
+```json
+{ "success": true, "message": "...", "data": ... }
+```
+Response phân trang thêm object `pagination`: `current_page`, `per_page`, `total`, `last_page`.
 
-- `GET /` → redirect `/index.html`
+---
 
-### API — Admin (cần Bearer token admin)
+## API Endpoints
 
-| Method | Endpoint | Mô tả |
-|--------|----------|-------|
-| POST | `/api/admin/login` | Đăng nhập admin |
-| POST | `/api/admin/logout` | Đăng xuất admin |
-| GET/POST | `/api/admin/categories` | Danh sách / Tạo danh mục |
-| GET/PUT/DELETE | `/api/admin/categories/{id}` | Chi tiết / Sửa / Xóa danh mục |
-| GET/POST | `/api/admin/brands` | Danh sách / Tạo thương hiệu |
-| GET/PUT/DELETE | `/api/admin/brands/{id}` | Chi tiết / Sửa / Xóa thương hiệu |
-| GET/POST | `/api/admin/products` | Danh sách / Tạo sản phẩm |
-| GET/PUT/DELETE | `/api/admin/products/{id}` | Chi tiết / Sửa / Xóa sản phẩm |
-| GET | `/api/admin/orders` | Danh sách đơn hàng |
-| PUT | `/api/admin/orders/{id}/status` | Cập nhật trạng thái đơn |
-
-### API — Storefront (public)
+### Public
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
 | GET | `/api/test` | Kiểm tra API |
-| POST | `/api/storefront/register` | Đăng ký khách hàng |
-| POST | `/api/storefront/login` | Đăng nhập khách hàng |
-| GET | `/api/storefront/products` | Danh sách sản phẩm |
-| GET | `/api/storefront/products/{id}` | Chi tiết sản phẩm |
-| GET | `/api/storefront/categories` | Danh sách danh mục |
 
-### API — Storefront (cần Bearer token khách hàng)
+### Storefront — Public
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
+| POST | `/api/storefront/register` | Đăng ký |
+| POST | `/api/storefront/login` | Đăng nhập |
+| POST | `/api/storefront/forgot-password` | Quên mật khẩu |
+| GET | `/api/storefront/products` | Danh sách sản phẩm |
+| GET | `/api/storefront/products/search/basic` | Tìm kiếm cơ bản |
+| GET | `/api/storefront/products/search/advanced` | Tìm kiếm nâng cao |
+| GET | `/api/storefront/products/category/{id}` | SP theo danh mục |
+| GET | `/api/storefront/products/{id}` | Chi tiết sản phẩm |
+| GET | `/api/storefront/categories` | Danh sách danh mục |
+| GET | `/api/storefront/brands` | Danh sách thương hiệu |
+| GET | `/api/locations/provinces` | Danh sách tỉnh/thành |
+| GET | `/api/locations/districts` | Danh sách quận/huyện |
+| GET | `/api/locations/wards` | Danh sách phường/xã |
+
+### Storefront — Cần xác thực (`auth:sanctum`)
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| POST | `/api/storefront/logout` | Đăng xuất |
 | GET | `/api/storefront/cart` | Xem giỏ hàng |
 | POST | `/api/storefront/cart/add` | Thêm vào giỏ |
+| POST | `/api/storefront/cart/update` | Cập nhật giỏ |
 | DELETE | `/api/storefront/cart/delete/{id}` | Xóa khỏi giỏ |
-| POST | `/api/storefront/checkout` | Đặt hàng |
+| GET | `/api/storefront/promotions/active` | Mã khuyến mãi đang hoạt động |
+| POST | `/api/storefront/checkout/apply-promotion` | Áp dụng khuyến mãi |
 | GET | `/api/storefront/orders` | Lịch sử đơn hàng |
-| POST | `/api/storefront/logout` | Đăng xuất |
+| PATCH | `/api/storefront/orders/{id}/cancel` | Huỷ đơn hàng |
+| GET | `/api/storefront/addresses` | Danh sách địa chỉ |
+| POST | `/api/storefront/addresses` | Thêm địa chỉ |
+| PUT | `/api/storefront/addresses/{id}` | Sửa địa chỉ |
+| DELETE | `/api/storefront/addresses/{id}` | Xóa địa chỉ |
+| GET | `/api/storefront/profile` | Xem hồ sơ |
+| PUT | `/api/storefront/profile` | Cập nhật hồ sơ |
+| PUT | `/api/storefront/profile/password` | Đổi mật khẩu |
 
-## 8) Cấu trúc dự án (rút gọn)
+### Admin — Public
 
-```
-TechZone/
-├─ app/
-│  ├─ Http/
-│  │  ├─ Controllers/Api/
-│  │  │  ├─ Admin/   (AuthController, CategoryController, BrandController, ProductController, OrderController)
-│  │  │  └─ Storefront/ (AuthController, ProductController, CartController, OrderController)
-│  │  ├─ Requests/   (form validation cho từng module)
-│  │  └─ Resources/  (JSON transformers)
-│  ├─ Models/        (Admin, User, Product, Brand, Category, Cart, CartItem, Order, OrderDetail, ImportNote)
-│  ├─ Repositories/  (Base + Admin/Order/Cart/Category/Product/User + Interfaces)
-│  └─ Services/      (Base + AdminAuth/AdminOrder/Auth/Cart/Category/Cloudinary/Order/Product + Interfaces)
-├─ database/
-│  ├─ migrations/
-│  └─ seeders/       (AdminSeeder, ...)
-├─ public/
-│  ├─ index.html                    ← Storefront (trang khách hàng)
-│  ├─ admin/
-│  │  ├─ login.html                 ← Trang đăng nhập admin
-│  │  ├─ dashboard.html
-│  │  ├─ categories.html
-│  │  └─ brands.html
-│  ├─ css/admin.css
-│  └─ js/
-│     ├─ admin-token.js             ← module: localStorage token
-│     ├─ admin-api.js               ← module: HTTP client
-│     ├─ admin-auth.js              ← module: auth guards + login/logout
-│     ├─ admin-layout.js            ← module: inject sidebar/topbar
-│     └─ admin-utils.js             ← module: tiện ích dùng chung
-├─ routes/
-│  ├─ web.php
-│  └─ api.php
-├─ TableOfProject.sql
-└─ DataMock.sql
-```
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| POST | `/api/admin/login` | Đăng nhập admin |
 
-## 9) Roadmap đề xuất
+### Admin — Cần xác thực (`auth:sanctum`)
 
-- [x] Khung Laravel 12 + base classes (Repository/Service Pattern)
-- [x] Admin Auth (đăng nhập/đăng xuất, Sanctum token)
-- [x] Storefront Auth (đăng ký/đăng nhập khách hàng)
-- [x] CRUD Category (admin) — backend + UI
-- [x] CRUD Brand + upload logo (admin) — backend + UI
-- [x] Product management — backend API
-- [x] Cart & Checkout — backend API
-- [x] Order management — backend API
-- [x] Frontend Admin SOLID module system
-- [ ] Trang sản phẩm admin (`products.html`) + trang đơn hàng admin (`orders.html`)
-- [ ] Storefront UI chi tiết (tìm kiếm/lọc, giỏ hàng, checkout)
-- [ ] Nhập kho + thuật toán giá bình quân + lịch sử giá
-- [ ] Quản lý khuyến mãi / mã giảm giá
-- [ ] Báo cáo tồn kho
-- [ ] Test coverage (Pest/PHPUnit)
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| POST | `/api/admin/logout` | Đăng xuất |
+| GET/POST | `/api/admin/products` | Danh sách / Tạo sản phẩm |
+| GET/PUT/DELETE | `/api/admin/products/{id}` | Chi tiết / Sửa / Xóa |
+| GET | `/api/admin/products/{id}/price-histories` | Lịch sử giá |
+| GET/POST | `/api/admin/categories` | Danh sách / Tạo danh mục |
+| GET/PUT/DELETE | `/api/admin/categories/{id}` | Chi tiết / Sửa / Xóa |
+| GET/POST | `/api/admin/brands` | Danh sách / Tạo thương hiệu |
+| GET/PUT/DELETE | `/api/admin/brands/{id}` | Chi tiết / Sửa / Xóa |
+| GET/POST | `/api/admin/suppliers` | Danh sách / Tạo nhà cung cấp |
+| GET/PUT/DELETE | `/api/admin/suppliers/{id}` | Chi tiết / Sửa / Xóa |
+| GET | `/api/admin/suppliers/{id}/transaction-history` | Lịch sử giao dịch NCC |
+| GET/POST | `/api/admin/import-notes` | Danh sách / Tạo phiếu nhập |
+| GET/PUT/DELETE | `/api/admin/import-notes/{id}` | Chi tiết / Sửa / Xóa |
+| PUT | `/api/admin/import-notes/{id}/complete` | Hoàn thành phiếu nhập |
+| POST | `/api/admin/import-notes/{id}/pay` | Thanh toán phiếu nhập |
+| GET | `/api/admin/orders` | Danh sách đơn hàng |
+| GET | `/api/admin/orders/{id}` | Chi tiết đơn hàng |
+| PUT | `/api/admin/orders/{id}/status` | Cập nhật trạng thái đơn |
+| GET/POST | `/api/admin/promotions` | Danh sách / Tạo khuyến mãi |
+| GET/PUT/DELETE | `/api/admin/promotions/{id}` | Chi tiết / Sửa / Xóa |
+| PATCH | `/api/admin/promotions/{id}/toggle-active` | Bật/tắt khuyến mãi |
+| GET | `/api/admin/users` | Danh sách khách hàng |
+| POST | `/api/admin/users` | Tạo khách hàng |
+| GET | `/api/admin/users/{id}` | Chi tiết khách hàng |
+| PUT | `/api/admin/users/{id}` | Cập nhật khách hàng |
+| PUT | `/api/admin/users/{id}/lock` | Khoá / mở khoá tài khoản |
+| GET | `/api/admin/users/{id}/addresses` | Địa chỉ của khách hàng |
+| GET | `/api/admin/reports/revenue-profit` | Báo cáo doanh thu & lợi nhuận |
+| GET | `/api/admin/reports/cash-flow` | Báo cáo dòng tiền |
+| GET | `/api/admin/reports/best-sellers` | Sản phẩm bán chạy |
+| GET | `/api/admin/reports/slow-moving-stock` | Sản phẩm tồn kho chậm |
+| GET | `/api/admin/reports/historical-stock` | Lịch sử tồn kho |
+| GET | `/api/admin/reports/import-export` | Báo cáo nhập/xuất kho |
+| GET | `/api/admin/reports/order-status` | Phân tích trạng thái đơn |
+| GET | `/api/admin/reports/sales-by-region` | Doanh thu theo vùng |
+| GET | `/api/admin/reports/supplier-payable` | Công nợ nhà cung cấp |
+| POST | `/api/admin/imports/upload` | Upload CSV import sản phẩm |
+| GET | `/api/admin/imports/{id}/status` | Trạng thái job import |
 
 ---
 
-README này phản ánh **đúng trạng thái code hiện tại** và dùng SRS làm định hướng cho các bước tiếp theo.
+## Lệnh thường dùng
 
+```bash
+# Chạy tests
+php artisan test
 
+# Chạy tests một lần (không watch)
+php artisan test --stop-on-failure
 
+# Fix code style
+./vendor/bin/pint
 
+# Xóa cache config
+php artisan config:clear
 
-
-
+# Chạy queue worker
+php artisan queue:listen --tries=1
+```
