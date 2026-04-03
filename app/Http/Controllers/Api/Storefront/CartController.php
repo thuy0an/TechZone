@@ -26,7 +26,7 @@ class CartController extends BaseApiController
 
             return $this->successResponse($cart, 'Lấy thông tin giỏ hàng thành công');
         } catch (\Exception $e) {
-            return $this->errorResponse('Lỗi hệ thống', 500, $e->getMessage());
+            return $this->handleException($e, 'Lỗi hệ thống');
         }
     }
 

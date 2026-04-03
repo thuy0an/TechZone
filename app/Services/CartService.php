@@ -50,8 +50,12 @@ class CartService extends BaseService implements CartServiceInterface
                 $item->setAttribute('is_price_changed', true);
                 $item->setAttribute('old_price', $savedPrice);
 
-                // Lưu mức giá mới vào DB ngay lập tức
-                $this->repository->updateCartItemPrice($item, $newPrice);
+                // Lưu mức giá mới vào DB ngay lập tức — không block nếu lỗi
+                try {
+                    $this->repository->updateCartItemPrice($item, $newPrice);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning('updateCartItemPrice failed: ' . $e->getMessage());
+                }
             }
         });
 
