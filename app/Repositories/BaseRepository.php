@@ -230,6 +230,11 @@ abstract class BaseRepository implements BaseRepositoryInterface
             $query->orderBy($sortBy, $sortOrder);
         }
 
+        // Tiebreaker: khi created_at giống nhau, bản ghi id lớn hơn (mới hơn) lên trước
+        if ($sortBy !== 'id') {
+            $query->orderBy('id', $sortOrder);
+        }
+
         return $query;
     }
 }

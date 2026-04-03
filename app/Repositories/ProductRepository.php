@@ -164,7 +164,7 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
             $query->where('stock_quantity', '<', (int) $filters['stock_lt']);
         }
 
-        return $query->orderBy('created_at', 'desc')->paginate($perPage);
+        return $query->orderBy('created_at', 'desc')->orderBy('id', 'desc')->paginate($perPage);
     }
 
     /**

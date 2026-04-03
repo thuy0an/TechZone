@@ -27,7 +27,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
                 ->orWhere('email', 'LIKE', "%{$keyword}%");
         }
 
-        return $query->orderBy('created_at', 'DESC')->paginate($perPage);
+        return $query->orderBy('created_at', 'DESC')->orderBy('id', 'DESC')->paginate($perPage);
     }
 
     public function toggleLock(int $id): bool

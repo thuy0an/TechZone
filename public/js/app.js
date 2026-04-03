@@ -4,6 +4,9 @@
  */
 
 const PRODUCTS_PER_PAGE = 8;
+const HOME_CATEGORY_STRIP_LIMIT = 6;
+const HOME_CATEGORY_SECTION_LIMIT = 3;
+const HOME_CATEGORY_PRODUCTS_LIMIT = 4;
 
 const state = {
     pageType: 'unknown',
@@ -24,6 +27,9 @@ const state = {
     relatedCache: new Map(),
     relatedCacheTtlMs: 15 * 60 * 1000,
 };
+
+let homeCategoriesCache = null;
+const homeCategoryState = new Map();
 
 const CATEGORY_ICONS = {
     'điện thoại': '📱',
@@ -55,7 +61,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function initHomePage() {
     await renderHomeCategoryStrip();
     await renderHomeCategorySections();
-    prefetchProductsPageData();
 }
 
 async function initProductsPage() {
@@ -188,10 +193,10 @@ async function renderHomeCategoryStrip() {
     if (!container) return;
 
     try {
-        const response = await getStorefrontCategories();
-        const categories = response.data || [];
+        const categories = await getHomeCategories();
+        const visibleCategories = categories.slice(0, HOME_CATEGORY_STRIP_LIMIT);
 
-        const tiles = categories.map(category => {
+        const tiles = visibleCategories.map(category => {
             const icon = getCategoryIcon(category.name);
             return `
                 <a class="category-tile" href="products.html?category_id=${category.id}">
@@ -216,10 +221,9 @@ async function renderHomeCategorySections() {
     if (!container) return;
 
     try {
-        const response = await getStorefrontCategories();
-        const categories = response.data || [];
+        const categories = await getHomeCategories();
 
-        const limitedCategories = categories.slice(0, 6);
+        const limitedCategories = categories.slice(0, HOME_CATEGORY_SECTION_LIMIT);
         const sectionHtml = limitedCategories.map(category => {
             return `
                 <section class="home-category-block" data-category-id="${category.id}">
@@ -236,9 +240,7 @@ async function renderHomeCategorySections() {
 
         container.innerHTML = sectionHtml || '<div class="loading">Không có danh mục phù hợp.</div>';
 
-        await Promise.all(limitedCategories.map(category => loadHomeCategoryProducts(category.id)));
-
-        limitedCategories.forEach(category => setupHomeCategoryCarousel(category.id));
+        setupHomeCategoryLazyLoad(container);
     } catch (error) {
         container.innerHTML = '<div class="loading">Không thể tải danh mục.</div>';
     }
@@ -272,9 +274,18 @@ function applyProductsQueryFilters() {
     updateSectionTitle();
 }
 
-async function loadHomeCategoryProducts(categoryId) {
+async function loadHomeCategoryProducts(categoryId, options = {}) {
     const grid = document.getElementById(`home-category-grid-${categoryId}`);
     if (!grid) return;
+
+    const { page = 1, append = false } = options;
+    const categoryState = getHomeCategoryState(categoryId);
+    if (categoryState.loading) return;
+    categoryState.loading = true;
+
+    if (!append) {
+        grid.innerHTML = '<div class="loading">Đang tải sản phẩm...</div>';
+    }
 
     try {
         const filters = {
@@ -284,18 +295,71 @@ async function loadHomeCategoryProducts(categoryId) {
             min_price: '',
             max_price: '',
         };
-        const response = await searchStorefrontProductsAdvanced(filters, 1, PRODUCTS_PER_PAGE);
+        const response = await searchStorefrontProductsAdvanced(filters, page, HOME_CATEGORY_PRODUCTS_LIMIT);
         const products = response.data || [];
+        const pagination = response.pagination || null;
 
-        if (products.length === 0) {
+        categoryState.page = page;
+        categoryState.hasMore = pagination ? pagination.current_page < pagination.last_page : products.length > 0;
+
+        if (products.length === 0 && !append) {
             grid.innerHTML = '<div class="loading">Không có sản phẩm phù hợp.</div>';
             return;
         }
 
-        renderProducts(grid, transformProductsForDisplay(products));
+        const displayProducts = transformProductsForDisplay(products);
+        if (append) {
+            grid.insertAdjacentHTML('beforeend', renderProductsMarkup(displayProducts));
+        } else {
+            renderProducts(grid, displayProducts);
+        }
     } catch (error) {
-        grid.innerHTML = '<div class="loading">Không thể tải sản phẩm.</div>';
+        if (!append) {
+            grid.innerHTML = '<div class="loading">Không thể tải sản phẩm.</div>';
+        }
+    } finally {
+        categoryState.loading = false;
+        updateHomeCategoryButtons(categoryId);
     }
+}
+
+async function getHomeCategories() {
+    if (Array.isArray(homeCategoriesCache)) {
+        return homeCategoriesCache;
+    }
+
+    const response = await getStorefrontCategories();
+    homeCategoriesCache = response.data || [];
+    return homeCategoriesCache;
+}
+
+function setupHomeCategoryLazyLoad(container) {
+    const sections = Array.from(container.querySelectorAll('.home-category-block'));
+    if (!sections.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+        sections.forEach(section => loadHomeCategorySection(section));
+        return;
+    }
+
+    const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            loadHomeCategorySection(entry.target);
+            obs.unobserve(entry.target);
+        });
+    }, { root: null, rootMargin: '120px 0px', threshold: 0.1 });
+
+    sections.forEach(section => observer.observe(section));
+}
+
+function loadHomeCategorySection(section) {
+    if (!section || section.dataset.loaded === 'true') return;
+    const categoryId = Number(section.dataset.categoryId);
+    if (!categoryId) return;
+
+    section.dataset.loaded = 'true';
+    loadHomeCategoryProducts(categoryId, { page: 1, append: false }).then(() => setupHomeCategoryCarousel(categoryId));
 }
 
 function setupHomeCategoryCarousel(categoryId) {
@@ -316,9 +380,6 @@ function setupHomeCategoryCarousel(categoryId) {
 
     const updateButtons = () => {
         if (!prevBtn || !nextBtn) return;
-        const maxScrollLeft = container.scrollWidth - container.clientWidth - 1;
-        prevBtn.disabled = container.scrollLeft <= 0;
-        nextBtn.disabled = container.scrollLeft >= maxScrollLeft;
     };
 
     if (prevBtn) {
@@ -331,14 +392,35 @@ function setupHomeCategoryCarousel(categoryId) {
 
     if (nextBtn) {
         nextBtn.onclick = () => {
-            const step = scrollStep();
-            if (!step) return;
-            container.scrollBy({ left: step, behavior: 'smooth' });
+            const categoryState = getHomeCategoryState(categoryId);
+            if (!categoryState.hasMore || categoryState.loading) return;
+            const nextPage = categoryState.page + 1;
+            loadHomeCategoryProducts(categoryId, { page: nextPage, append: true }).then(() => {
+                container.scrollTo({ left: container.scrollWidth, behavior: 'smooth' });
+            });
         };
     }
 
     container.addEventListener('scroll', updateButtons);
     updateButtons();
+    updateHomeCategoryButtons(categoryId);
+}
+
+function getHomeCategoryState(categoryId) {
+    if (!homeCategoryState.has(categoryId)) {
+        homeCategoryState.set(categoryId, { page: 0, hasMore: true, loading: false });
+    }
+    return homeCategoryState.get(categoryId);
+}
+
+function updateHomeCategoryButtons(categoryId) {
+    const nextBtn = document.querySelector(`.carousel-btn.next[data-carousel="cat-${categoryId}"]`);
+    const prevBtn = document.querySelector(`.carousel-btn.prev[data-carousel="cat-${categoryId}"]`);
+    if (!nextBtn || !prevBtn) return;
+    const categoryState = getHomeCategoryState(categoryId);
+    const shouldHide = !categoryState.hasMore;
+    nextBtn.style.display = shouldHide ? 'none' : '';
+    prevBtn.style.display = shouldHide ? 'none' : '';
 }
 
 async function renderProductsPageCategories() {
@@ -511,21 +593,6 @@ async function loadCurrentCategoryProducts(page = 1) {
     }
 }
 
-function prefetchProductsPageData() {
-    const run = () => {
-        apiRequest('/storefront/categories').catch(() => {});
-        apiRequest('/storefront/brands').catch(() => {});
-        apiRequest('/storefront/products?page=1&per_page=8').catch(() => {});
-    };
-
-    if (typeof window.requestIdleCallback === 'function') {
-        window.requestIdleCallback(run, { timeout: 2000 });
-        return;
-    }
-
-    window.setTimeout(run, 800);
-}
-
 function buildSearchFilters() {
     return {
         keyword: state.searchTerm,
@@ -603,9 +670,13 @@ function hasActiveFilters() {
 }
 
 function renderProducts(container, products) {
+    container.innerHTML = renderProductsMarkup(products);
+}
+
+function renderProductsMarkup(products) {
     const hasDetailModal = Boolean(document.getElementById('product-detail-modal'));
 
-    container.innerHTML = products.map(product => {
+    return products.map(product => {
         const price = Number(product.price ?? product.selling_price ?? 0);
         const image = resolveImageUrl(product.image);
         const name = product.name || 'Sản phẩm';

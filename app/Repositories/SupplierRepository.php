@@ -25,7 +25,7 @@ class SupplierRepository extends BaseRepository implements SupplierRepositoryInt
             });
         }
 
-        return $query->orderBy('created_at', 'desc')->paginate($perPage);
+        return $query->orderBy('created_at', 'desc')->orderBy('id', 'desc')->paginate($perPage);
     }
 
     public function hasImportNotes(int $id): bool

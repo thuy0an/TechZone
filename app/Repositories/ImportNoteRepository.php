@@ -33,7 +33,7 @@ class ImportNoteRepository extends BaseRepository implements ImportNoteRepositor
             $query->whereDate('import_date', '<=', $filters['to_date']);
         }
 
-        return $query->orderBy('created_at', 'desc')->paginate($perPage);
+        return $query->orderBy('created_at', 'desc')->orderBy('id', 'desc')->paginate($perPage);
     }
 
     public function getDetailById(int $id)

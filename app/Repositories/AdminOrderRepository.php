@@ -58,6 +58,6 @@ class AdminOrderRepository extends BaseRepository implements AdminOrderRepositor
             $query->where('user_id', $filters['user_id']);
         }
 
-        return $query->orderBy('created_at', 'desc')->paginate($perPage);
+        return $query->orderBy('created_at', 'desc')->orderBy('id', 'desc')->paginate($perPage);
     }
 }
