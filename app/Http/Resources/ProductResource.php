@@ -24,7 +24,7 @@ class ProductResource extends JsonResource
             'brand_id' => $this->brand_id,
             'code' => $this->code,
             'name' => $this->name,
-            'image' => $this->image ? url($this->image) : null,
+            'image' => $this->image,
             'description' => $this->description,
             'specifications' => $specifications,
             'price' => (float) $this->selling_price,

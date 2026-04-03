@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'require.client.login' => App\Http\Middleware\RequireClientLoginMiddleware::class,
         ]);
+
+        $middleware->api(append: [
+            App\Http\Middleware\ApiCacheHeaders::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

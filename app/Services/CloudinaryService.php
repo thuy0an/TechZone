@@ -30,6 +30,40 @@ class CloudinaryService
             ['folder' => $folder]
         );
 
-        return $result['secure_url'];
+        return $this->buildStoredPath($result);
+    }
+
+    public function buildUrl(?string $imagePath): ?string
+    {
+        if (!$imagePath) {
+            return null;
+        }
+
+        $value = trim((string) $imagePath);
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://')) {
+            return $value;
+        }
+
+        if (str_starts_with($value, '/')) {
+            return $value;
+        }
+
+        return rtrim((string) config('services.cloudinary.base_url'), '/') . '/' . ltrim($value, '/');
+    }
+
+    private function buildStoredPath($result): ?string
+    {
+        $publicId = data_get($result, 'public_id');
+        if (!$publicId) {
+            return null;
+        }
+
+        $format = data_get($result, 'format');
+        return $format ? $publicId . '.' . $format : $publicId;
     }
 }

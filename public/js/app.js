@@ -55,16 +55,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function initHomePage() {
     await renderHomeCategoryStrip();
     await renderHomeCategorySections();
+    prefetchProductsPageData();
 }
 
 async function initProductsPage() {
     setupProductsToolbar();
-    await Promise.all([
+    applyProductsQueryFilters();
+    renderProductsLoadingState();
+
+    await Promise.allSettled([
         renderProductsPageCategories(),
         renderProductsPageBrands(),
+        loadCurrentCategoryProducts(1),
     ]);
-    applyProductsQueryFilters();
-    await loadCurrentCategoryProducts(1);
 }
 
 function setupProductsToolbar() {
@@ -358,6 +361,34 @@ async function renderProductsPageCategories() {
     }
 }
 
+function renderProductsLoadingState() {
+    const productContainer = document.getElementById('category-products') || document.getElementById('featured-products');
+    if (!productContainer) return;
+
+    productContainer.innerHTML = Array.from({ length: PRODUCTS_PER_PAGE }, () => `
+        <article class="product-card skeleton-card" aria-hidden="true">
+            <div class="product-image-wrapper">
+                <div class="skeleton-block" style="width: 100%; height: 160px; border-radius: 16px;"></div>
+            </div>
+            <div class="product-info">
+                <span class="skeleton-line w-80"></span>
+                <span class="skeleton-line w-40"></span>
+            </div>
+        </article>
+    `).join('');
+
+    const paginationContainer = document.getElementById('pagination-container');
+    if (paginationContainer) {
+        paginationContainer.innerHTML = '';
+        paginationContainer.classList.add('is-hidden');
+    }
+
+    const metaElement = document.getElementById('products-meta');
+    if (metaElement) {
+        metaElement.textContent = 'Đang tải sản phẩm...';
+    }
+}
+
 async function renderProductsPageBrands() {
     const brandSelect = document.getElementById('brand-select');
     if (!brandSelect) return;
@@ -478,6 +509,21 @@ async function loadCurrentCategoryProducts(page = 1) {
     } catch (error) {
         console.error('Không thể tải sản phẩm:', error);
     }
+}
+
+function prefetchProductsPageData() {
+    const run = () => {
+        apiRequest('/storefront/categories').catch(() => {});
+        apiRequest('/storefront/brands').catch(() => {});
+        apiRequest('/storefront/products?page=1&per_page=8').catch(() => {});
+    };
+
+    if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(run, { timeout: 2000 });
+        return;
+    }
+
+    window.setTimeout(run, 800);
 }
 
 function buildSearchFilters() {

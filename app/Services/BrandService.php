@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Repositories\Interfaces\BrandRepositoryInterface;
 use App\Services\Interfaces\BrandServiceInterface;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -16,6 +17,13 @@ class BrandService extends BaseService implements BrandServiceInterface
     {
         parent::__construct($brandRepository);
         $this->brandRepository = $brandRepository;
+    }
+
+    public function getAll()
+    {
+        return Cache::remember($this->getCacheKey(), $this->getCacheTtl(), function () {
+            return $this->brandRepository->getAll();
+        });
     }
 
     /**
@@ -75,6 +83,21 @@ class BrandService extends BaseService implements BrandServiceInterface
         }
     }
 
+    protected function afterCreate($model): void
+    {
+        $this->clearCache();
+    }
+
+    protected function afterUpdate($model): void
+    {
+        $this->clearCache();
+    }
+
+    protected function afterDelete(int $id): void
+    {
+        $this->clearCache();
+    }
+
     /**
      * Override delete để xóa file logo sau khi xóa record
      */
@@ -90,6 +113,21 @@ class BrandService extends BaseService implements BrandServiceInterface
         }
 
         return $result;
+    }
+
+    private function clearCache(): void
+    {
+        Cache::forget($this->getCacheKey());
+    }
+
+    private function getCacheKey(): string
+    {
+        return 'storefront:brands:all';
+    }
+
+    private function getCacheTtl(): int
+    {
+        return 60 * 15;
     }
 
     /**

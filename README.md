@@ -75,22 +75,63 @@ php artisan queue:listen --tries=1
 
 ## Database
 
-Có 2 cách khởi tạo:
+**Phương án A: Dùng file SQL nghiệp vụ (Khuyến nghị cho demo)**
 
-**A. Schema nghiệp vụ đầy đủ (khuyến nghị)**
+Import file `TableOfProject.sql` để tạo database `techzone_db` với đầy đủ schema nghiệp vụ:
 
-1. Import `TableOfProject.sql` — tạo DB `techzone_db` và toàn bộ bảng nghiệp vụ.
-2. Import `DataMock.sql` — dữ liệu mẫu.
-3. Đặt `DB_DATABASE=techzone_db` trong `.env`.
+- Bước 1: Mở MySQL Workbench hoặc phpMyAdmin
+- Bước 2: Chạy file `TableOfProject.sql` — file sẽ tự `DROP DATABASE IF EXISTS techzone_db` rồi tạo lại
+- Bước 3: Chạy `DataMock.sql` để có dữ liệu mẫu
 
-**B. Migration Laravel**
-
-```bash
-php artisan migrate
-php artisan db:seed
+Sau đó cập nhật `.env`:
+```
+DB_DATABASE=techzone_db
+DB_USERNAME=root
+DB_PASSWORD=        # trống với XAMPP mặc định
 ```
 
-> Tài khoản admin mặc định: xem `database/seeders/AdminSeeder.php`.
+> Không chạy `php artisan migrate` lên cùng database này vì có thể xung đột schema.
+
+---
+
+**Phương án B: Dùng Laravel Migrations + DataMock**
+
+Tạo database bằng tay rồi dùng migration để tạo bảng, sau đó import dữ liệu mẫu từ file SQL:
+
+- Bước 1: Tạo database rỗng trong phpMyAdmin (ví dụ: `techzone_db`)
+- Bước 2: Cập nhật `.env`: `DB_DATABASE=techzone_db`
+- Bước 3: Chạy migration để tạo toàn bộ bảng:
+  ```bash
+  php artisan migrate
+  ```
+- Bước 4: Quay lại phpMyAdmin, chọn database `techzone_db`, import file `DataMock.sql`
+
+> DataMock.sql chỉ chứa lệnh `INSERT` — không có `CREATE TABLE` hay `DROP DATABASE` — nên hoàn toàn tương thích với schema do migration tạo ra.
+
+---
+
+**Phương án C: Dùng Laravel Migrations + Seeders**
+
+Phù hợp cho môi trường phát triển mới hoàn toàn, không cần file SQL:
+
+- Bước 1: Tạo database rỗng trong phpMyAdmin (ví dụ: `techzone_db`)
+- Bước 2: Cập nhật `.env`: `DB_DATABASE=techzone_db`
+- Bước 3:
+  ```bash
+  php artisan migrate          # Tạo toàn bộ bảng theo migration files
+  php artisan db:seed          # Chèn dữ liệu mẫu cơ bản
+  ```
+
+Seeders chạy theo thứ tự:
+`AdminSeeder → CategorySeeder → BrandSeeder → UserSeeder → UserAddressSeeder → ProductSeeder → PromotionSeeder → OrderSeeder`
+
+Mật khẩu mặc định cho tất cả tài khoản mẫu là `password`.
+
+| Tài khoản | Email |
+|-----------|-------|
+| Admin hệ thống | `admin@techzone.com` |
+| Thành viên nhóm | `3122410001@techzone.com` |
+| Khách hàng mẫu | `khach1@gmail.com` |
 
 ---
 

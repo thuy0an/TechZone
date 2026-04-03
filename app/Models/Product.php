@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\ImportNoteDetail;
+use App\Services\CloudinaryService;
 
 class Product extends BaseModel
 {
@@ -25,6 +26,31 @@ class Product extends BaseModel
         'status',
         'low_stock_threshold',
     ];
+
+    public function getImageAttribute($value)
+    {
+        return app(CloudinaryService::class)->buildUrl($value);
+    }
+
+    public function setImageAttribute($value): void
+    {
+        if ($value === null || $value === '') {
+            $this->attributes['image'] = null;
+            return;
+        }
+
+        $storedValue = (string) $value;
+
+        if (str_starts_with($storedValue, 'http://') || str_starts_with($storedValue, 'https://')) {
+            $baseUrl = rtrim((string) config('services.cloudinary.base_url'), '/') . '/';
+
+            if (str_starts_with($storedValue, $baseUrl)) {
+                $storedValue = substr($storedValue, strlen($baseUrl));
+            }
+        }
+
+        $this->attributes['image'] = ltrim($storedValue, '/');
+    }
 
     public function category()
     {

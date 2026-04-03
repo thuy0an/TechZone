@@ -13,6 +13,7 @@ class OrderSeeder extends Seeder
             [
                 'user_id'          => 1,
                 'promotion_id'     => null,
+                'order_code'       => 'ORD-' . date('Ymd') . '-001',
                 'order_date'       => now(),
                 'status'           => 'delivered',
                 'shipping_address' => '12 Lê Lợi, Q1',
@@ -26,6 +27,7 @@ class OrderSeeder extends Seeder
             [
                 'user_id'          => 2,
                 'promotion_id'     => 1,
+                'order_code'       => 'ORD-' . date('Ymd') . '-002',
                 'order_date'       => now(),
                 'status'           => 'confirmed',
                 'shipping_address' => '45 Nguyễn Trãi, Q5',
@@ -39,6 +41,7 @@ class OrderSeeder extends Seeder
             [
                 'user_id'          => 3,
                 'promotion_id'     => 2,
+                'order_code'       => 'ORD-' . date('Ymd') . '-003',
                 'order_date'       => now(),
                 'status'           => 'new',
                 'shipping_address' => '78 Hùng Vương',

@@ -5,6 +5,51 @@
 
 // Base URL của API
 const API_BASE_URL = '/api';
+const API_CACHE_PREFIX = 'techzone-api-cache:';
+const API_CACHE_TTL_MS = 2 * 60 * 1000;
+const API_PENDING_REQUESTS = new Map();
+
+function buildApiCacheKey(url, method) {
+    return `${API_CACHE_PREFIX}${method}:${url}`;
+}
+
+function getCachedApiResponse(cacheKey) {
+    try {
+        const cached = sessionStorage.getItem(cacheKey);
+        if (!cached) return null;
+
+        const parsed = JSON.parse(cached);
+        if (!parsed || !parsed.expiresAt || Date.now() > parsed.expiresAt) {
+            sessionStorage.removeItem(cacheKey);
+            return null;
+        }
+
+        return parsed.data;
+    } catch (error) {
+        return null;
+    }
+}
+
+function setCachedApiResponse(cacheKey, data) {
+    try {
+        sessionStorage.setItem(cacheKey, JSON.stringify({
+            expiresAt: Date.now() + API_CACHE_TTL_MS,
+            data,
+        }));
+    } catch (error) {
+        // Ignore storage quota issues.
+    }
+}
+
+function shouldCacheApiRequest(url, method, token, options = {}) {
+    if (method !== 'GET') return false;
+    if (token) return false;
+    if (options.cache === false) return false;
+
+    return url.startsWith('/api/test')
+        || url.startsWith('/api/storefront/')
+        || url.startsWith('/api/locations/');
+}
 
 /**
  * Hàm fetch wrapper với xử lý lỗi
@@ -14,6 +59,7 @@ const API_BASE_URL = '/api';
  */
 async function apiRequest(endpoint, options = {}) {
     const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+    const method = String(options.method || 'GET').toUpperCase();
 
     const headers = {
         'Content-Type': 'application/json',
@@ -28,6 +74,19 @@ async function apiRequest(endpoint, options = {}) {
     }
 
     const config = { ...options, headers };
+    const cacheable = shouldCacheApiRequest(url, method, token, options);
+    const cacheKey = cacheable ? buildApiCacheKey(url, method) : null;
+
+    if (cacheKey) {
+        const cached = getCachedApiResponse(cacheKey);
+        if (cached !== null) {
+            return cached;
+        }
+
+        if (API_PENDING_REQUESTS.has(cacheKey)) {
+            return API_PENDING_REQUESTS.get(cacheKey);
+        }
+    }
 
     try {
         const response = await fetch(url, config);
@@ -47,10 +106,18 @@ async function apiRequest(endpoint, options = {}) {
             throw err;
         }
 
+        if (cacheKey) {
+            setCachedApiResponse(cacheKey, data);
+        }
+
         return data;
     } catch (error) {
         console.error('API Error:', error);
         throw error;
+    } finally {
+        if (cacheKey) {
+            API_PENDING_REQUESTS.delete(cacheKey);
+        }
     }
 }
 

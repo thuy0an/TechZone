@@ -125,11 +125,11 @@ INSERT INTO suppliers (name, phone, email, address, created_at, updated_at) VALU
 INSERT INTO products 
 (category_id, brand_id, code, name, image, description, unit, stock_quantity, import_price, profit_margin, selling_price, status, created_at, updated_at)
 VALUES
-(1,1,'IP15','iPhone 15 128GB','iphone15.jpg','Điện thoại Apple','Chiếc',20,20000000,15,23000000,'visible',NOW(),NOW()),
-(2,3,'XPS13','Dell XPS 13','xps13.jpg','Laptop mỏng nhẹ','Chiếc',10,30000000,20,36000000,'visible',NOW(),NOW()),
-(4,1,'AW9','Apple Watch Series 9','aw9.jpg','Smartwatch cao cấp','Chiếc',15,8000000,15,9200000,'visible',NOW(),NOW()),
-(5,5,'SONYWH','Sony WH-1000XM5','sony.jpg','Tai nghe chống ồn','Cái',25,6000000,25,7500000,'visible',NOW(),NOW()),
-(1,2,'S24','Samsung Galaxy S24','s24.jpg','Điện thoại Samsung','Chiếc',18,22000000,12,24640000,'visible',NOW(),NOW());
+(1,1,'IP15','iPhone 15 128GB','techzone/products/xmhsyv8lmfrihl7hcts2.jpg','Điện thoại Apple','Chiếc',20,20000000,15,23000000,'visible',NOW(),NOW()),
+(2,3,'XPS13','Dell XPS 13','techzone/products/dqbsikfkewkr8lgwtddq.jpg','Laptop mỏng nhẹ','Chiếc',10,30000000,20,36000000,'visible',NOW(),NOW()),
+(4,1,'AW9','Apple Watch Series 9','techzone/products/qwbwwbw96xvun9nrzn7b.jpg','Smartwatch cao cấp','Chiếc',15,8000000,15,9200000,'visible',NOW(),NOW()),
+(5,5,'SONYWH','Sony WH-1000XM5','techzone/products/gmcuz5rnhdhv7eupgemm.jpg','Tai nghe chống ồn','Cái',25,6000000,25,7500000,'visible',NOW(),NOW()),
+(1,2,'S24','Samsung Galaxy S24','techzone/products/eh4kw1vbk1mjwfvgttvf.jpg','Điện thoại Samsung','Chiếc',18,22000000,12,24640000,'visible',NOW(),NOW());
 
 INSERT INTO products
 (category_id, brand_id, code, name, image, description, unit, stock_quantity, import_price, profit_margin, selling_price, status, created_at, updated_at)

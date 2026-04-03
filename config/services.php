@@ -39,4 +39,12 @@ return [
         'token' => env('GHN_TOKEN'),
     ],
 
+    'cloudinary' => [
+        'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+        'base_url' => env(
+            'CLOUDINARY_BASE_URL',
+            'https://res.cloudinary.com/' . env('CLOUDINARY_CLOUD_NAME') . '/image/upload'
+        ),
+    ],
+
 ];
