@@ -67,9 +67,46 @@
 
                     <section class="products-main section-alt card" id="category-products-section">
                         <div class="products-toolbar">
-                            <div class="toolbar-search">
-                                <label for="product-search-input">Tìm theo tên sản phẩm</label>
-                                <input id="product-search-input" type="text" placeholder="Nhập tên sản phẩm..." autocomplete="off">
+                            <div class="advanced-quick-search">
+                                <label for="advanced-search-quick-input">Tìm nhanh</label>
+                                <input id="advanced-search-quick-input" type="text" placeholder="Nhập tên sản phẩm..." autocomplete="off">
+                            </div>
+                            <div class="advanced-search" id="advanced-search">
+                                <button type="button" class="btn btn-secondary advanced-search-toggle" id="advanced-search-toggle" aria-expanded="false">
+                                    Tìm kiếm nâng cao
+                                    <span class="advanced-search-icon">▾</span>
+                                </button>
+                                <div class="advanced-search-panel" id="advanced-search-panel" aria-hidden="true">
+                                    <div class="advanced-search-grid">
+                                        <div class="advanced-field">
+                                            <label for="advanced-search-keyword">Tên sản phẩm</label>
+                                            <input id="advanced-search-keyword" type="text" placeholder="Nhập tên sản phẩm..." autocomplete="off">
+                                        </div>
+                                        <div class="advanced-field">
+                                            <label for="advanced-search-category">Danh mục</label>
+                                            <select id="advanced-search-category">
+                                                <option value="">Tất cả danh mục</option>
+                                            </select>
+                                        </div>
+                                        <div class="advanced-field">
+                                            <label for="advanced-search-brand">Thương hiệu</label>
+                                            <select id="advanced-search-brand">
+                                                <option value="">Tất cả thương hiệu</option>
+                                            </select>
+                                        </div>
+                                        <div class="advanced-field">
+                                            <label>Khoảng giá (VND)</label>
+                                            <div class="advanced-price-range">
+                                                <input id="advanced-search-min" type="number" min="0" placeholder="Từ">
+                                                <input id="advanced-search-max" type="number" min="0" placeholder="Đến">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="advanced-search-actions">
+                                        <button type="button" class="btn btn-secondary" id="advanced-search-reset">Reset</button>
+                                        <button type="button" class="btn btn-primary" id="advanced-search-submit">Tìm kiếm</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

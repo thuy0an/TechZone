@@ -17,6 +17,21 @@ const state = {
     currentBrandId: null,
     minPrice: '',
     maxPrice: '',
+    pendingFilters: {
+        keyword: '',
+        categoryId: null,
+        brandId: null,
+        minPrice: '',
+        maxPrice: '',
+    },
+    advancedFilters: {
+        keyword: '',
+        categoryId: null,
+        brandId: null,
+        minPrice: '',
+        maxPrice: '',
+    },
+    quickSearchTerm: '',
     searchDebounceTimer: null,
     sortBy: 'default',
     lastFetchedProducts: [],
@@ -76,20 +91,23 @@ async function initProductsPage() {
 }
 
 function setupProductsToolbar() {
-    const searchInput = document.getElementById('product-search-input');
     const sortSelect = document.getElementById('product-sort-select');
     const categorySelect = document.getElementById('category-select');
     const brandSelect = document.getElementById('brand-select');
     const minPriceInput = document.getElementById('min-price-input');
     const maxPriceInput = document.getElementById('max-price-input');
     const resetButton = document.getElementById('filter-reset-btn');
-
-    if (searchInput) {
-        searchInput.addEventListener('input', (event) => {
-            state.searchTerm = event.target.value.trim();
-            scheduleSearchRefresh();
-        });
-    }
+    const advancedToggle = document.getElementById('advanced-search-toggle');
+    const advancedPanel = document.getElementById('advanced-search-panel');
+    const advancedContainer = document.getElementById('advanced-search');
+    const advancedQuickInput = document.getElementById('advanced-search-quick-input');
+    const advancedKeywordInput = document.getElementById('advanced-search-keyword');
+    const advancedCategorySelect = document.getElementById('advanced-search-category');
+    const advancedBrandSelect = document.getElementById('advanced-search-brand');
+    const advancedMinPriceInput = document.getElementById('advanced-search-min');
+    const advancedMaxPriceInput = document.getElementById('advanced-search-max');
+    const advancedSubmitButton = document.getElementById('advanced-search-submit');
+    const advancedResetButton = document.getElementById('advanced-search-reset');
 
     if (sortSelect) {
         sortSelect.addEventListener('change', (event) => {
@@ -101,43 +119,307 @@ function setupProductsToolbar() {
     if (categorySelect) {
         categorySelect.addEventListener('change', (event) => {
             const selectedValue = event.target.value;
-
-            if (!selectedValue) {
-                selectAllProducts();
-                return;
-            }
-
-            const selectedLabel = event.target.options[event.target.selectedIndex]?.text || 'Danh mục';
-            selectCategory(Number(selectedValue), selectedLabel);
+            updateSidebarFilters({
+                categoryId: selectedValue ? Number(selectedValue) : null,
+            });
+            applySidebarFilters();
         });
     }
 
     if (brandSelect) {
         brandSelect.addEventListener('change', (event) => {
             const selectedValue = event.target.value;
-            state.currentBrandId = selectedValue ? Number(selectedValue) : null;
-            state.currentPage = 1;
-            loadCurrentCategoryProducts(1);
+            updateSidebarFilters({
+                brandId: selectedValue ? Number(selectedValue) : null,
+            });
+            applySidebarFilters();
         });
     }
 
     if (minPriceInput) {
         minPriceInput.addEventListener('input', (event) => {
-            state.minPrice = normalizeNumberString(event.target.value);
-            scheduleSearchRefresh();
+            updateSidebarFilters({
+                minPrice: normalizeNumberString(event.target.value),
+            });
+            scheduleSidebarSearch();
         });
     }
 
     if (maxPriceInput) {
         maxPriceInput.addEventListener('input', (event) => {
-            state.maxPrice = normalizeNumberString(event.target.value);
-            scheduleSearchRefresh();
+            updateSidebarFilters({
+                maxPrice: normalizeNumberString(event.target.value),
+            });
+            scheduleSidebarSearch();
         });
     }
 
     if (resetButton) {
         resetButton.addEventListener('click', () => resetFilters());
     }
+
+    if (advancedToggle && advancedPanel) {
+        advancedToggle.addEventListener('click', () => {
+            const isOpen = advancedPanel.classList.contains('is-open');
+            setAdvancedSearchOpen(!isOpen);
+        });
+    }
+
+    if (advancedContainer) {
+        document.addEventListener('click', (event) => {
+            if (!advancedPanel || !advancedPanel.classList.contains('is-open')) return;
+            if (advancedContainer.contains(event.target)) return;
+            setAdvancedSearchOpen(false);
+        });
+    }
+
+    if (advancedKeywordInput) {
+        advancedKeywordInput.addEventListener('input', (event) => {
+            updateAdvancedFilters({ keyword: event.target.value.trim() });
+        });
+    }
+
+    if (advancedQuickInput) {
+        advancedQuickInput.addEventListener('input', (event) => {
+            state.quickSearchTerm = event.target.value.trim();
+            scheduleQuickSearch();
+        });
+    }
+
+    if (advancedCategorySelect) {
+        advancedCategorySelect.addEventListener('change', (event) => {
+            const selectedValue = event.target.value;
+            updateAdvancedFilters({
+                categoryId: selectedValue ? Number(selectedValue) : null,
+            });
+        });
+    }
+
+    if (advancedBrandSelect) {
+        advancedBrandSelect.addEventListener('change', (event) => {
+            const selectedValue = event.target.value;
+            updateAdvancedFilters({
+                brandId: selectedValue ? Number(selectedValue) : null,
+            });
+        });
+    }
+
+    if (advancedMinPriceInput) {
+        advancedMinPriceInput.addEventListener('input', (event) => {
+            updateAdvancedFilters({
+                minPrice: normalizeNumberString(event.target.value),
+            });
+        });
+    }
+
+    if (advancedMaxPriceInput) {
+        advancedMaxPriceInput.addEventListener('input', (event) => {
+            updateAdvancedFilters({
+                maxPrice: normalizeNumberString(event.target.value),
+            });
+        });
+    }
+
+    if (advancedSubmitButton) {
+        advancedSubmitButton.addEventListener('click', () => {
+            applyAdvancedFilters();
+        });
+    }
+
+    if (advancedResetButton) {
+        advancedResetButton.addEventListener('click', () => resetFilters());
+    }
+}
+
+function setAdvancedSearchOpen(isOpen) {
+    const panel = document.getElementById('advanced-search-panel');
+    const toggle = document.getElementById('advanced-search-toggle');
+    if (!panel || !toggle) return;
+
+    panel.classList.toggle('is-open', isOpen);
+    panel.setAttribute('aria-hidden', String(!isOpen));
+    toggle.setAttribute('aria-expanded', String(isOpen));
+}
+
+function updatePendingFilters(partial) {
+    state.pendingFilters = {
+        ...state.pendingFilters,
+        ...partial,
+    };
+    syncFilterInputs(state.pendingFilters, state.advancedFilters);
+}
+
+function updateSidebarFilters(partial) {
+    state.pendingFilters = {
+        ...state.pendingFilters,
+        ...partial,
+    };
+    syncFilterInputs(state.pendingFilters, state.advancedFilters);
+}
+
+function updateAdvancedFilters(partial) {
+    state.advancedFilters = {
+        ...state.advancedFilters,
+        ...partial,
+    };
+    syncFilterInputs(state.pendingFilters, state.advancedFilters);
+}
+
+function syncFilterInputs(sidebarFilters, advancedFilters) {
+    const categorySelect = document.getElementById('category-select');
+    const brandSelect = document.getElementById('brand-select');
+    const minPriceInput = document.getElementById('min-price-input');
+    const maxPriceInput = document.getElementById('max-price-input');
+    const advancedKeywordInput = document.getElementById('advanced-search-keyword');
+    const advancedCategorySelect = document.getElementById('advanced-search-category');
+    const advancedBrandSelect = document.getElementById('advanced-search-brand');
+    const advancedMinPriceInput = document.getElementById('advanced-search-min');
+    const advancedMaxPriceInput = document.getElementById('advanced-search-max');
+
+    if (categorySelect) categorySelect.value = sidebarFilters.categoryId ? String(sidebarFilters.categoryId) : '';
+    if (brandSelect) brandSelect.value = sidebarFilters.brandId ? String(sidebarFilters.brandId) : '';
+    if (minPriceInput) minPriceInput.value = sidebarFilters.minPrice || '';
+    if (maxPriceInput) maxPriceInput.value = sidebarFilters.maxPrice || '';
+
+    if (advancedKeywordInput) advancedKeywordInput.value = advancedFilters.keyword || '';
+    if (advancedCategorySelect) advancedCategorySelect.value = advancedFilters.categoryId ? String(advancedFilters.categoryId) : '';
+    if (advancedBrandSelect) advancedBrandSelect.value = advancedFilters.brandId ? String(advancedFilters.brandId) : '';
+    if (advancedMinPriceInput) advancedMinPriceInput.value = advancedFilters.minPrice || '';
+    if (advancedMaxPriceInput) advancedMaxPriceInput.value = advancedFilters.maxPrice || '';
+}
+
+function syncQuickSearchInput(value) {
+    const advancedQuickInput = document.getElementById('advanced-search-quick-input');
+    if (advancedQuickInput) advancedQuickInput.value = value || '';
+}
+
+function getFiltersFromInputs() {
+    const categorySelect = document.getElementById('category-select');
+    const brandSelect = document.getElementById('brand-select');
+    const minPriceInput = document.getElementById('min-price-input');
+    const maxPriceInput = document.getElementById('max-price-input');
+    const advancedKeywordInput = document.getElementById('advanced-search-keyword');
+    const advancedCategorySelect = document.getElementById('advanced-search-category');
+    const advancedBrandSelect = document.getElementById('advanced-search-brand');
+    const advancedMinPriceInput = document.getElementById('advanced-search-min');
+    const advancedMaxPriceInput = document.getElementById('advanced-search-max');
+
+    const keyword = advancedKeywordInput?.value?.trim() || '';
+    const categoryValue = advancedCategorySelect?.value ?? '';
+    const brandValue = advancedBrandSelect?.value ?? '';
+    const minValue = advancedMinPriceInput?.value ?? '';
+    const maxValue = advancedMaxPriceInput?.value ?? '';
+
+    return {
+        keyword,
+        categoryId: categoryValue ? Number(categoryValue) : null,
+        brandId: brandValue ? Number(brandValue) : null,
+        minPrice: normalizeNumberString(minValue),
+        maxPrice: normalizeNumberString(maxValue),
+    };
+}
+
+function getSelectedCategoryName() {
+    const advancedCategorySelect = document.getElementById('advanced-search-category');
+    if (!advancedCategorySelect) return 'Tất cả sản phẩm';
+    if (!advancedCategorySelect.value) return 'Tất cả sản phẩm';
+    return advancedCategorySelect.options[advancedCategorySelect.selectedIndex]?.text || 'Danh mục';
+}
+
+function applyFiltersFromInputs(options = {}) {
+    const { closePanel = true } = options;
+    const filters = getFiltersFromInputs();
+    state.advancedFilters = { ...filters };
+
+    state.searchTerm = filters.keyword;
+    state.currentCategoryId = filters.categoryId;
+    state.currentBrandId = filters.brandId;
+    state.minPrice = filters.minPrice;
+    state.maxPrice = filters.maxPrice;
+    state.currentPage = 1;
+    state.currentCategoryName = filters.categoryId ? getSelectedCategoryName() : 'Tất cả sản phẩm';
+
+    state.pendingFilters = {
+        keyword: state.searchTerm,
+        categoryId: state.currentCategoryId,
+        brandId: state.currentBrandId,
+        minPrice: state.minPrice,
+        maxPrice: state.maxPrice,
+    };
+    syncFilterInputs(state.pendingFilters, state.advancedFilters);
+    highlightCategory(state.currentCategoryId);
+    updateSectionTitle();
+    loadCurrentCategoryProducts(1);
+
+    if (closePanel) {
+        setAdvancedSearchOpen(false);
+    }
+}
+
+function applyAdvancedFilters() {
+    applyFiltersFromInputs({ closePanel: true });
+}
+
+function getSidebarFilters() {
+    const categorySelect = document.getElementById('category-select');
+    const brandSelect = document.getElementById('brand-select');
+    const minPriceInput = document.getElementById('min-price-input');
+    const maxPriceInput = document.getElementById('max-price-input');
+
+    return {
+        keyword: '',
+        categoryId: categorySelect?.value ? Number(categorySelect.value) : null,
+        brandId: brandSelect?.value ? Number(brandSelect.value) : null,
+        minPrice: normalizeNumberString(minPriceInput?.value ?? ''),
+        maxPrice: normalizeNumberString(maxPriceInput?.value ?? ''),
+    };
+}
+
+function applySidebarFilters() {
+    const filters = getSidebarFilters();
+    state.pendingFilters = { ...filters };
+
+    state.searchTerm = state.quickSearchTerm;
+    state.currentCategoryId = filters.categoryId;
+    state.currentBrandId = filters.brandId;
+    state.minPrice = filters.minPrice;
+    state.maxPrice = filters.maxPrice;
+    state.currentPage = 1;
+    state.currentCategoryName = filters.categoryId
+        ? (document.getElementById('category-select')?.options[
+            document.getElementById('category-select')?.selectedIndex
+        ]?.text || 'Danh mục')
+        : 'Tất cả sản phẩm';
+
+    highlightCategory(state.currentCategoryId);
+    updateSectionTitle();
+    loadCurrentCategoryProducts(1);
+}
+
+function scheduleSidebarSearch() {
+    if (state.searchDebounceTimer) {
+        window.clearTimeout(state.searchDebounceTimer);
+    }
+
+    state.searchDebounceTimer = window.setTimeout(() => {
+        applySidebarFilters();
+    }, 300);
+}
+
+function scheduleQuickSearch() {
+    if (state.searchDebounceTimer) {
+        window.clearTimeout(state.searchDebounceTimer);
+    }
+
+    state.searchDebounceTimer = window.setTimeout(() => {
+        applyQuickSearch();
+    }, 300);
+}
+
+function applyQuickSearch() {
+    state.searchTerm = state.quickSearchTerm;
+    state.currentPage = 1;
+    loadCurrentCategoryProducts(1);
 }
 
 function resetFilters() {
@@ -149,20 +431,27 @@ function resetFilters() {
     state.maxPrice = '';
     state.sortBy = 'default';
     state.currentPage = 1;
+    state.pendingFilters = {
+        keyword: '',
+        categoryId: null,
+        brandId: null,
+        minPrice: '',
+        maxPrice: '',
+    };
+    state.advancedFilters = {
+        keyword: '',
+        categoryId: null,
+        brandId: null,
+        minPrice: '',
+        maxPrice: '',
+    };
+    state.quickSearchTerm = '';
 
-    const searchInput = document.getElementById('product-search-input');
-    const categorySelect = document.getElementById('category-select');
-    const brandSelect = document.getElementById('brand-select');
-    const minPriceInput = document.getElementById('min-price-input');
-    const maxPriceInput = document.getElementById('max-price-input');
     const sortSelect = document.getElementById('product-sort-select');
-
-    if (searchInput) searchInput.value = '';
-    if (categorySelect) categorySelect.value = '';
-    if (brandSelect) brandSelect.value = '';
-    if (minPriceInput) minPriceInput.value = '';
-    if (maxPriceInput) maxPriceInput.value = '';
     if (sortSelect) sortSelect.value = 'default';
+
+    syncFilterInputs(state.pendingFilters, state.advancedFilters);
+    syncQuickSearchInput(state.quickSearchTerm);
 
     highlightCategory();
     updateSectionTitle();
@@ -254,22 +543,29 @@ function applyProductsQueryFilters() {
 
     if (categoryId) {
         state.currentCategoryId = Number(categoryId);
-        const categorySelect = document.getElementById('category-select');
-        if (categorySelect) categorySelect.value = String(categoryId);
-        highlightCategory(state.currentCategoryId);
     }
 
     if (brandId) {
         state.currentBrandId = Number(brandId);
-        const brandSelect = document.getElementById('brand-select');
-        if (brandSelect) brandSelect.value = String(brandId);
     }
 
     if (keyword) {
         state.searchTerm = keyword;
-        const searchInput = document.getElementById('product-search-input');
-        if (searchInput) searchInput.value = keyword;
     }
+
+    state.pendingFilters = {
+        keyword: state.searchTerm || '',
+        categoryId: state.currentCategoryId,
+        brandId: state.currentBrandId,
+        minPrice: state.minPrice || '',
+        maxPrice: state.maxPrice || '',
+    };
+    state.advancedFilters = { ...state.pendingFilters };
+    state.quickSearchTerm = state.searchTerm || '';
+
+    syncFilterInputs(state.pendingFilters, state.advancedFilters);
+    syncQuickSearchInput(state.quickSearchTerm);
+    highlightCategory(state.currentCategoryId);
 
     updateSectionTitle();
 }
@@ -425,7 +721,8 @@ function updateHomeCategoryButtons(categoryId) {
 
 async function renderProductsPageCategories() {
     const categorySelect = document.getElementById('category-select');
-    if (!categorySelect) return;
+    const advancedCategorySelect = document.getElementById('advanced-search-category');
+    if (!categorySelect && !advancedCategorySelect) return;
 
     try {
         const response = await getStorefrontCategories();
@@ -436,10 +733,22 @@ async function renderProductsPageCategories() {
             ...categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`),
         ];
 
-        categorySelect.innerHTML = options.join('');
-        categorySelect.value = '';
+        if (categorySelect) {
+            categorySelect.innerHTML = options.join('');
+            categorySelect.value = state.pendingFilters.categoryId ? String(state.pendingFilters.categoryId) : '';
+        }
+
+        if (advancedCategorySelect) {
+            const advancedOptions = [
+                '<option value="">Tất cả danh mục</option>',
+                ...categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`),
+            ];
+            advancedCategorySelect.innerHTML = advancedOptions.join('');
+            advancedCategorySelect.value = state.advancedFilters.categoryId ? String(state.advancedFilters.categoryId) : '';
+        }
     } catch (error) {
-        categorySelect.innerHTML = '<option value="">Tất cả sản phẩm</option>';
+        if (categorySelect) categorySelect.innerHTML = '<option value="">Tất cả sản phẩm</option>';
+        if (advancedCategorySelect) advancedCategorySelect.innerHTML = '<option value="">Tất cả danh mục</option>';
     }
 }
 
@@ -473,7 +782,8 @@ function renderProductsLoadingState() {
 
 async function renderProductsPageBrands() {
     const brandSelect = document.getElementById('brand-select');
-    if (!brandSelect) return;
+    const advancedBrandSelect = document.getElementById('advanced-search-brand');
+    if (!brandSelect && !advancedBrandSelect) return;
 
     try {
         const response = await getStorefrontBrands();
@@ -484,10 +794,22 @@ async function renderProductsPageBrands() {
             ...brands.map(brand => `<option value="${brand.id}">${brand.name}</option>`),
         ];
 
-        brandSelect.innerHTML = options.join('');
-        brandSelect.value = '';
+        if (brandSelect) {
+            brandSelect.innerHTML = options.join('');
+            brandSelect.value = state.pendingFilters.brandId ? String(state.pendingFilters.brandId) : '';
+        }
+
+        if (advancedBrandSelect) {
+            const advancedOptions = [
+                '<option value="">Tất cả thương hiệu</option>',
+                ...brands.map(brand => `<option value="${brand.id}">${brand.name}</option>`),
+            ];
+            advancedBrandSelect.innerHTML = advancedOptions.join('');
+            advancedBrandSelect.value = state.advancedFilters.brandId ? String(state.advancedFilters.brandId) : '';
+        }
     } catch (error) {
-        brandSelect.innerHTML = '<option value="">Tất cả thương hiệu</option>';
+        if (brandSelect) brandSelect.innerHTML = '<option value="">Tất cả thương hiệu</option>';
+        if (advancedBrandSelect) advancedBrandSelect.innerHTML = '<option value="">Tất cả thương hiệu</option>';
     }
 }
 
