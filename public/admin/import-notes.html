@@ -57,7 +57,7 @@
                                 <input type="date" id="filter-to-date" class="form-control cursor-pointer" title="Đến ngày" onchange="currentPage=1; loadImportNotes()">
                             </div>
 
-                            <button type="button" onclick="resetFilter()" class="btn-filter-reset">↻ Xóa lọc</button>
+                            <button type="button" onclick="resetFilter()" class="btn-filter-reset" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s;">↻ Xóa lọc</button>
                             
                             <div style="flex-grow: 1;"></div>
                             <button class="btn-add" onclick="openFormModal()">
@@ -176,7 +176,10 @@
                 </div>
             </div>
             
-            <div class="modal-form-footer">
+            <div class="modal-form-footer" style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn btn-success" id="view-btn-pay" style="display: none;">
+                    💳 Thanh toán ngay
+                </button>
                 <button type="button" class="btn btn-cancel" onclick="closeFormModal()">Đóng</button>
                 <button type="submit" class="btn-save" id="btn-save">Lưu bản nháp</button>
             </div>
@@ -331,10 +334,7 @@
             const isCompleted = n.status === 'completed';
             const total = parseFloat(n.total_cost);
             const paid = parseFloat(n.paid_amount || 0);
-            console.log("Total: ", total);
-            console.log("Paid: ", paid);
             const isDebt = isCompleted && paid < total;
-            console.log(isDebt);
 
             const badge = isCompleted 
                 ? `<span style="background:#dcfce7; color:#166534; padding:4px 8px; border-radius:4px; font-weight:600; font-size:0.8rem;">Đã duyệt</span>`
@@ -386,6 +386,7 @@
         const supplierSelect = document.getElementById('note-supplier');
         const dateInput = document.getElementById('note-date');
         const btnSave = document.getElementById('btn-save');
+        const btnViewPay = document.getElementById('view-btn-pay'); // DOM Nút thanh toán mới
         const wrapper = document.getElementById('inline-product-wrapper');
         const title = document.getElementById('modal-title');
         
@@ -398,6 +399,7 @@
         supplierSelect.disabled = false;
         dateInput.disabled = false;
         btnSave.style.display = 'block';
+        btnViewPay.style.display = 'none'; // Luôn ẩn khi mới mở modal
         supplierInfoCard.style.display = 'none'; 
         wrapper.innerHTML = '<div style="padding: 20px;">⏳ Đang tải dữ liệu...</div>';
         
@@ -424,6 +426,24 @@
                 supplierSelect.disabled = true;
                 dateInput.disabled = true;
                 btnSave.style.display = 'none';
+            }
+
+            // ==========================================
+            // LOGIC KIỂM TRA ĐỂ HIỆN NÚT THANH TOÁN BÊN TRONG MODAL
+            // ==========================================
+            const total = parseFloat(note.total_cost);
+            const paid = parseFloat(note.paid_amount || 0);
+            
+            // Nếu phiếu đã duyệt và còn nợ thì mới cho thanh toán
+            if (isCompleted && paid < total) {
+                btnViewPay.style.display = 'inline-flex';
+                // Đóng modal xem chi tiết trước rồi mở modal thanh toán
+                btnViewPay.onclick = () => {
+                    closeFormModal();
+                    openPaymentModal(note.id, total, paid);
+                };
+            } else {
+                btnViewPay.style.display = 'none';
             }
 
             // Hiển thị thông tin Card Nhà Cung Cấp
