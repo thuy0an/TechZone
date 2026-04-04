@@ -39,20 +39,23 @@
                     <div class="loading-text">Đang tải địa chỉ...</div>
                 </div>
 
-                <div id="new-address-block" style="display: none;">
+                <div id="new-address-block" class="is-hidden">
                     <div class="form-row">
                         <input type="text" id="new_receiver_name" class="form-control" placeholder="Tên người nhận">
                         <input type="text" id="new_phone" class="form-control" placeholder="Số điện thoại">
                     </div>
                     
                     <div class="form-row-triple">
-                        <select id="new_city" class="form-select" onchange="loadDistricts()">
+                        <label class="sr-only" for="new_city">Chọn Tỉnh/Thành phố</label>
+                        <select id="new_city" class="form-select" onchange="loadDistricts()" title="Chọn Tỉnh/Thành phố">
                             <option value="">Chọn Tỉnh/Thành phố</option>
                         </select>
-                        <select id="new_district" class="form-select" onchange="loadWards()" disabled>
+                        <label class="sr-only" for="new_district">Chọn Quận/Huyện</label>
+                        <select id="new_district" class="form-select" onchange="loadWards()" title="Chọn Quận/Huyện" disabled>
                             <option value="">Chọn Quận/Huyện</option>
                         </select>
-                        <select id="new_ward" class="form-select" disabled>
+                        <label class="sr-only" for="new_ward">Chọn Phường/Xã</label>
+                        <select id="new_ward" class="form-select" title="Chọn Phường/Xã" disabled>
                             <option value="">Chọn Phường/Xã</option>
                         </select>
                     </div>
@@ -70,7 +73,16 @@
                 </div>
             </div>
             <div class="cart-grid">
-                <div id="cart-items" class="cart-items"></div>
+                <div class="cart-items-column">
+                    <div class="cart-items-header">
+                        <label class="cart-select-all">
+                            <input type="checkbox" id="cart-select-all" onchange="toggleSelectAll(this.checked)">
+                            <span>Chọn tất cả</span>
+                        </label>
+                        <span class="cart-selected-count" id="cart-selected-count">0 đã chọn</span>
+                    </div>
+                    <div id="cart-items" class="cart-items"></div>
+                </div>
 
                 <aside class="cart-summary">
                     <h3>Tổng kết đơn hàng</h3>
@@ -97,7 +109,8 @@
                             <p>Chọn mã phù hợp với đơn hàng hiện tại.</p>
                         </div>
                         <div class="promotion-select-wrap">
-                            <select id="promotion-select">
+                            <label class="sr-only" for="promotion-select">Chọn mã khuyến mãi</label>
+                            <select id="promotion-select" title="Chọn mã khuyến mãi">
                                 <option value="">-- Chọn mã khuyến mãi --</option>
                             </select>
                         </div>
@@ -149,9 +162,62 @@
         </div>
     </div>
 
+    <div class="center-modal" id="centered-modal" aria-hidden="true">
+        <div class="center-modal-card" role="dialog" aria-modal="true" aria-labelledby="centered-modal-title">
+            <div class="center-modal-header">
+                <h3 id="centered-modal-title">Thông báo</h3>
+            </div>
+            <div class="center-modal-body" id="centered-modal-message"></div>
+            <div class="center-modal-actions">
+                <button class="btn btn-secondary" type="button" id="centered-modal-cancel">Hủy</button>
+                <button class="btn btn-primary" type="button" id="centered-modal-confirm">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="product-detail-overlay" id="product-detail-modal" aria-hidden="true">
+        <div class="product-detail-modal" role="dialog" aria-modal="true" aria-labelledby="product-detail-title">
+            <button class="product-detail-close" type="button" aria-label="Đóng" onclick="closeProductDetail()">✕</button>
+            <div class="product-detail-body">
+                <div class="product-detail-media">
+                    <img id="product-detail-image" src="" alt="Hình ảnh sản phẩm" />
+                    <span class="product-detail-stock" id="product-detail-stock"></span>
+                </div>
+                <div class="product-detail-info">
+                    <h3 id="product-detail-title">Đang tải...</h3>
+                    <p class="product-detail-brand" id="product-detail-brand"></p>
+                    <p class="product-detail-price" id="product-detail-price"></p>
+                    <p class="product-detail-quantity" id="product-detail-quantity"></p>
+                    <p class="product-detail-description" id="product-detail-description"></p>
+                    <div class="product-detail-actions">
+                        <div class="quantity-control" id="product-detail-qty-control">
+                            <button type="button" class="qty-btn" id="product-detail-qty-minus">-</button>
+                            <span class="qty-value" id="product-detail-qty-value">1</span>
+                            <button type="button" class="qty-btn" id="product-detail-qty-plus">+</button>
+                        </div>
+                        <button class="btn btn-secondary" id="product-detail-add" type="button">Thêm vào giỏ</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-detail-specs" id="product-detail-specs">
+                <h4>Thông số kỹ thuật</h4>
+                <div class="product-detail-specs-list" id="product-detail-specs-list"></div>
+            </div>
+            <div class="product-related" id="product-related">
+                <h4>Gợi ý sản phẩm</h4>
+                <div class="product-related-carousel">
+                    <button class="carousel-btn prev" type="button" data-carousel="related" aria-label="Xem trước">‹</button>
+                    <div class="product-related-grid" id="product-related-list"></div>
+                    <button class="carousel-btn next" type="button" data-carousel="related" aria-label="Xem tiếp">›</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/app-layout.js"></script>
+    <script src="js/app.js"></script>
     <script src="js/cart.js"></script>
 </body>
 </html>

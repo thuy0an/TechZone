@@ -777,6 +777,9 @@ async function handleAddToCart(id, name, price, quantity = null) {
         await updateCartItem(id, desiredQuantity);
         await updateCartCount();
         showNotification(`Đã thêm "${name}" vào giỏ hàng`);
+        if (typeof window.onProductAddedToCart === 'function') {
+            window.onProductAddedToCart({ id, quantity: desiredQuantity });
+        }
         closeProductDetail();
     } catch (error) {
         const message = error?.data?.message || error?.message || 'Không thể cập nhật giỏ hàng.';

@@ -83,7 +83,8 @@ class OrderController extends BaseApiController
     {
         try {
             $userId = Auth::id();
-            $result = $this->orderService->applyPromotion($userId, $request->promotion_code);
+            $selectedIds = $request->input('selected_product_ids', []);
+            $result = $this->orderService->applyPromotion($userId, $request->promotion_code, $selectedIds);
 
             return $this->successResponse($result, 'Áp dụng khuyến mãi thành công');
         } catch (\Exception $e) {

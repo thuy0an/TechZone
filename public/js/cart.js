@@ -9,9 +9,13 @@ let promotionState = {
     finalTotal: 0,
 };
 
+let selectedProductIds = new Set();
+let hasUserSelection = false;
+
 let lastOrderPayload = null;
 let redirectTimer = null;
 let hasSavedAddresses = false;
+let centeredModalResolver = null;
 
 const BANK_INFO = {
     bank_name: 'Vietcombank',
@@ -79,6 +83,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     setupOrderSuccessModal();
+    setupCenteredModal();
+    window.onProductAddedToCart = async () => {
+        await loadCart({ showStatus: false });
+    };
 
     const promotionSelect = document.getElementById('promotion-select');
     if (promotionSelect) {
@@ -111,7 +119,7 @@ async function loadCart({ showStatus = false } = {}) {
     const itemsContainer = document.getElementById('cart-items');
 
     if (showStatus && status) {
-        status.textContent = 'Dang tai gio hang...';
+        status.textContent = 'Đang tải giỏ hàng...';
         status.classList.add('is-loading');
     }
 
@@ -150,10 +158,10 @@ function renderCart(cart) {
         itemsContainer.innerHTML = `
             <div class="cart-empty">
                 <div class="cart-empty-icon">🛒</div>
-                <h3>Gio hang dang trong</h3>
-                <p>Hay them san pham de bat dau mua sam.</p>
-                <a href="products.html" class="btn btn-primary">Kham pha san pham</a>
-            </div>
+                <h3>Giỏ hàng đang trống</h3>
+                    <p>Hãy thêm sản phẩm để bắt đầu mua sắm.</p>
+                        <a href="products.html" class="btn btn-primary">Khám phá sản phẩm</a>
+                </div>
         `;
         cartSubtotalValue = 0;
         clearPromotionState();
@@ -162,6 +170,7 @@ function renderCart(cart) {
         return;
     }
 
+    normalizeSelectedIds(items);
     let subtotal = 0;
 
     itemsContainer.innerHTML = items.map(item => {
@@ -171,62 +180,180 @@ function renderCart(cart) {
         const priceChanged = Boolean(item.is_price_changed);
         const oldPrice = Number(item.old_price ?? savedPrice);
         const quantity = Number(item.quantity || 0);
+        const stock = Number(product.stock_quantity ?? 0);
+        const isSelected = selectedProductIds.has(Number(product.id));
         const lineTotal = currentPrice * quantity;
-        subtotal += lineTotal;
+        if (isSelected) subtotal += lineTotal;
 
         return `
-            <article class="cart-item" data-product-id="${product.id}" data-unit-price="${currentPrice}" data-quantity="${quantity}">
+            <article class="cart-item" data-product-id="${product.id}" data-unit-price="${currentPrice}" data-quantity="${quantity}" data-stock="${stock}">
+                <div class="cart-item-select">
+                    <input type="checkbox" class="cart-item-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleCartItemSelection(${product.id}, this.checked)">
+                </div>
                 <div class="cart-item-media">
-                    <img src="${resolveImageUrl(product.image)}" alt="${escapeHtml(product.name || 'San pham')}" onerror="this.src='https://placehold.co/120x120?text=No+Image'">
+                    <button class="cart-item-link" type="button" onclick="openProductDetail(${product.id})">
+                        <img src="${resolveImageUrl(product.image)}" alt="${escapeHtml(product.name || 'San pham')}" onerror="this.src='https://placehold.co/120x120?text=No+Image'">
+                    </button>
                 </div>
                 <div class="cart-item-info">
-                    <h4>${escapeHtml(product.name || 'San pham')}</h4>
+                    <button class="cart-item-name" type="button" onclick="openProductDetail(${product.id})">
+                        ${escapeHtml(product.name || 'San pham')}
+                    </button>
                     <p class="cart-item-meta cart-item-price">
                         ${priceChanged ? `<span class="cart-item-price-old">${formatPrice(oldPrice)}</span>` : ''}
                         <span class="cart-item-price-current">${formatPrice(currentPrice)}</span>
                     </p>
-                    <p class="cart-item-meta">Ton kho: ${product.stock_quantity ?? 0}</p>
+                    <p class="cart-item-meta">Tồn Kho: ${product.stock_quantity ?? 0}</p>
                 </div>
                 <div class="cart-item-qty">
-                    <button class="qty-btn" type="button" onclick="changeQuantity(${product.id}, -1)">-</button>
-                    <span class="cart-item-qty-value">${quantity}</span>
-                    <button class="qty-btn" type="button" onclick="changeQuantity(${product.id}, 1)">+</button>
+                    <button class="qty-btn" type="button" data-action="minus" onclick="changeQuantity(${product.id}, -1)">-</button>
+                    <input class="cart-qty-input" type="number" min="1" max="${stock}" value="${quantity}"
+                        onblur="handleQuantityInput(${product.id}, this)"
+                        onkeydown="handleQuantityKeydown(event, ${product.id}, this)">
+                    <button class="qty-btn" type="button" data-action="plus" onclick="changeQuantity(${product.id}, 1)" ${stock > 0 && quantity >= stock ? 'disabled' : ''}>+</button>
                 </div>
                 <div class="cart-item-total">
                     <span class="cart-item-line-total">${formatPrice(lineTotal)}</span>
-                    <button class="btn btn-link" type="button" onclick="removeItem(${product.id})">Xoa</button>
+                    <button class="btn btn-link" type="button" onclick="removeItem(${product.id})">Xóa</button>
                 </div>
             </article>
         `;
     }).join('');
 
     cartSubtotalValue = subtotal;
-    cartProductIds = items.map(item => item.product?.id).filter(Boolean);
+    cartProductIds = getSelectedProductIds();
     updateTotals(subtotal, promotionState.discount || 0, subtotalElement, totalElement);
-    toggleCheckoutAvailability(true);
+    toggleCheckoutAvailability(selectedProductIds.size > 0);
     renderPromotionSelect();
+    updateSelectedSummary(items.length);
+}
+
+function normalizeSelectedIds(items) {
+    const ids = items.map(item => Number(item.product?.id)).filter(Boolean);
+    const available = new Set(ids);
+
+    if (!hasUserSelection) {
+        selectedProductIds = new Set(ids);
+        return;
+    }
+
+    selectedProductIds.forEach(id => {
+        if (!available.has(id)) selectedProductIds.delete(id);
+    });
+}
+
+function getSelectedProductIds() {
+    return Array.from(selectedProductIds);
+}
+
+function toggleCartItemSelection(productId, isChecked) {
+    hasUserSelection = true;
+    if (isChecked) {
+        selectedProductIds.add(Number(productId));
+    } else {
+        selectedProductIds.delete(Number(productId));
+    }
+
+    updateTotalsFromDom();
+}
+
+function toggleSelectAll(isChecked) {
+    hasUserSelection = true;
+    const items = document.querySelectorAll('.cart-item');
+    selectedProductIds.clear();
+
+    if (isChecked) {
+        items.forEach(item => {
+            const productId = Number(item.dataset.productId || 0);
+            if (productId) selectedProductIds.add(productId);
+        });
+    }
+
+    items.forEach(item => {
+        const checkbox = item.querySelector('.cart-item-checkbox');
+        if (checkbox) checkbox.checked = isChecked;
+    });
+
+    updateTotalsFromDom();
 }
 
 async function changeQuantity(productId, delta) {
     const itemRow = document.querySelector(`.cart-item[data-product-id="${productId}"]`);
-    const qtyElement = itemRow?.querySelector('.cart-item-qty-value');
-    const lineTotalElement = itemRow?.querySelector('.cart-item-line-total');
-    const unitPrice = Number(itemRow?.dataset?.unitPrice || 0);
     const currentQty = Number(itemRow?.dataset?.quantity || 0);
+    if (delta < 0 && currentQty <= 1) {
+        const shouldRemove = await showCenteredConfirm({
+            title: 'Xóa sản phẩm',
+            message: 'Bạn có muốn xóa sản phẩm khỏi giỏ hàng không?',
+            confirmText: 'Xóa',
+            cancelText: 'Giữ lại',
+        });
+        if (shouldRemove) {
+            await removeItem(productId);
+        }
+        return;
+    }
+
     const nextQty = currentQty + delta;
+    await setCartItemQuantity(productId, nextQty);
+}
 
-    if (itemRow && nextQty <= 0) {
-        itemRow.remove();
-        updateTotalsFromDom();
+function handleQuantityKeydown(event, productId, input) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        handleQuantityInput(productId, input);
+    }
+}
+
+function handleQuantityInput(productId, input) {
+    const itemRow = document.querySelector(`.cart-item[data-product-id="${productId}"]`);
+    const stock = Number(itemRow?.dataset?.stock || 0);
+    const raw = Number(input?.value || 1);
+    let desired = Number.isFinite(raw) ? Math.floor(raw) : 1;
+
+    if (desired < 1) desired = 1;
+    if (stock > 0 && desired > stock) {
+        desired = stock;
+        showCenteredModal({
+            title: 'Thông báo',
+            message: `Rất tiếc, bạn chỉ có thể mua tối đa ${stock} sản phẩm của shop hiện tại.`,
+            confirmText: 'Đã hiểu',
+        });
     }
 
-    if (itemRow && nextQty > 0) {
-        itemRow.dataset.quantity = String(nextQty);
-        if (qtyElement) qtyElement.textContent = String(nextQty);
-        if (lineTotalElement) lineTotalElement.textContent = formatPrice(unitPrice * nextQty);
-        updateTotalsFromDom();
-    }
+    if (input) input.value = String(desired);
+    setCartItemQuantity(productId, desired);
+}
 
+function updateQtyControls(itemRow) {
+    if (!itemRow) return;
+    const stock = Number(itemRow.dataset.stock || 0);
+    const quantity = Number(itemRow.dataset.quantity || 0);
+    const plusBtn = itemRow.querySelector('.qty-btn[data-action="plus"]');
+
+    if (plusBtn) {
+        plusBtn.disabled = stock > 0 && quantity >= stock;
+    }
+}
+
+async function setCartItemQuantity(productId, desiredQty) {
+    const itemRow = document.querySelector(`.cart-item[data-product-id="${productId}"]`);
+    if (!itemRow) return;
+
+    const unitPrice = Number(itemRow.dataset.unitPrice || 0);
+    const currentQty = Number(itemRow.dataset.quantity || 0);
+    const clampedQty = Math.max(1, desiredQty);
+    const delta = clampedQty - currentQty;
+
+    if (delta === 0) return;
+
+    itemRow.dataset.quantity = String(clampedQty);
+    const lineTotalElement = itemRow.querySelector('.cart-item-line-total');
+    if (lineTotalElement) lineTotalElement.textContent = formatPrice(unitPrice * clampedQty);
+    const qtyInput = itemRow.querySelector('.cart-qty-input');
+    if (qtyInput) qtyInput.value = String(clampedQty);
+    updateQtyControls(itemRow);
+
+    updateTotalsFromDom();
     clearPromotionState('Vui lòng áp dụng lại mã khuyến mãi sau khi thay đổi giỏ hàng.');
 
     try {
@@ -246,14 +373,16 @@ async function removeItem(productId) {
         updateTotalsFromDom();
     }
 
+    selectedProductIds.delete(Number(productId));
+
     clearPromotionState('Vui lòng áp dụng lại mã khuyến mãi sau khi thay đổi giỏ hàng.');
 
     try {
         await updateCartItem(productId, 0);
         await updateCartCount();
-        showNotification('Da xoa san pham khoi gio hang.');
+        showNotification('Đã xóa sản phẩm khỏi giỏ hàng.');
     } catch (error) {
-        const message = error?.data?.message || error?.message || 'Khong the xoa san pham.';
+        const message = error?.data?.message || error?.message || 'Không thể xóa sản phẩm.';
         showNotification(message, 'error');
         await loadCart({ showStatus: false });
     }
@@ -266,16 +395,19 @@ function updateTotalsFromDom() {
     let subtotal = 0;
 
     items.forEach(item => {
+        const productId = Number(item.dataset.productId || 0);
+        if (hasUserSelection && !selectedProductIds.has(productId)) return;
         const unitPrice = Number(item.dataset.unitPrice || 0);
         const quantity = Number(item.dataset.quantity || 0);
         subtotal += unitPrice * quantity;
     });
 
     cartSubtotalValue = subtotal;
-    cartProductIds = Array.from(items).map(item => Number(item.dataset.productId)).filter(Boolean);
+    cartProductIds = getSelectedProductIds();
     updateTotals(subtotal, promotionState.discount || 0, subtotalElement, totalElement);
-    toggleCheckoutAvailability(items.length > 0);
+    toggleCheckoutAvailability(selectedProductIds.size > 0);
     renderPromotionSelect();
+    updateSelectedSummary(items.length);
 
     const itemsContainer = document.getElementById('cart-items');
     if (items.length === 0 && itemsContainer) {
@@ -287,6 +419,32 @@ function updateTotalsFromDom() {
                 <a href="products.html" class="btn btn-primary">Kham pha san pham</a>
             </div>
         `;
+    }
+}
+
+function updateSelectedSummary(totalItems) {
+    const countElement = document.getElementById('cart-selected-count');
+    const selectAllCheckbox = document.getElementById('cart-select-all');
+    const selectedCount = selectedProductIds.size;
+
+    if (countElement) {
+        countElement.textContent = `${selectedCount} đã chọn`;
+    }
+
+    if (selectAllCheckbox) {
+        if (totalItems === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else if (selectedCount === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else if (selectedCount === totalItems) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = true;
+        }
     }
 }
 
@@ -336,6 +494,94 @@ function showNotification(message, type = 'success') {
         window.setTimeout(() => notification.remove(), 240);
     }, 2000);
 }
+
+function setupCenteredModal() {
+    const overlay = document.getElementById('centered-modal');
+    const confirmBtn = document.getElementById('centered-modal-confirm');
+    const cancelBtn = document.getElementById('centered-modal-cancel');
+
+    if (!overlay || !confirmBtn || !cancelBtn) return;
+
+    overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) {
+            closeCenteredModal(false);
+        }
+    });
+
+    confirmBtn.addEventListener('click', () => closeCenteredModal(true));
+    cancelBtn.addEventListener('click', () => closeCenteredModal(false));
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && overlay.classList.contains('is-open')) {
+            closeCenteredModal(false);
+        }
+    });
+}
+
+function showCenteredModal({ title, message, confirmText = 'Đồng ý', variant = 'info' }) {
+    const overlay = document.getElementById('centered-modal');
+    const titleEl = document.getElementById('centered-modal-title');
+    const messageEl = document.getElementById('centered-modal-message');
+    const confirmBtn = document.getElementById('centered-modal-confirm');
+    const cancelBtn = document.getElementById('centered-modal-cancel');
+    const card = overlay?.querySelector('.center-modal-card');
+
+    if (!overlay || !titleEl || !messageEl || !confirmBtn || !cancelBtn || !card) return;
+
+    titleEl.textContent = title || 'Thông báo';
+    messageEl.textContent = message || '';
+    confirmBtn.textContent = confirmText;
+    cancelBtn.classList.add('is-hidden');
+    card.classList.remove('info');
+    if (variant) card.classList.add(variant);
+
+    overlay.classList.add('is-open');
+    overlay.setAttribute('aria-hidden', 'false');
+}
+
+function showCenteredConfirm({ title, message, confirmText = 'Đồng ý', cancelText = 'Hủy', variant = 'info' }) {
+    return new Promise(resolve => {
+        centeredModalResolver = resolve;
+        const overlay = document.getElementById('centered-modal');
+        const titleEl = document.getElementById('centered-modal-title');
+        const messageEl = document.getElementById('centered-modal-message');
+        const confirmBtn = document.getElementById('centered-modal-confirm');
+        const cancelBtn = document.getElementById('centered-modal-cancel');
+        const card = overlay?.querySelector('.center-modal-card');
+
+        if (!overlay || !titleEl || !messageEl || !confirmBtn || !cancelBtn || !card) {
+            centeredModalResolver = null;
+            resolve(false);
+            return;
+        }
+
+        titleEl.textContent = title || 'Xác nhận';
+        messageEl.textContent = message || '';
+        confirmBtn.textContent = confirmText;
+        cancelBtn.textContent = cancelText;
+        cancelBtn.classList.remove('is-hidden');
+        card.classList.remove('info');
+        if (variant) card.classList.add(variant);
+
+        overlay.classList.add('is-open');
+        overlay.setAttribute('aria-hidden', 'false');
+    });
+}
+
+function closeCenteredModal(result) {
+    const overlay = document.getElementById('centered-modal');
+    if (!overlay) return;
+
+    overlay.classList.remove('is-open');
+    overlay.setAttribute('aria-hidden', 'true');
+
+    if (typeof centeredModalResolver === 'function') {
+        const resolver = centeredModalResolver;
+        centeredModalResolver = null;
+        resolver(Boolean(result));
+    }
+}
+
 
 function toggleAddressForm() {
     const option = document.querySelector('input[name="address_option"]:checked').value;
@@ -578,7 +824,7 @@ async function handleApplyPromotion(code) {
     if (select) select.disabled = true;
 
     try {
-        const response = await applyPromotion(cleanCode);
+        const response = await applyPromotion(cleanCode, getSelectedProductIds());
         const payload = response.data || response;
 
         promotionState = {
@@ -910,7 +1156,7 @@ async function handleCreateNewAddress() {
 }
 
 async function handleCheckout() {
-    if (cartSubtotalValue <= 0) {
+    if (cartSubtotalValue <= 0 || selectedProductIds.size === 0) {
         showNotification('Giỏ hàng của bạn đang trống.', 'error');
         return;
     }
@@ -932,6 +1178,7 @@ async function handleCheckout() {
             ...addressPayload,
             payment_method: getSelectedPaymentMethod(),
             promotion_id: promotionState.promotionId || null,
+            selected_product_ids: getSelectedProductIds(),
         };
 
         const response = await checkoutOrder(payload);

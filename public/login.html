@@ -87,6 +87,19 @@
     </div>
 
     <script src="js/api.js"></script>
+    <div class="center-modal" id="centered-modal" aria-hidden="true">
+        <div class="center-modal-card" role="dialog" aria-modal="true" aria-labelledby="centered-modal-title">
+            <div class="center-modal-header">
+                <h3 id="centered-modal-title">Thông báo</h3>
+            </div>
+            <div class="center-modal-body" id="centered-modal-message"></div>
+            <div class="center-modal-actions">
+                <button class="btn btn-secondary" type="button" id="centered-modal-cancel">Hủy</button>
+                <button class="btn btn-primary" type="button" id="centered-modal-confirm">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/auth.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -117,8 +130,10 @@
                 await loginCustomer(email, password);
                 const redirectTo = sessionStorage.getItem('post_login_redirect') || '/';
                 sessionStorage.removeItem('post_login_redirect');
-                await checkAddressAndRedirect(redirectTo);
-                alert('Đăng nhập thành công!');
+                showCenteredModal('Đăng nhập thành công!', 'Đang chuyển hướng...');
+                window.setTimeout(() => {
+                    checkAddressAndRedirect(redirectTo);
+                }, 800);
             } catch (err) {
                 alertBox.textContent = err.data?.message || err.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
                 alertBox.style.display = 'block';
@@ -128,8 +143,29 @@
             }
         }
 
+        function showCenteredModal(title, message) {
+            const overlay = document.getElementById('centered-modal');
+            const titleEl = document.getElementById('centered-modal-title');
+            const messageEl = document.getElementById('centered-modal-message');
+            const confirmBtn = document.getElementById('centered-modal-confirm');
+            const cancelBtn = document.getElementById('centered-modal-cancel');
+
+            if (!overlay || !titleEl || !messageEl || !confirmBtn || !cancelBtn) return;
+
+            titleEl.textContent = title || 'Thông báo';
+            messageEl.textContent = message || '';
+            confirmBtn.textContent = 'Đã hiểu';
+            cancelBtn.classList.add('is-hidden');
+
+            overlay.classList.add('is-open');
+            overlay.setAttribute('aria-hidden', 'false');
+        }
+
         // ── Forgot password modal ──
         const overlay = document.getElementById('forgot-overlay');
+        const centerOverlay = document.getElementById('centered-modal');
+        const centerConfirm = document.getElementById('centered-modal-confirm');
+        const centerCancel = document.getElementById('centered-modal-cancel');
 
         document.getElementById('forgot-link').addEventListener('click', e => {
             e.preventDefault();
@@ -146,6 +182,29 @@
         overlay.addEventListener('click', e => {
             if (e.target === overlay) document.getElementById('forgot-close').click();
         });
+
+        if (centerOverlay) {
+            centerOverlay.addEventListener('click', e => {
+                if (e.target === centerOverlay) {
+                    centerOverlay.classList.remove('is-open');
+                    centerOverlay.setAttribute('aria-hidden', 'true');
+                }
+            });
+        }
+
+        if (centerConfirm) {
+            centerConfirm.addEventListener('click', () => {
+                centerOverlay?.classList.remove('is-open');
+                centerOverlay?.setAttribute('aria-hidden', 'true');
+            });
+        }
+
+        if (centerCancel) {
+            centerCancel.addEventListener('click', () => {
+                centerOverlay?.classList.remove('is-open');
+                centerOverlay?.setAttribute('aria-hidden', 'true');
+            });
+        }
 
         async function handleForgotPassword() {
             const email     = document.getElementById('forgot-email').value.trim();

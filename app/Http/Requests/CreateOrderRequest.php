@@ -39,6 +39,8 @@ class CreateOrderRequest extends FormRequest
                 'integer',
                 Rule::exists('user_addresses', 'id')->where('user_id', $userId),
             ],
+            'selected_product_ids' => 'nullable|array',
+            'selected_product_ids.*' => 'integer|exists:products,id',
             'receiver_name' => 'required_without:user_address_id|string|max:255',
             'receiver_phone' => 'required_without:user_address_id|string|max:20',
             'shipping_address' => 'required_without:user_address_id|string',
@@ -58,6 +60,9 @@ class CreateOrderRequest extends FormRequest
         return [
             'user_address_id.integer' => 'Địa chỉ nhận hàng không hợp lệ.',
             'user_address_id.exists' => 'Địa chỉ nhận hàng không tồn tại hoặc không thuộc về bạn.',
+            'selected_product_ids.array' => 'Danh sách sản phẩm chọn không hợp lệ.',
+            'selected_product_ids.*.integer' => 'Sản phẩm chọn không hợp lệ.',
+            'selected_product_ids.*.exists' => 'Sản phẩm chọn không tồn tại.',
             'receiver_name.required_without' => 'Vui lòng nhập tên người nhận.',
             'receiver_phone.required_without' => 'Vui lòng nhập số điện thoại.',
             'shipping_address.required_without' => 'Vui lòng nhập địa chỉ giao hàng.',

@@ -43,8 +43,20 @@ class OrderService extends BaseService implements OrderServiceInterface
             throw new \Exception("Giỏ hàng của bạn đang trống.");
         }
 
+        $selectedIds = array_map('intval', $data['selected_product_ids'] ?? []);
+        $selectedIds = array_values(array_filter($selectedIds));
+        $itemsToCheckout = $cart->items;
+
+        if (!empty($selectedIds)) {
+            $itemsToCheckout = $cart->items->whereIn('product_id', $selectedIds)->values();
+        }
+
+        if ($itemsToCheckout->isEmpty()) {
+            throw new \Exception('Vui lòng chọn sản phẩm để thanh toán.');
+        }
+
         // Lấy danh sách ID sản phẩm và sắp xếp để tránh Deadlock khi lock database
-        $productIds = $cart->items->pluck('product_id')->toArray();
+        $productIds = $itemsToCheckout->pluck('product_id')->toArray();
         sort($productIds);
 
         // TRANSACTION: Nếu có lỗi ở bất kỳ bước nào, DB sẽ không lưu gì cả.
@@ -62,7 +74,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             $discountAmount = 0;
 
             // KIỂM TRA TỒN KHO DỰA TRÊN DỮ LIỆU ĐÃ KHÓA
-            foreach ($cart->items as $item) {
+            foreach ($itemsToCheckout as $item) {
                 $product = $lockedProducts->get($item->product_id);
 
                 // Kiểm tra xem sản phẩm có bị xóa hoặc tồn kho có đủ không
@@ -87,7 +99,7 @@ class OrderService extends BaseService implements OrderServiceInterface
                 $promotion->load('products');
 
                 // SỬA: Truyền thêm $cart->items
-                $promotionResult = $this->calculatePromotionForCart($promotion, $cartTotal, $cart->items);
+                $promotionResult = $this->calculatePromotionForCart($promotion, $cartTotal, $itemsToCheckout);
                 $discountAmount = $promotionResult['discount_amount'];
                 $cartTotal = $promotionResult['final_total'];
             }
@@ -115,7 +127,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             ]);
 
             // TẠO CHI TIẾT ĐƠN HÀNG VÀ TRỪ KHO AN TOÀN
-            foreach ($cart->items as $item) {
+            foreach ($itemsToCheckout as $item) {
                 \App\Models\OrderDetail::create([
                     'order_id' => $order->id,
                     'product_id' => $item->product_id,
@@ -131,7 +143,11 @@ class OrderService extends BaseService implements OrderServiceInterface
             }
 
             // LÀM SẠCH GIỎ HÀNG
-            $cart->items()->delete();
+            if (!empty($selectedIds)) {
+                $cart->items()->whereIn('product_id', $selectedIds)->delete();
+            } else {
+                $cart->items()->delete();
+            }
 
             // LƯU TRANSACTION VÀ MỞ KHÓA DỮ LIỆU
             DB::commit();
@@ -161,7 +177,7 @@ class OrderService extends BaseService implements OrderServiceInterface
         return $this->repository->getUserOrders($userId, $filters, $perPage);
     }
 
-    public function applyPromotion($userId, string $promotionCode): array
+    public function applyPromotion($userId, string $promotionCode, array $selectedProductIds = []): array
     {
         $cart = $this->cartRepository->getCartByUserId($userId);
 
@@ -169,7 +185,17 @@ class OrderService extends BaseService implements OrderServiceInterface
             throw new \Exception('Giỏ hàng của bạn đang trống.');
         }
 
-        $cartTotal = $this->calculateCartTotal($cart->items);
+        $itemsToApply = $cart->items;
+        $selectedIds = array_values(array_filter(array_map('intval', $selectedProductIds)));
+        if (!empty($selectedIds)) {
+            $itemsToApply = $cart->items->whereIn('product_id', $selectedIds)->values();
+        }
+
+        if ($itemsToApply->isEmpty()) {
+            throw new \Exception('Vui lòng chọn sản phẩm để áp dụng khuyến mãi.');
+        }
+
+        $cartTotal = $this->calculateCartTotal($itemsToApply);
         $promotion = $this->promotionRepository->findActiveByCode($promotionCode, Carbon::now());
 
         if (!$promotion) {
@@ -178,7 +204,7 @@ class OrderService extends BaseService implements OrderServiceInterface
 
         $promotion->load('products');
 
-        $promotionResult = $this->calculatePromotionForCart($promotion, $cartTotal, $cart->items);
+        $promotionResult = $this->calculatePromotionForCart($promotion, $cartTotal, $itemsToApply);
 
         return [
             'promotion_id' => $promotion->id,

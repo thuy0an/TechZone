@@ -328,10 +328,13 @@ async function removeFromCart(productId) {
  * Áp dụng mã khuyến mãi cho giỏ hàng
  * @param {string} promotionCode
  */
-async function applyPromotion(promotionCode) {
+async function applyPromotion(promotionCode, selectedProductIds = []) {
     return await apiRequest('/storefront/checkout/apply-promotion', {
         method: 'POST',
-        body: JSON.stringify({ promotion_code: promotionCode })
+        body: JSON.stringify({
+            promotion_code: promotionCode,
+            selected_product_ids: selectedProductIds,
+        })
     });
 }
 
