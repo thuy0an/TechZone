@@ -1056,8 +1056,12 @@ async function loadSlowMoving() {
 // ═══════════════════════════════════════════════════════════════════════════
 async function loadLowStockWarning() {
   try {
-    const res = await adminRequest('/products?per_page=1000&low_stock=true');
-    const items = res.data.data || res.data || [];
+    const threshold = getGlobalLowStockThreshold();
+    const res = await adminRequest(`/products?per_page=1000&stock_lt=${threshold + 1}`);
+    const items = (res.data.data || res.data || []).filter(p => {
+      const qty = Number(p.stock_quantity || 0);
+      return qty > 0 && qty <= threshold;
+    });
 
     document.getElementById('ls-count').textContent = items.length.toLocaleString('vi-VN');
     document.getElementById('ls-summary').style.display = 'grid';
@@ -1069,7 +1073,7 @@ async function loadLowStockWarning() {
             <td><code>${AdminString.esc(p.code || '')}</code></td>
             <td>${AdminString.esc(p.name || '')}</td>
             <td><span class="badge warning">${Number(p.stock_quantity || 0).toLocaleString('vi-VN')}</span></td>
-            <td>${Number(p.low_stock_threshold || 0).toLocaleString('vi-VN')}</td>
+            <td>${threshold.toLocaleString('vi-VN')}</td>
             <td>${vnd(p.import_price || 0)}</td>
           </tr>`).join('')
       : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--admin-success)">✅ Không có sản phẩm sắp hết hàng</td></tr>';

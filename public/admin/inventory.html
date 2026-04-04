@@ -52,6 +52,7 @@
         .stock-badge.normal       { background: #dcfce7; color: #15803d; }
         .filter-stock-lt-wrap { display: flex; flex-direction: column; gap: 2px; }
         .field-error-inline { font-size: 0.78rem; color: var(--admin-danger); min-height: 16px; }
+        .field-hint { font-size: 0.72rem; color: var(--text-secondary); min-height: 16px; }
         .stat-note { font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px; }
     </style>
 </head>
@@ -82,7 +83,7 @@
                     <div>
                         <div class="stat-label">Sắp hết</div>
                         <div class="stat-value" id="stat-low">—</div>
-                        <div class="stat-note">0 &lt; tồn kho ≤ ngưỡng</div>
+                        <div class="stat-note" id="stat-low-note">0 &lt; tồn kho ≤ ngưỡng</div>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -115,6 +116,13 @@
                                 <input type="number" id="filter-stock-lt" class="form-control" style="width:100%;"
                                     placeholder="Tồn kho nhỏ hơn" min="0" step="1">
                                 <div class="field-error-inline" id="stock-lt-error"></div>
+                            </div>
+
+                            <div class="filter-stock-lt-wrap" style="flex:1; min-width:0;">
+                                <input type="number" id="global-low-stock-threshold" class="form-control" style="width:100%;"
+                                    placeholder="Ngưỡng sắp hết (chung)" min="0" step="1">
+                                <div class="field-error-inline" id="global-threshold-error"></div>
+                                <div class="field-hint">Áp dụng cho cảnh báo sắp hết</div>
                             </div>
 
                             <button type="button" class="btn-filter-reset" onclick="resetFilter()">↻ Xóa lọc</button>
@@ -172,6 +180,15 @@ document.addEventListener('DOMContentLoaded', () => {
         clearTimeout(stockLtTimeout);
         stockLtTimeout = setTimeout(() => { applyStockLtFilter(); }, 400);
     });
+
+    const globalThresholdInput = document.getElementById('global-low-stock-threshold');
+    globalThresholdInput.value = getGlobalLowStockThreshold();
+    updateLowStockNote();
+    let globalThresholdTimeout = null;
+    globalThresholdInput.addEventListener('input', () => {
+        clearTimeout(globalThresholdTimeout);
+        globalThresholdTimeout = setTimeout(() => { applyGlobalThreshold(); }, 400);
+    });
 });
 
 // ── State ──────────────────────────────────────────────────
@@ -179,7 +196,8 @@ let currentPage = 1;
 let activeStockLt = ''; // confirmed value after Enter
 
 // ── Pure functions ─────────────────────────────────────────
-function getStockStatus(stockQty, threshold) {
+function getStockStatus(stockQty) {
+    const threshold = getGlobalLowStockThreshold();
     if (stockQty === 0)          return 'out_of_stock';
     if (stockQty <= threshold)   return 'low_stock';
     return 'normal';
@@ -188,7 +206,7 @@ function getStockStatus(stockQty, threshold) {
 function computeStats(products) {
     return products.reduce((acc, p) => {
         acc.total++;
-        const s = getStockStatus(p.stock_quantity, p.low_stock_threshold);
+        const s = getStockStatus(p.stock_quantity);
         if (s === 'out_of_stock') acc.outOfStock++;
         if (s === 'low_stock')    acc.lowStock++;
         return acc;
@@ -197,6 +215,14 @@ function computeStats(products) {
 
 function validateStockLt(value) {
     if (value === '') return { valid: true };
+    const n = Number(value);
+    if (!Number.isInteger(n) || n < 0)
+        return { valid: false, msg: 'Vui lòng nhập số nguyên không âm' };
+    return { valid: true };
+}
+
+function validateGlobalThreshold(value) {
+    if (value === '') return { valid: false, msg: 'Vui lòng nhập ngưỡng sắp hết' };
     const n = Number(value);
     if (!Number.isInteger(n) || n < 0)
         return { valid: false, msg: 'Vui lòng nhập số nguyên không âm' };
@@ -227,6 +253,21 @@ function applyStockLtFilter() {
     }
     errEl.textContent = '';
     activeStockLt = val;
+    currentPage = 1;
+    loadInventory();
+}
+
+function applyGlobalThreshold() {
+    const val = document.getElementById('global-low-stock-threshold').value.trim();
+    const result = validateGlobalThreshold(val);
+    const errEl = document.getElementById('global-threshold-error');
+    if (!result.valid) {
+        errEl.textContent = result.msg;
+        return;
+    }
+    errEl.textContent = '';
+    setGlobalLowStockThreshold(Number(val));
+    updateLowStockNote();
     currentPage = 1;
     loadInventory();
 }
@@ -273,6 +314,11 @@ function updateStatCards(stats) {
     document.getElementById('stat-low').textContent   = stats.lowStock;
 }
 
+function updateLowStockNote() {
+    const note = document.getElementById('stat-low-note');
+    if (note) note.textContent = `0 < tồn kho ≤ ${getGlobalLowStockThreshold()}`;
+}
+
 function renderTable(items) {
     const tbody = document.getElementById('inventory-table-body');
     if (!items || items.length === 0) {
@@ -280,16 +326,17 @@ function renderTable(items) {
         return;
     }
     tbody.innerHTML = items.map(p => {
-        const status = getStockStatus(p.stock_quantity, p.low_stock_threshold);
+        const status = getStockStatus(p.stock_quantity);
         const statusLabel = { out_of_stock: 'Hết hàng', low_stock: 'Sắp hết', normal: 'Bình thường' }[status];
         const importPrice = new Intl.NumberFormat('vi-VN').format(Number(p.import_price || 0));
+        const threshold = getGlobalLowStockThreshold();
         return `
             <tr>
                 <td class="td-id">${escHtml(p.code)}</td>
                 <td class="td-name">${escHtml(p.name)}</td>
                 <td style="font-size:0.82rem">${escHtml(p.category?.name ?? '—')} / ${escHtml(p.brand?.name ?? '—')}</td>
                 <td style="font-weight:700">${p.stock_quantity}</td>
-                <td>${p.low_stock_threshold}</td>
+                <td>${threshold}</td>
                 <td>${importPrice}đ</td>
                 <td><span class="stock-badge ${status}">${statusLabel}</span></td>
             </tr>`;

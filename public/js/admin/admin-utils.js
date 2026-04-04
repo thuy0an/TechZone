@@ -48,6 +48,28 @@ const AdminForm = { showError: showFieldError, clearError: clearFieldError, clea
 const AdminTable = { renderPagination };
 
 // ============================================================
+// Inventory helpers
+// ============================================================
+
+const ADMIN_GLOBAL_LOW_STOCK_KEY = 'admin_global_low_stock_threshold';
+const ADMIN_GLOBAL_LOW_STOCK_DEFAULT = 5;
+
+function getGlobalLowStockThreshold() {
+    const raw = localStorage.getItem(ADMIN_GLOBAL_LOW_STOCK_KEY);
+    if (raw === null || raw === '') return ADMIN_GLOBAL_LOW_STOCK_DEFAULT;
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : ADMIN_GLOBAL_LOW_STOCK_DEFAULT;
+}
+
+function setGlobalLowStockThreshold(value) {
+    if (value === '' || value === null || typeof value === 'undefined') {
+        localStorage.removeItem(ADMIN_GLOBAL_LOW_STOCK_KEY);
+        return;
+    }
+    localStorage.setItem(ADMIN_GLOBAL_LOW_STOCK_KEY, String(value));
+}
+
+// ============================================================
 // Modal helpers
 // ============================================================
 

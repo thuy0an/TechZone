@@ -602,6 +602,12 @@ function openPaymentModal(id, total, paid) {
     input.value = '';
     input.max = debt; 
     input.placeholder = `Tối đa: ${new Intl.NumberFormat('vi-VN').format(debt)}đ`;
+    input.oninput = () => {
+        const raw = input.value === '' ? '' : Number(input.value);
+        if (raw === '') return;
+        if (!Number.isFinite(raw)) return;
+        if (raw > maxPayable) input.value = maxPayable;
+    };
 
     document.getElementById('payment-modal').classList.add('show');
 }
@@ -612,7 +618,8 @@ function closePaymentModal() {
 }
 
 async function submitPayment() {
-    const amount = parseFloat(document.getElementById('pay-amount').value);
+    const input = document.getElementById('pay-amount');
+    let amount = parseFloat(input.value);
 
     if (!amount || amount <= 0) {
         showAdminToast('Vui lòng nhập số tiền hợp lệ', 'error');
@@ -620,8 +627,8 @@ async function submitPayment() {
     }
 
     if (amount > maxPayable) {
-        showAdminToast(`Số tiền vượt quá dư nợ (${new Intl.NumberFormat('vi-VN').format(maxPayable)}đ)`, 'error');
-        return;
+        amount = maxPayable;
+        input.value = maxPayable;
     }
 
     const btn = document.querySelector('#payment-modal .btn-success');

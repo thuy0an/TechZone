@@ -406,7 +406,7 @@ async function loadProducts() {
     if (brandId) params.append('brand_id', brandId);
     if (minPrice) params.append('min_price', minPrice);
     if (maxPrice) params.append('max_price', maxPrice);
-    if (isLowStock) params.append('low_stock', 'true');
+    if (isLowStock) params.append('stock_lt', String(getGlobalLowStockThreshold() + 1));
 
     setTableLoading(true); 
 
@@ -454,7 +454,7 @@ function getStatusBadge(status) {
 function renderTable(items) {
     const tbody = document.getElementById('product-table-body');
     tbody.innerHTML = items.map(p => {
-        const isWarning = p.stock_quantity <= p.low_stock_threshold;
+        const isWarning = p.stock_quantity <= getGlobalLowStockThreshold();
         const stockStyle = isWarning ? 'color: var(--admin-danger); font-weight: 800;' : '';
 
         return `
