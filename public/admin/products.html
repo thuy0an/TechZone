@@ -376,6 +376,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+    const marginInput = document.getElementById('p-margin');
+    if (marginInput) {
+        marginInput.addEventListener('input', () => {
+            const raw = parseNumberInputValue(marginInput.value);
+            if (raw === null) return;
+            const clamped = Math.min(100, Math.max(0, raw));
+            if (clamped !== raw) {
+                marginInput.value = formatNumberString(String(clamped));
+            }
+        });
+        marginInput.addEventListener('blur', () => {
+            const raw = parseNumberInputValue(marginInput.value);
+            if (raw === null) return;
+            const clamped = Math.min(100, Math.max(0, raw));
+            marginInput.value = formatNumberString(String(clamped));
+        });
+    }
+
     // Lắng nghe sự kiện nhập liệu vào ô tìm kiếm
     const searchInput = document.getElementById('search-input');
     searchInput.addEventListener('input', () => {
