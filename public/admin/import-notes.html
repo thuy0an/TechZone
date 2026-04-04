@@ -603,10 +603,10 @@ function openPaymentModal(id, total, paid) {
     input.max = debt; 
     input.placeholder = `Tối đa: ${new Intl.NumberFormat('vi-VN').format(debt)}đ`;
     input.oninput = () => {
-        const raw = input.value === '' ? '' : Number(input.value);
-        if (raw === '') return;
+        const raw = parseNumberInputValue(input.value);
+        if (raw === null) return;
         if (!Number.isFinite(raw)) return;
-        if (raw > maxPayable) input.value = maxPayable;
+        if (raw > maxPayable) input.value = formatNumberString(String(maxPayable));
     };
 
     document.getElementById('payment-modal').classList.add('show');
@@ -619,7 +619,7 @@ function closePaymentModal() {
 
 async function submitPayment() {
     const input = document.getElementById('pay-amount');
-    let amount = parseFloat(input.value);
+    let amount = parseNumberInputValue(input.value);
 
     if (!amount || amount <= 0) {
         showAdminToast('Vui lòng nhập số tiền hợp lệ', 'error');
@@ -628,7 +628,7 @@ async function submitPayment() {
 
     if (amount > maxPayable) {
         amount = maxPayable;
-        input.value = maxPayable;
+        input.value = formatNumberString(String(maxPayable));
     }
 
     const btn = document.querySelector('#payment-modal .btn-success');

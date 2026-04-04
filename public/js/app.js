@@ -123,14 +123,14 @@ function setupProductsToolbar() {
 
     if (minPriceInput) {
         minPriceInput.addEventListener('input', (event) => {
-            state.minPrice = event.target.value;
+            state.minPrice = normalizeNumberString(event.target.value);
             scheduleSearchRefresh();
         });
     }
 
     if (maxPriceInput) {
         maxPriceInput.addEventListener('input', (event) => {
-            state.maxPrice = event.target.value;
+            state.maxPrice = normalizeNumberString(event.target.value);
             scheduleSearchRefresh();
         });
     }

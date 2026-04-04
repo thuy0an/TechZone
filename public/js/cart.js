@@ -226,6 +226,7 @@ function renderCart(cart) {
     toggleCheckoutAvailability(selectedProductIds.size > 0);
     renderPromotionSelect();
     updateSelectedSummary(items.length);
+    bindNumberFormatInputs(itemsContainer);
 }
 
 function normalizeSelectedIds(items) {
@@ -307,7 +308,7 @@ function handleQuantityKeydown(event, productId, input) {
 function handleQuantityInput(productId, input) {
     const itemRow = document.querySelector(`.cart-item[data-product-id="${productId}"]`);
     const stock = Number(itemRow?.dataset?.stock || 0);
-    const raw = Number(input?.value || 1);
+    const raw = parseNumberInputValue(input?.value || '');
     let desired = Number.isFinite(raw) ? Math.floor(raw) : 1;
 
     if (desired < 1) desired = 1;
@@ -320,7 +321,7 @@ function handleQuantityInput(productId, input) {
         });
     }
 
-    if (input) input.value = String(desired);
+    if (input) input.value = formatNumberString(String(desired));
     setCartItemQuantity(productId, desired);
 }
 
@@ -350,7 +351,7 @@ async function setCartItemQuantity(productId, desiredQty) {
     const lineTotalElement = itemRow.querySelector('.cart-item-line-total');
     if (lineTotalElement) lineTotalElement.textContent = formatPrice(unitPrice * clampedQty);
     const qtyInput = itemRow.querySelector('.cart-qty-input');
-    if (qtyInput) qtyInput.value = String(clampedQty);
+    if (qtyInput) qtyInput.value = formatNumberString(String(clampedQty));
     updateQtyControls(itemRow);
 
     updateTotalsFromDom();

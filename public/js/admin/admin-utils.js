@@ -70,6 +70,56 @@ function setGlobalLowStockThreshold(value) {
 }
 
 // ============================================================
+// Number format helpers (thousands separator)
+// ============================================================
+
+function normalizeNumberString(value) {
+    return String(value || '').replace(/\D/g, '');
+}
+
+function formatNumberString(value) {
+    const raw = normalizeNumberString(value);
+    if (!raw) return '';
+    return Number(raw).toLocaleString('vi-VN');
+}
+
+function parseNumberInputValue(value) {
+    const raw = normalizeNumberString(value);
+    if (!raw) return null;
+    return Number(raw);
+}
+
+function bindNumberFormatInputs(root = document) {
+    const inputs = root.querySelectorAll('input[type="number"], input[data-number-format]');
+    inputs.forEach((input) => {
+        if (input.dataset.numberFormatBound === '1') return;
+
+        const step = input.getAttribute('step') || '';
+        if (step.includes('.')) return; // allow decimal inputs to keep native behavior
+
+        input.dataset.numberFormatBound = '1';
+        input.type = 'text';
+        input.inputMode = 'numeric';
+        input.autocomplete = 'off';
+        input.value = formatNumberString(input.value);
+
+        input.addEventListener('focus', () => {
+            input.value = normalizeNumberString(input.value);
+        });
+
+        input.addEventListener('input', () => {
+            const formatted = formatNumberString(input.value);
+            input.value = formatted;
+            input.setSelectionRange(formatted.length, formatted.length);
+        });
+
+        input.addEventListener('blur', () => {
+            input.value = formatNumberString(input.value);
+        });
+    });
+}
+
+// ============================================================
 // Modal helpers
 // ============================================================
 
@@ -142,6 +192,7 @@ function makeModalDraggable(modal) {
 
 document.addEventListener('DOMContentLoaded', () => {
     initAdminModalInteractions();
+    bindNumberFormatInputs();
 });
 
 // ============================================================

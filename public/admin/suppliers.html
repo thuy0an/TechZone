@@ -561,7 +561,7 @@ function closePaymentModal() {
 }
 
 async function submitPayment() {
-    const amount = parseFloat(document.getElementById('pay-amount').value);
+    const amount = parseNumberInputValue(document.getElementById('pay-amount').value);
 
     if (!amount || amount <= 0) {
         showAdminToast('Vui lòng nhập số tiền hợp lệ', 'error'); return;

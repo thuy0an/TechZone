@@ -815,7 +815,7 @@ function onTypeChange() {
 }
 
 function updateDiscountPreview() {
-    const val  = document.getElementById('p-discount-value').value;
+    const val  = parseNumberInputValue(document.getElementById('p-discount-value').value);
     const unit = document.getElementById('p-discount-unit').value;
     const wrap = document.getElementById('discount-preview-wrap');
     if (!val) { wrap.innerHTML = ''; return; }
@@ -992,10 +992,10 @@ async function savePromotion() {
     const payload = {
         name:               document.getElementById('p-name').value.trim(),
         type:               document.getElementById('p-type').value,
-        discount_value:     document.getElementById('p-discount-value').value,
+        discount_value:     normalizeNumberString(document.getElementById('p-discount-value').value),
         discount_unit:      document.getElementById('p-discount-unit').value,
-        min_bill_value:     document.getElementById('p-min-bill').value     || null,
-        max_discount_amount:document.getElementById('p-max-discount').value || null,
+        min_bill_value:     normalizeNumberString(document.getElementById('p-min-bill').value)     || null,
+        max_discount_amount:normalizeNumberString(document.getElementById('p-max-discount').value) || null,
         start_date:         document.getElementById('p-start-date').value   || null,
         end_date:           document.getElementById('p-end-date').value     || null,
         is_active:          document.getElementById('p-is-active').checked ? 1 : 0,

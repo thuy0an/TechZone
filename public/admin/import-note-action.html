@@ -367,7 +367,7 @@
         const product = selectedProducts.find(p => p.id === id);
         if (product) {
             // Ép kiểu an toàn
-            let numVal = parseFloat(value) || 0;
+            let numVal = parseNumberInputValue(value) || 0;
             if (numVal < 0) numVal = 0;
             
             product[field] = numVal;
@@ -413,6 +413,7 @@
         }).join('');
 
         grandTotalEl.textContent = new Intl.NumberFormat('vi-VN').format(grandTotal) + 'đ';
+        bindNumberFormatInputs(tbody);
     }
 
     // ==========================================

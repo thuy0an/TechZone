@@ -215,7 +215,7 @@ function computeStats(products) {
 
 function validateStockLt(value) {
     if (value === '') return { valid: true };
-    const n = Number(value);
+    const n = parseNumberInputValue(value);
     if (!Number.isInteger(n) || n < 0)
         return { valid: false, msg: 'Vui lòng nhập số nguyên không âm' };
     return { valid: true };
@@ -223,7 +223,7 @@ function validateStockLt(value) {
 
 function validateGlobalThreshold(value) {
     if (value === '') return { valid: false, msg: 'Vui lòng nhập ngưỡng sắp hết' };
-    const n = Number(value);
+    const n = parseNumberInputValue(value);
     if (!Number.isInteger(n) || n < 0)
         return { valid: false, msg: 'Vui lòng nhập số nguyên không âm' };
     return { valid: true };
@@ -252,7 +252,7 @@ function applyStockLtFilter() {
         return;
     }
     errEl.textContent = '';
-    activeStockLt = val;
+    activeStockLt = normalizeNumberString(val);
     currentPage = 1;
     loadInventory();
 }
@@ -266,7 +266,8 @@ function applyGlobalThreshold() {
         return;
     }
     errEl.textContent = '';
-    setGlobalLowStockThreshold(Number(val));
+    const parsed = parseNumberInputValue(val);
+    setGlobalLowStockThreshold(parsed ?? 0);
     updateLowStockNote();
     currentPage = 1;
     loadInventory();
