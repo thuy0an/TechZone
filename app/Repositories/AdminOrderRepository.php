@@ -42,22 +42,83 @@ class AdminOrderRepository extends BaseRepository implements AdminOrderRepositor
             $query->where('payment_method', $filters['payment_method']);
         }
 
-        if (!empty($filters['province_id'])) {
-            $query->where('province_id', $filters['province_id']);
-        }
+        $this->applyLocationFilter(
+            $query,
+            'province_id',
+            $filters['province_id'] ?? null,
+            'province_name',
+            $filters['province_name'] ?? null,
+            ['tp ', 'tp. ', 'thanh pho ', 'tinh ']
+        );
 
-        if (!empty($filters['district_id'])) {
-            $query->where('district_id', $filters['district_id']);
-        }
+        $this->applyLocationFilter(
+            $query,
+            'district_id',
+            $filters['district_id'] ?? null,
+            'district_name',
+            $filters['district_name'] ?? null,
+            ['quan ', 'huyen ', 'thi xa ', 'tx. ']
+        );
 
-        if (!empty($filters['ward_code'])) {
-            $query->where('ward_code', $filters['ward_code']);
-        }
+        $this->applyLocationFilter(
+            $query,
+            'ward_code',
+            $filters['ward_code'] ?? null,
+            'ward_name',
+            $filters['ward_name'] ?? null,
+            ['phuong ', 'xa ', 'thi tran ', 'tt. ']
+        );
 
         if (!empty($filters['user_id'])) {
             $query->where('user_id', $filters['user_id']);
         }
 
         return $query->orderBy('created_at', 'desc')->orderBy('id', 'desc')->paginate($perPage);
+    }
+
+    private function applyLocationFilter($query, string $idColumn, $idValue, string $nameColumn, ?string $name, array $prefixes): void
+    {
+        $hasId = !empty($idValue);
+        $clean = $name ? trim(mb_strtolower($name)) : '';
+        if (!$hasId && $clean === '') return;
+
+        $base = $clean ? $this->stripPrefixes($clean, $prefixes) : '';
+        $candidates = array_unique(array_filter([$clean, $base]));
+
+        if ($base !== '') {
+            foreach ($prefixes as $prefix) {
+                $prefix = trim($prefix);
+                if ($prefix === '') continue;
+                $candidates[] = trim($prefix . ' ' . $base);
+            }
+        }
+        $candidates = array_values(array_unique(array_filter($candidates)));
+
+        $query->where(function ($q) use ($idColumn, $idValue, $nameColumn, $candidates, $base) {
+            if (!empty($idValue)) {
+                $q->orWhere($idColumn, $idValue);
+            }
+            if (!empty($candidates)) {
+                $q->orWhereIn($nameColumn, $candidates);
+            }
+            if ($base) {
+                $q->orWhere($nameColumn, 'like', '%' . $base . '%');
+                $q->orWhere('shipping_address', 'like', '%' . $base . '%');
+            }
+        });
+    }
+
+    private function stripPrefixes(string $value, array $prefixes): string
+    {
+        $result = $value;
+        foreach ($prefixes as $prefix) {
+            $prefix = trim($prefix);
+            if ($prefix === '') continue;
+            if (str_starts_with($result, $prefix)) {
+                $result = trim(mb_substr($result, mb_strlen($prefix)));
+                break;
+            }
+        }
+        return $result;
     }
 }

@@ -39,4 +39,10 @@ class UserService implements UserServiceInterface
     {
         return $this->userRepo->toggleLock($id);
     }
+
+    public function resetPassword(int $id, ?string $password = null): bool
+    {
+        $finalPassword = $password ?: 'TechZone@2026';
+        return $this->userRepo->resetPassword($id, $finalPassword);
+    }
 }

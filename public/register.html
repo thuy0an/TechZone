@@ -100,11 +100,12 @@
                     name, email, phone, password, password_confirmation 
                 });
 
-                alert('Chúc mừng! Bạn đã đăng ký tài khoản và thông tin giao hàng thành công.');
-
+                showCenteredModal('Đăng ký thành công!', 'Đang chuyển hướng...');
                 const redirectTo = sessionStorage.getItem('post_login_redirect') || 'index.html';
                 sessionStorage.removeItem('post_login_redirect');
-                await checkAddressAndRedirect(redirectTo);
+                window.setTimeout(() => {
+                    checkAddressAndRedirect(redirectTo);
+                }, 800);
             } catch (err) {
                 // Nhận lỗi 422 (Unprocessable Entity) hoặc 409 (Conflict) từ Backend
                 alertBox.textContent = err.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.';
@@ -113,6 +114,66 @@
                 btn.disabled = false;
                 btn.textContent = 'Đăng ký ngay';
             }
+        }
+
+        function showCenteredModal(title, message) {
+            const overlay = document.getElementById('centered-modal');
+            const titleEl = document.getElementById('centered-modal-title');
+            const messageEl = document.getElementById('centered-modal-message');
+            const confirmBtn = document.getElementById('centered-modal-confirm');
+            const cancelBtn = document.getElementById('centered-modal-cancel');
+
+            if (!overlay || !titleEl || !messageEl || !confirmBtn || !cancelBtn) return;
+
+            titleEl.textContent = title || 'Thông báo';
+            messageEl.textContent = message || '';
+            confirmBtn.textContent = 'Đã hiểu';
+            cancelBtn.classList.add('is-hidden');
+
+            overlay.classList.add('is-open');
+            overlay.setAttribute('aria-hidden', 'false');
+        }
+    </script>
+
+    <div class="center-modal" id="centered-modal" aria-hidden="true">
+        <div class="center-modal-card" role="dialog" aria-modal="true" aria-labelledby="centered-modal-title">
+            <div class="center-modal-header">
+                <h3 id="centered-modal-title">Thông báo</h3>
+            </div>
+            <div class="center-modal-body" id="centered-modal-message"></div>
+            <div class="center-modal-actions">
+                <button class="btn btn-secondary" type="button" id="centered-modal-cancel">Hủy</button>
+                <button class="btn btn-primary" type="button" id="centered-modal-confirm">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const centerOverlay = document.getElementById('centered-modal');
+        const centerConfirm = document.getElementById('centered-modal-confirm');
+        const centerCancel = document.getElementById('centered-modal-cancel');
+
+        if (centerOverlay) {
+            centerOverlay.addEventListener('click', e => {
+                if (e.target === centerOverlay) {
+                    centerOverlay.classList.remove('is-open');
+                    centerOverlay.setAttribute('aria-hidden', 'true');
+                }
+            });
+        }
+
+        if (centerConfirm) {
+            centerConfirm.addEventListener('click', () => {
+                centerOverlay?.classList.remove('is-open');
+                centerOverlay?.setAttribute('aria-hidden', 'true');
+            });
+        }
+
+        if (centerCancel) {
+            centerCancel.addEventListener('click', () => {
+                centerOverlay?.classList.remove('is-open');
+                centerOverlay?.setAttribute('aria-hidden', 'true');
+            });
         }
     </script>
 </body>

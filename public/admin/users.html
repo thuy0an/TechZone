@@ -98,6 +98,35 @@
         </div>
     </div>
 
+    <div class="modal-overlay-form" id="reset-modal">
+        <div class="modal-form-box">
+            <div class="modal-form-header">
+                <span class="modal-form-title">Khởi tạo mật khẩu</span>
+                <button class="modal-close-btn" onclick="closeResetModal()">✕</button>
+            </div>
+            <form id="reset-form" onsubmit="event.preventDefault(); resetUserPassword();">
+                <div class="modal-form-body">
+                    <input type="hidden" id="reset-user-id">
+                    <div class="form-group">
+                        <label>Mật khẩu mới (bỏ trống để dùng mặc định)</label>
+                        <input type="password" id="reset-password" class="form-control" placeholder="TechZone@2026">
+                    </div>
+                    <div class="form-group">
+                        <label>Xác nhận mật khẩu</label>
+                        <input type="password" id="reset-password-confirm" class="form-control" placeholder="TechZone@2026">
+                    </div>
+                    <div class="form-note">
+                        Nếu không nhập mật khẩu mới, hệ thống sẽ đặt về <strong>TechZone@2026</strong>.
+                    </div>
+                </div>
+                <div class="modal-form-footer">
+                    <button type="button" class="btn btn-cancel" onclick="closeResetModal()">Hủy</button>
+                    <button type="submit" class="btn-save" id="reset-btn">Xác nhận</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="../js/admin/admin-token.js"></script>
     <script src="../js/admin/admin-api.js"></script>
     <script src="../js/admin/admin-auth.js"></script>

@@ -585,12 +585,16 @@ function closeCenteredModal(result) {
 
 function toggleAddressForm() {
     const option = document.querySelector('input[name="address_option"]:checked').value;
+    const existingBlock = document.getElementById('existing-address-block');
+    const newBlock = document.getElementById('new-address-block');
+
+    if (!existingBlock || !newBlock) return;
     if (option === 'existing') {
-        document.getElementById('existing-address-block').style.display = 'block';
-        document.getElementById('new-address-block').style.display = 'none';
+        existingBlock.classList.remove('is-hidden');
+        newBlock.classList.add('is-hidden');
     } else {
-        document.getElementById('existing-address-block').style.display = 'none';
-        document.getElementById('new-address-block').style.display = 'block';
+        existingBlock.classList.add('is-hidden');
+        newBlock.classList.remove('is-hidden');
     }
 }
 
@@ -891,7 +895,7 @@ function renderPaymentInfo(method, responseInfo = null) {
     }
 
     if (method === 'online') {
-        container.innerHTML = '<div>He thong dang xu ly thanh toan va se chuyen sang trang tom tat don hang.</div>';
+        container.innerHTML = '<div>Hệ thống đang xử lý thanh toán và chuyển sang trang tóm tắt đơn hàng.</div>';
         container.classList.add('show');
     }
 }

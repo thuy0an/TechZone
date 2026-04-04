@@ -30,6 +30,9 @@ class OrderController extends BaseApiController
                 'province_id'    => $request->query('province_id'),
                 'district_id'    => $request->query('district_id'),
                 'ward_code'      => $request->query('ward_code'),
+                'province_name'  => $request->query('province_name'),
+                'district_name'  => $request->query('district_name'),
+                'ward_name'      => $request->query('ward_name'),
                 'user_id'        => $request->query('user_id'),
             ];
 

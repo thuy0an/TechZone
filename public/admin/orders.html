@@ -189,6 +189,15 @@ async function loadOrders() {
     const provinceId = document.getElementById('filter-province').value;
     const districtId = document.getElementById('filter-district').value;
     const wardCode = document.getElementById('filter-ward').value;
+    const provinceName = provinceId
+        ? document.getElementById('filter-province')?.selectedOptions?.[0]?.text
+        : '';
+    const districtName = districtId
+        ? document.getElementById('filter-district')?.selectedOptions?.[0]?.text
+        : '';
+    const wardName = wardCode
+        ? document.getElementById('filter-ward')?.selectedOptions?.[0]?.text
+        : '';
 
     const params = new URLSearchParams({ page: currentPage, per_page: 10 });
     
@@ -200,6 +209,9 @@ async function loadOrders() {
     if (provinceId) params.append('province_id', provinceId);
     if (districtId) params.append('district_id', districtId);
     if (wardCode) params.append('ward_code', wardCode);
+    if (provinceName) params.append('province_name', provinceName);
+    if (districtName) params.append('district_name', districtName);
+    if (wardName) params.append('ward_name', wardName);
 
     setTableLoading(true);
 
@@ -476,7 +488,7 @@ async function loadWards() {
         const res = await fetch(`/api/locations/wards?district_id=${districtId}`);
         const data = await res.json();
         data.data.forEach(w => {
-            wardSelect.innerHTML += `<option value="${w.id}">${w.name}</option>`;
+            wardSelect.innerHTML += `<option value="${w.code}">${w.name}</option>`;
         });
         wardSelect.disabled = false;
     } catch (error) { console.error('Lỗi tải Phường:', error); }

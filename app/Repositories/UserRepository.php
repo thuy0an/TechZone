@@ -41,4 +41,10 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         $data['password'] = Hash::make($data['password']);
         return $this->model->create($data);
     }
+
+    public function resetPassword(int $id, string $password): bool
+    {
+        $user = $this->model->findOrFail($id);
+        return $user->update(['password' => Hash::make($password)]);
+    }
 }

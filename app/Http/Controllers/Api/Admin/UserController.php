@@ -64,6 +64,18 @@ class UserController extends BaseApiController
         return response()->json(['message' => 'Không tìm thấy người dùng'], 404);
     }
 
+    public function resetPassword(Request $request, int $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'password' => 'nullable|string|min:8'
+        ]);
+
+        $newPassword = $validated['password'] ?? null;
+        $this->userService->resetPassword($id, $newPassword);
+
+        return response()->json(['message' => 'Khởi tạo mật khẩu thành công'], 200);
+    }
+
     public function show(int $id): JsonResponse
     {
         $user = User::findOrFail($id);

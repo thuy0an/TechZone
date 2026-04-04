@@ -72,6 +72,7 @@ function renderTable(items) {
                             onclick="handleToggleLock(${u.id}, ${u.is_locked})">
                         ${u.is_locked ? '🔓 Mở khóa' : '🔒 Khóa'}
                     </button>
+                    <button class="btn-view" onclick="openResetModal(${u.id})">🔁 Reset</button>
                     <button class="btn-edit" onclick="window.location.href='user-detail.html?id=${u.id}'">👁️ Chi tiết</button>
                 </div>
             </td>
@@ -99,6 +100,46 @@ function openAddModal() {
 
 function closeFormModal() {
     document.getElementById('form-modal').classList.remove('show');
+}
+
+function openResetModal(userId) {
+    document.getElementById('reset-form').reset();
+    document.getElementById('reset-user-id').value = userId;
+    document.getElementById('reset-modal').classList.add('show');
+}
+
+function closeResetModal() {
+    document.getElementById('reset-modal').classList.remove('show');
+}
+
+async function resetUserPassword() {
+    const userId = document.getElementById('reset-user-id').value;
+    const password = document.getElementById('reset-password').value;
+    const confirm = document.getElementById('reset-password-confirm').value;
+    const btn = document.getElementById('reset-btn');
+
+    if (password && password !== confirm) {
+        showAdminToast('Mật khẩu xác nhận không khớp', 'error');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Đang xử lý...';
+
+    try {
+        await adminRequest(`/users/${userId}/reset-password`, {
+            method: 'PUT',
+            body: JSON.stringify({ password: password || null })
+        });
+        showAdminToast('Khởi tạo mật khẩu thành công ✅');
+        closeResetModal();
+    } catch (err) {
+        const message = err.data?.message || 'Không thể khởi tạo mật khẩu';
+        showAdminToast(message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Xác nhận';
+    }
 }
 
 async function saveUser() {
