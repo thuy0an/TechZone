@@ -38,7 +38,7 @@ class ReportController extends BaseApiController
             $totalOut = DB::table('order_details')
                 ->join('orders', 'order_details.order_id', '=', 'orders.id')
                 ->where('order_details.product_id', $productId)
-                ->whereNotIn('orders.status', ['cancelled', 'failed'])
+                ->where('orders.status', 'completed')
                 ->where('orders.created_at', '<=', $targetDate)
                 ->sum('order_details.quantity');
 
@@ -84,16 +84,49 @@ class ReportController extends BaseApiController
             $totalOut = DB::table('order_details')
                 ->join('orders', 'order_details.order_id', '=', 'orders.id')
                 ->where('order_details.product_id', $productId)
-                ->whereNotIn('orders.status', ['cancelled', 'failed'])
+                ->where('orders.status', 'completed')
                 ->whereBetween('orders.created_at', [$startDate, $endDate])
                 ->sum('order_details.quantity');
+
+            $importDetails = DB::table('import_note_details')
+                ->join('import_notes', 'import_note_details.import_note_id', '=', 'import_notes.id')
+                ->where('import_note_details.product_id', $productId)
+                ->where('import_notes.status', 'completed')
+                ->whereBetween('import_notes.completed_at', [$startDate, $endDate])
+                ->select([
+                    'import_notes.id as import_note_id',
+                    'import_notes.import_date',
+                    'import_notes.completed_at',
+                    'import_note_details.quantity',
+                    'import_note_details.import_price',
+                ])
+                ->orderBy('import_notes.import_date', 'asc')
+                ->get();
+
+            $orderDetails = DB::table('order_details')
+                ->join('orders', 'order_details.order_id', '=', 'orders.id')
+                ->where('order_details.product_id', $productId)
+                ->where('orders.status', 'completed')
+                ->whereBetween('orders.created_at', [$startDate, $endDate])
+                ->select([
+                    'orders.id as order_id',
+                    'orders.order_code',
+                    'orders.order_date',
+                    'orders.created_at',
+                    'order_details.quantity',
+                    'order_details.unit_price',
+                ])
+                ->orderBy('orders.created_at', 'asc')
+                ->get();
 
             return $this->successResponse([
                 'product_id' => $productId,
                 'start_date' => $startDate,
                 'end_date'   => $endDate,
                 'total_in'   => (int)$totalIn,
-                'total_out'  => (int)$totalOut
+                'total_out'  => (int)$totalOut,
+                'import_details' => $importDetails,
+                'order_details'  => $orderDetails,
             ], 'Báo cáo nhập xuất thành công');
         } catch (\Exception $e) {
             return $this->errorResponse('Lỗi lấy báo cáo', 500, $e->getMessage());

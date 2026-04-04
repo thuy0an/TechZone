@@ -89,8 +89,8 @@
                             </div>
                         </div>
                         <div class="form-group" style="margin: 0; flex: 1; max-width: 250px;">
-                            <label>Thời điểm tra cứu (Target Date) <span style="color:var(--admin-danger)">*</span></label>
-                            <input type="datetime-local" id="hist-date" class="form-control">
+                          <label>Chọn ngày <span style="color:var(--admin-danger)">*</span></label>
+                          <input type="date" id="hist-date" class="form-control">
                         </div>
                         <button class="btn btn-add" onclick="fetchHistoricalStock()" id="btn-hist">
                             🔍 Đối soát tồn kho
@@ -174,6 +174,48 @@
                             </div>
                         </div>
                     </div>
+
+                      <div id="period-details" style="display:none; margin-top: 24px;">
+                        <div style="margin-bottom: 18px;">
+                          <h4 style="margin-bottom: 8px;">Chi tiết phiếu nhập</h4>
+                          <div style="overflow-x:auto">
+                            <table class="data-table">
+                              <thead>
+                                <tr>
+                                  <th>Mã phiếu</th>
+                                  <th>Ngày nhập</th>
+                                  <th>Số lượng</th>
+                                  <th>Giá nhập</th>
+                                  <th>Thành tiền</th>
+                                </tr>
+                              </thead>
+                              <tbody id="period-import-body">
+                                <tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:24px">Chưa có dữ liệu</td></tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 style="margin-bottom: 8px;">Chi tiết đơn hàng (xuất)</h4>
+                          <div style="overflow-x:auto">
+                            <table class="data-table">
+                              <thead>
+                                <tr>
+                                  <th>Mã đơn</th>
+                                  <th>Ngày bán</th>
+                                  <th>Số lượng</th>
+                                  <th>Giá bán</th>
+                                  <th>Thành tiền</th>
+                                </tr>
+                              </thead>
+                              <tbody id="period-order-body">
+                                <tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:24px">Chưa có dữ liệu</td></tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
                 </div>
             </div>
                         <!-- ② Tab Navigation -->
@@ -565,7 +607,7 @@ initAdminLayout({
 document.addEventListener('DOMContentLoaded', () => {
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    document.getElementById('hist-date').value = now.toISOString().slice(0,16);
+    document.getElementById('hist-date').value = now.toISOString().slice(0,10);
 
     loadProductsForSelects();
 });
@@ -607,7 +649,8 @@ async function fetchHistoricalStock() {
 
     try {
         // Gọi Endpoint 1
-        const res = await adminRequest(`/reports/historical-stock?product_id=${productId}&target_date=${targetDate.replace('T', ' ')}:59`);
+        const endOfDay = `${targetDate} 23:59:59`;
+        const res = await adminRequest(`/reports/historical-stock?product_id=${productId}&target_date=${endOfDay}`);
         const data = res.data;
 
         // Đổ dữ liệu vào DOM
@@ -661,6 +704,7 @@ async function fetchImportExport() {
 
         // Hiển thị khung kết quả
         document.getElementById('period-result').style.display = 'grid';
+        renderImportExportDetails(data);
         showAdminToast('Trích xuất báo cáo thành công', 'success');
 
     } catch (err) {
@@ -669,6 +713,55 @@ async function fetchImportExport() {
         btn.disabled = false;
         btn.innerHTML = '📈 Xem lưu chuyển';
     }
+}
+
+function renderImportExportDetails(data) {
+  const importBody = document.getElementById('period-import-body');
+  const orderBody = document.getElementById('period-order-body');
+  const wrapper = document.getElementById('period-details');
+
+  if (!importBody || !orderBody || !wrapper) return;
+
+  const imports = data.import_details || [];
+  const orders = data.order_details || [];
+
+  importBody.innerHTML = imports.length
+    ? imports.map(item => {
+      const noteId = item.import_note_id || item.id || '-';
+      const date = AdminString.date(item.import_date || item.completed_at || item.updated_at);
+      const qty = Number(item.quantity || 0);
+      const price = Number(item.import_price || 0);
+      return `
+        <tr>
+          <td>#${noteId}</td>
+          <td>${date}</td>
+          <td>${new Intl.NumberFormat('vi-VN').format(qty)}</td>
+          <td>${vnd(price)}</td>
+          <td>${vnd(qty * price)}</td>
+        </tr>
+      `;
+    }).join('')
+    : '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:24px">Không có phiếu nhập trong giai đoạn</td></tr>';
+
+  orderBody.innerHTML = orders.length
+    ? orders.map(item => {
+      const orderCode = item.order_code || `#${item.order_id}`;
+      const date = AdminString.date(item.order_date || item.created_at);
+      const qty = Number(item.quantity || 0);
+      const price = Number(item.unit_price || 0);
+      return `
+        <tr>
+          <td>${AdminString.esc(orderCode)}</td>
+          <td>${date}</td>
+          <td>${new Intl.NumberFormat('vi-VN').format(qty)}</td>
+          <td>${vnd(price)}</td>
+          <td>${vnd(qty * price)}</td>
+        </tr>
+      `;
+    }).join('')
+    : '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:24px">Không có đơn hàng hoàn thành trong giai đoạn</td></tr>';
+
+  wrapper.style.display = 'block';
 }
 
 
