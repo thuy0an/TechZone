@@ -184,9 +184,11 @@ function renderTable(items) {
         return;
     }
 
-    tbody.innerHTML = items.map(cat => `
+    const startIndex = (currentPage - 1) * 5;
+
+    tbody.innerHTML = items.map((cat, idx) => `
         <tr>
-            <td class="td-id">${cat.id}</td>
+            <td class="td-id">${startIndex + idx + 1}</td>
             <td class="td-name">${escHtml(cat.name)}</td>
             <td style="color:var(--text-secondary); font-size:0.8rem">${formatDate(cat.created_at)}</td>
             <td>

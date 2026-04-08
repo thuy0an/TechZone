@@ -415,9 +415,9 @@ function updateTotalsFromDom() {
         itemsContainer.innerHTML = `
             <div class="cart-empty">
                 <div class="cart-empty-icon">🛒</div>
-                <h3>Gio hang dang trong</h3>
-                <p>Hay them san pham de bat dau mua sam.</p>
-                <a href="products.html" class="btn btn-primary">Kham pha san pham</a>
+                <h3>Giỏ hàng đang trống</h3>
+                <p>Hãy thêm sản phẩm để mua sắm</p>
+                <a href="products.html" class="btn btn-primary">Khám phá sản phẩm</a>
             </div>
         `;
     }

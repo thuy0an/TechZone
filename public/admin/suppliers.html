@@ -266,9 +266,11 @@ function renderTable(data) {
             return;
         }
 
-        tbody.innerHTML = data.map(item => `
+        const startIndex = (currentPage - 1) * 15;
+
+        tbody.innerHTML = data.map((item, idx) => `
             <tr>
-                <td class="td-id">#${item.id}</td>
+                <td class="td-id">${startIndex + idx + 1}</td>
                 <td class="td-name" style="font-weight: 600;">${AdminString.esc(item.name || '—')}</td>
                 <td style="font-size:0.85rem; line-height: 1.6;">
                     📞 ${item.phone ? AdminString.esc(item.phone) : '<span style="color: gray;">—</span>'}<br>
