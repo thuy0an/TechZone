@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lich su gia - TechZone Admin</title>
+    <title>Lịch sử giá - TechZone Admin</title>
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="icon" href="../favicon.ico">
 </head>
@@ -15,18 +15,18 @@
 
         <main class="admin-content">
             <div class="page-header">
-                <h1>Lich su gia</h1>
-                <p>Theo doi bien dong gia theo lo hang</p>
+                <h1>Lịch sử giá</h1>
+                <p>Theo dõi biến động giá theo lô hàng</p>
             </div>
 
             <div class="card">
                 <div class="card-header">
                     <div class="history-toolbar">
                         <div class="form-group" style="margin: 0;">
-                            <label for="history-product" class="history-label">Chon san pham</label>
+                            <label for="history-product" class="history-label">Chọn sản phẩm</label>
                             <select id="history-product" class="form-control cursor-pointer"></select>
                         </div>
-                        <button class="btn-add" onclick="loadPriceHistories(1)">Tai du lieu</button>
+                        <button class="btn-add" onclick="loadPriceHistories(1)">Tải dữ liệu</button>
                     </div>
                 </div>
 
@@ -34,17 +34,17 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th style="width:120px">Ma lo</th>
-                                <th style="width:160px">Ngay doi gia</th>
-                                <th style="width:140px">Nguon</th>
-                                <th>Gia von BQ</th>
-                                <th>% Loi nhuan</th>
-                                <th>Gia ban</th>
+                                <th style="width:120px">Mã lô</th>
+                                <th style="width:160px">Ngày đổi giá</th>
+                                <th style="width:140px">Nguồn</th>
+                                <th>Giá vốn BQ</th>
+                                <th>% lợi nhuận</th>
+                                <th>Giá bán</th>
                                 <th>Admin</th>
                             </tr>
                         </thead>
                         <tbody id="price-history-body">
-                            <tr><td colspan="6" class="table-loading">Chon san pham de xem lich su gia</td></tr>
+                            <tr><td colspan="6" class="table-loading">Chọn sản phẩm để xem lịch sử giá</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -64,7 +64,7 @@
 <script src="../js/admin/admin-layout.js"></script>
 <script src="../js/admin/admin-utils.js"></script>
 <script>
-initAdminLayout({ title: 'Lich su gia', icon: '$', activePage: 'price-histories' });
+initAdminLayout({ title: 'Lịch sử giá', icon: '$', activePage: 'price-histories' });
 
 let currentProductId = null;
 let currentPage = 1;
@@ -93,7 +93,7 @@ async function loadProductsForSelect() {
         const res = await adminRequest('/products?per_page=200');
         const items = res.data || [];
 
-        const options = ['<option value="">Chon san pham</option>']
+        const options = ['<option value="">Chọn sản phẩm</option>']
             .concat(items.map(item => `<option value="${item.id}">${item.code} - ${item.name}</option>`));
 
         select.innerHTML = options.join('');
@@ -104,7 +104,7 @@ async function loadProductsForSelect() {
             loadPriceHistories(1);
         }
     } catch (err) {
-        select.innerHTML = '<option value="">Khong tai duoc san pham</option>';
+        select.innerHTML = '<option value="">Không tải được sản phẩm</option>';
     }
 }
 
@@ -114,7 +114,7 @@ async function loadPriceHistories(page = 1) {
 
     if (!productId) {
         document.getElementById('price-history-body').innerHTML =
-            '<tr><td colspan="6" class="table-loading">Vui long chon san pham</td></tr>';
+            '<tr><td colspan="6" class="table-loading">Vui lòng chọn sản phẩm</td></tr>';
         return;
     }
 
@@ -133,8 +133,8 @@ async function loadPriceHistories(page = 1) {
             const hasImport = Boolean(item.import_note_id);
             const noteId = item.import_note_id ?? '-';
             const noteDate = item.import_note?.import_date || item.created_at;
-            const adminName = item.import_note?.admin?.name || (hasImport ? '-' : 'Quan tri');
-            const sourceLabel = hasImport ? 'Nhap kho' : 'Cap nhat tay';
+            const adminName = item.import_note?.admin?.name || (hasImport ? '-' : 'Quản trị');
+            const sourceLabel = hasImport ? 'Nhập kho' : 'Cập nhật tay';
             const sourceClass = hasImport ? 'history-source import' : 'history-source manual';
 
             return `
@@ -150,7 +150,7 @@ async function loadPriceHistories(page = 1) {
             `;
         }).join('');
 
-        tbody.innerHTML = rows || '<tr><td colspan="6" class="table-loading">Chua co lich su gia.</td></tr>';
+        tbody.innerHTML = rows || '<tr><td colspan="6" class="table-loading">Chưa có lịch sử giá.</td></tr>';
 
         renderPagination({
             meta: res.pagination,
@@ -161,7 +161,7 @@ async function loadPriceHistories(page = 1) {
             onPageChange: (p) => loadPriceHistories(p),
         });
     } catch (err) {
-        tbody.innerHTML = '<tr><td colspan="6" class="table-loading" style="color:var(--admin-danger)">Khong the tai lich su gia.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="table-loading" style="color:var(--admin-danger)">Không thể tải lịch sử giá.</td></tr>';
     }
 }
 

@@ -557,8 +557,8 @@ async function loadViewHistory(page = 1) {
             const hasImport = Boolean(item.import_note_id);
             const noteId = item.import_note_id ?? '-';
             const noteDate = item.import_note?.import_date || item.created_at;
-            const adminName = item.import_note?.admin?.name || (hasImport ? '-' : 'Quan tri');
-            const sourceLabel = hasImport ? 'Nhap kho' : 'Cap nhat tay';
+            const adminName = item.import_note?.admin?.name || (hasImport ? '-' : 'Quản trị');
+            const sourceLabel = hasImport ? 'Nhập kho' : 'Cập nhật tay';
             const sourceClass = hasImport ? 'history-source import' : 'history-source manual';
 
             return `

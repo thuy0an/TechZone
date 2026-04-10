@@ -497,11 +497,11 @@ async function renderHomeCategoryStrip() {
 
         container.innerHTML = `
             <div class="category-strip-grid">
-                ${tiles || '<div class="loading">Khong co danh muc phu hop.</div>'}
+                ${tiles || '<div class="loading">Không có danh mục phù hợp.</div>'}
             </div>
         `;
     } catch (error) {
-        container.innerHTML = '<div class="loading">Khong the tai danh muc.</div>';
+        container.innerHTML = '<div class="loading">Không thể tải danh mục.</div>';
     }
 }
 

@@ -133,7 +133,7 @@ async function loadCart({ showStatus = false } = {}) {
         renderCart(cart);
     } catch (error) {
         if (showStatus && status) {
-            status.textContent = 'Khong the tai gio hang. Vui long thu lai.';
+            status.textContent = 'Không thể tải giỏ hàng, xin vui lòng thử lại.';
             status.classList.remove('is-loading');
         }
     }
@@ -192,12 +192,12 @@ function renderCart(cart) {
                 </div>
                 <div class="cart-item-media">
                     <button class="cart-item-link" type="button" onclick="openProductDetail(${product.id})">
-                        <img src="${resolveImageUrl(product.image)}" alt="${escapeHtml(product.name || 'San pham')}" onerror="this.src='https://placehold.co/120x120?text=No+Image'">
+                        <img src="${resolveImageUrl(product.image)}" alt="${escapeHtml(product.name || 'Sản phẩm')}" onerror="this.src='https://placehold.co/120x120?text=No+Image'">
                     </button>
                 </div>
                 <div class="cart-item-info">
                     <button class="cart-item-name" type="button" onclick="openProductDetail(${product.id})">
-                        ${escapeHtml(product.name || 'San pham')}
+                        ${escapeHtml(product.name || 'Sản phẩm')}
                     </button>
                     <p class="cart-item-meta cart-item-price">
                         ${priceChanged ? `<span class="cart-item-price-old">${formatPrice(oldPrice)}</span>` : ''}
@@ -361,7 +361,7 @@ async function setCartItemQuantity(productId, desiredQty) {
         await updateCartItem(productId, delta);
         await updateCartCount();
     } catch (error) {
-        const message = error?.data?.message || error?.message || 'Khong the cap nhat gio hang.';
+        const message = error?.data?.message || error?.message || 'Không thể cập nhật giỏ hàng.';
         showNotification(message, 'error');
         await loadCart({ showStatus: false });
     }
